@@ -1,0 +1,61 @@
+import 'package:equatable/equatable.dart';
+import '../../domain/entities/exercise_set.dart';
+
+abstract class WorkoutEvent extends Equatable {
+  const WorkoutEvent();
+
+  @override
+  List<Object?> get props => [];
+}
+
+/// Start a fresh session
+class StartWorkoutSession extends WorkoutEvent {
+  const StartWorkoutSession();
+}
+
+/// Add a new exercise to the current session
+class AddExercise extends WorkoutEvent {
+  final String exerciseName;
+
+  const AddExercise({required this.exerciseName});
+
+  @override
+  List<Object> get props => [exerciseName];
+}
+
+/// Log a set for an existing exercise
+class LogSet extends WorkoutEvent {
+  final String exerciseId;
+  final ExerciseSet set;
+
+  const LogSet({required this.exerciseId, required this.set});
+
+  @override
+  List<Object> get props => [exerciseId, set];
+}
+
+/// Remove a set from an exercise
+class RemoveSet extends WorkoutEvent {
+  final String exerciseId;
+  final String setId;
+
+  const RemoveSet({required this.exerciseId, required this.setId});
+
+  @override
+  List<Object> get props => [exerciseId, setId];
+}
+
+/// Save the current session and clear state
+class FinishWorkoutSession extends WorkoutEvent {
+  const FinishWorkoutSession();
+}
+
+/// Load past sessions for the history screen
+class LoadWorkoutHistory extends WorkoutEvent {
+  const LoadWorkoutHistory();
+}
+
+/// Load PRs for the records screen
+class LoadPersonalRecords extends WorkoutEvent {
+  const LoadPersonalRecords();
+}
