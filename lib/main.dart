@@ -26,8 +26,8 @@ Future<void> main() async {
       channelId: 'tabata_timer_channel',
       channelName: 'Tabata Timer',
       channelDescription: 'Shows current workout phase and time',
-      channelImportance: NotificationChannelImportance.MAX,
-      priority: NotificationPriority.MAX,
+      channelImportance: NotificationChannelImportance.LOW,
+      priority: NotificationPriority.LOW,
     ),
     iosNotificationOptions: const IOSNotificationOptions(
       showNotification: true,
@@ -38,7 +38,6 @@ Future<void> main() async {
       allowWakeLock: true,
       allowWifiLock: true,
       eventAction: ForegroundTaskEventAction.nothing(),
-      
     ),
   );
   runApp(const MyApp());

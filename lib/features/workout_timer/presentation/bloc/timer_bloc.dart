@@ -4,6 +4,7 @@ import 'package:app_lifecycle/core/utils/foreground_task_handler.dart';
 import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_config.dart';
 import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_phase.dart';
 import 'package:app_lifecycle/features/workout_timer/domain/usecases/generate_workout_usecase.dart';
+import 'package:app_lifecycle/features/workout_timer/presentation/bloc/timer_effect.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
@@ -14,6 +15,7 @@ part 'timer_state.dart';
 class TimerBloc extends Bloc<TimerEvent, TimerState> {
   Timer? _ticker;
   WorkoutConfig _currentConfig = const WorkoutConfig();
+  final _effectController = StreamController<TimerEffect>.broadcast();
   List<WorkoutPhase> _sequence = [];
   int _currentIndex = 0;
   int _remainingSeconds = 0;
@@ -27,7 +29,10 @@ class TimerBloc extends Bloc<TimerEvent, TimerState> {
     on<TimerNextPhase>(_onNextPhase);
     on<TimerStopped>(_onStopped);
     on<TimerConfigChanged>(_onConfigChanged);
+    on<TimerStopRequestedEvent>(_onTimerStopRequested);
   }
+
+  Stream<TimerEffect> get effectStream => _effectController.stream;
 
   void _onReceiveTaskData(Object data) {
     debugPrint('📩 Data from notification: $data');
@@ -43,7 +48,7 @@ class TimerBloc extends Bloc<TimerEvent, TimerState> {
         add(TimerResumed());
         break;
       case 'stop':
-        add(TimerStopped());
+        add(TimerStopRequestedEvent());
         break;
     }
   }
@@ -125,10 +130,21 @@ class TimerBloc extends Bloc<TimerEvent, TimerState> {
   }
 
   void _onStopped(TimerStopped event, Emitter<TimerState> emit) async {
-    log('inside onStopped >>>>>>>>>><<<<<<<<<<<<<,');
     _ticker?.cancel();
     emit(TimerInitial(_currentConfig));
     await FlutterForegroundTask.stopService();
+  }
+
+  void _onTimerStopRequested(
+    TimerStopRequestedEvent event,
+    Emitter<TimerState> emit,
+  ) {
+    _ticker?.cancel();
+    if (state is TimerRunning) {
+      final pausedState = (state as TimerRunning).copyWith(isPaused: true);
+      emit(pausedState);
+    }
+    _effectController.add(ShowStopDialogEffect());
   }
 
   void _onConfigChanged(TimerConfigChanged event, Emitter<TimerState> emit) {
@@ -202,7 +218,10 @@ class TimerBloc extends Bloc<TimerEvent, TimerState> {
   @override
   Future<void> close() {
     _ticker?.cancel();
+    _effectController.close();
+
     FlutterForegroundTask.stopService();
+
     return super.close();
   }
 }

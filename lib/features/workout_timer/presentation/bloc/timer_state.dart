@@ -46,5 +46,6 @@ class TimerRunning extends TimerState {
     );
   }
 }
+// class TimerStopRequested extends TimerState {}
 
 class TimerFinished extends TimerState {}

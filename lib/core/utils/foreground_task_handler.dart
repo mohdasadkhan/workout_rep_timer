@@ -24,6 +24,9 @@ class TimerTaskHandler extends TaskHandler {
   void onNotificationButtonPressed(String id) {
     super.onNotificationButtonPressed(id);
     debugPrint('🔘 Button pressed: $id');
+    // if (id == 'stop') {
+    //   FlutterForegroundTask.launchApp('/running');
+    // }
     FlutterForegroundTask.sendDataToMain({'action': id});
   }
 }

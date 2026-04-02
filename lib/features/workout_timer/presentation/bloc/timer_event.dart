@@ -17,6 +17,9 @@ class TimerNextPhase extends TimerEvent {}
 
 class TimerStopped extends TimerEvent {}
 
+class TimerStopRequestedEvent extends TimerEvent {}
+
+
 class TimerConfigChanged extends TimerEvent {
   final WorkoutConfig config;
   TimerConfigChanged(this.config);

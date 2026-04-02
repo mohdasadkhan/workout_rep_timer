@@ -37,7 +37,7 @@ class _FinishOverlayState extends State<_FinishOverlay>
   late Animation<double> _trophyScale;
   late Animation<double> _contentSlide;
   late String _quote;
-  
+
   final List<String> _workoutQuotes = [
     "Every rep counts. Every session matters. 🔥",
     "Pain is temporary. Pride is forever. 💪",
@@ -54,7 +54,6 @@ class _FinishOverlayState extends State<_FinishOverlay>
   void initState() {
     super.initState();
 
-    
     _quote = _workoutQuotes[Random().nextInt(_workoutQuotes.length)];
 
     _trophyController = AnimationController(
@@ -109,7 +108,6 @@ class _FinishOverlayState extends State<_FinishOverlay>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    
                     ScaleTransition(
                       scale: _trophyScale,
                       child: const Text(
@@ -122,7 +120,6 @@ class _FinishOverlayState extends State<_FinishOverlay>
                     ),
                     const SizedBox(height: 20),
 
-                    
                     const Text(
                       'Workout Complete!',
                       textAlign: TextAlign.center,
@@ -136,7 +133,6 @@ class _FinishOverlayState extends State<_FinishOverlay>
                     ),
                     const SizedBox(height: 20),
 
-                    
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
