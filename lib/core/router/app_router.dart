@@ -1,7 +1,3 @@
-// The router listens to NotificationBloc state changes and navigates
-// when a deep-link target is set. The Bloc doesn't know about GoRouter —
-// the router knows about the Bloc. Dependency direction stays clean.
-
 import 'package:app_lifecycle/features/rep_tracker/presentation/pages/workout_history_page.dart';
 import 'package:app_lifecycle/features/rep_tracker/presentation/pages/workout_session_page.dart';
 import 'package:app_lifecycle/features/workout_timer/presentation/screens/config_screen.dart';
@@ -17,7 +13,6 @@ Page<void> _buildPage({required GoRouterState state, required Widget child}) {
     child: child,
     transitionDuration: const Duration(milliseconds: 300),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      // CurvedAnimation makes it feel snappy, not robotic
       final curved = CurvedAnimation(
         parent: animation,
         curve: Curves.easeInOut,
@@ -55,33 +50,3 @@ GoRouter createRouter() {
     ],
   );
 }
-// final _rootNavigatorKey = GlobalKey<NavigatorState>();
-
-// GoRouter createRouter() {
-//   return GoRouter(
-//     navigatorKey: _rootNavigatorKey,
-//     initialLocation: '/tabata', // or '/' for HomeScreen
-//     routes: [
-//       GoRoute(
-//         path: '/tabata',
-//         builder: (_, __) => const ConfigScreen(),
-//         routes: [
-//           GoRoute(
-//             path: 'running',
-//             builder: (_, __) => const RunningTimerScreen(),
-//           ),
-//         ],
-//       ),
-//       GoRoute(
-//         path: '/rep-tracker',
-//         builder: (_, __) => const WorkoutSessionPage(),
-//         routes: [
-//           GoRoute(
-//             path: 'history',
-//             builder: (_, __) => const WorkoutHistoryPage(),
-//           ),
-//         ],
-//       ),
-//     ],
-//   );
-// }

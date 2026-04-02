@@ -5,8 +5,6 @@ import 'package:app_lifecycle/features/notification/domain/entities/notification
 import 'package:app_lifecycle/features/notification/domain/repositories/notification_repository.dart';
 import 'package:dartz/dartz.dart';
 
-//This class is the bridge: it implements the domain contract;
-
 class NotificationRepositoryImpl implements NotificationRepository {
   final FcmRemoteDatasource _fcmRemoteDatasource;
   final LocalNotificationDatasource _localDataSource;

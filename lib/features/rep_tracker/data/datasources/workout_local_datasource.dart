@@ -23,7 +23,7 @@ class WorkoutLocalDatasourceImpl implements WorkoutLocalDatasource {
   Future<void> saveWorkoutSession(WorkoutSessionModel session) async {
     try {
       final box = await _box;
-      // Key by id so we can overwrite if needed
+
       await box.put(session.id, jsonEncode(session.toJson()));
     } catch (e) {
       throw CacheException(message: 'Failed to save workout: $e');
@@ -35,11 +35,12 @@ class WorkoutLocalDatasourceImpl implements WorkoutLocalDatasource {
     try {
       final box = await _box;
       return box.values
-          .map((raw) => WorkoutSessionModel.fromJson(
-                jsonDecode(raw) as Map<String, dynamic>,
-              ))
+          .map(
+            (raw) => WorkoutSessionModel.fromJson(
+              jsonDecode(raw) as Map<String, dynamic>,
+            ),
+          )
           .toList()
-        // Most recent first
         ..sort((a, b) => b.date.compareTo(a.date));
     } catch (e) {
       throw CacheException(message: 'Failed to load history: $e');

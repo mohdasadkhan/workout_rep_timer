@@ -1,6 +1,3 @@
-// =====================================================
-// lib/features/workout_timer/presentation/bloc/timer_state.dart
-// =====================================================
 part of 'timer_bloc.dart';
 
 abstract class TimerState {}

@@ -1,12 +1,9 @@
-// =====================================================
-// lib/features/workout_timer/presentation/widgets/config_tile.dart
-// =====================================================
 import 'package:flutter/material.dart';
 
 class ConfigTile extends StatelessWidget {
   final String title;
   final int seconds;
-  final int? value; // for non-time fields like cycles/sets
+  final int? value;
   final bool isNumber;
   final ValueChanged<int> onChanged;
 
@@ -31,19 +28,24 @@ class ConfigTile extends StatelessWidget {
           children: [
             IconButton(
               icon: const Icon(Icons.remove_circle_outline),
-              onPressed: () => onChanged((displayValue - (isNumber ? 1 : 15)).clamp(0, 999)),
+              onPressed: () =>
+                  onChanged((displayValue - (isNumber ? 1 : 15)).clamp(0, 999)),
             ),
             SizedBox(
               width: 64,
               child: Text(
                 isNumber ? displayValue.toString() : '${displayValue}s',
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
             IconButton(
               icon: const Icon(Icons.add_circle_outline),
-              onPressed: () => onChanged((displayValue + (isNumber ? 1 : 15)).clamp(0, 999)),
+              onPressed: () =>
+                  onChanged((displayValue + (isNumber ? 1 : 15)).clamp(0, 999)),
             ),
           ],
         ),

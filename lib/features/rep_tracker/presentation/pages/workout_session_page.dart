@@ -44,7 +44,6 @@ class WorkoutSessionPage extends StatelessWidget {
                 icon: const Icon(Icons.history),
                 tooltip: 'History',
                 onPressed: () => context.push('/rep-tracker/history'),
-                // using go_router push instead of Navigator.push
               ),
               if (state is WorkoutSessionActive && state.exercises.isNotEmpty)
                 TextButton(
@@ -53,35 +52,7 @@ class WorkoutSessionPage extends StatelessWidget {
                 ),
             ],
           ),
-          // appBar: AppBar(
-          //   // Replaces the default title
-          //   title: FeatureDropdownTitle(current: AppFeature.repTracker),
-          //   centerTitle: false, // keeps it left-aligned like the screenshot
-          //   automaticallyImplyLeading: false,
-          // ),
-          // appBar: AppBar(
-          //   title: const Text('Today\'s Workout'),
-          //   actions: [
-          //     IconButton(
-          //       icon: const Icon(Icons.history),
-          //       tooltip: 'History',
-          //       onPressed: () => Navigator.push(
-          //         context,
-          //         MaterialPageRoute(
-          //           builder: (_) => BlocProvider.value(
-          //             value: context.read<WorkoutBloc>(),
-          //             child: const WorkoutHistoryPage(),
-          //           ),
-          //         ),
-          //       ),
-          //     ),
-          //     if (state is WorkoutSessionActive && state.exercises.isNotEmpty)
-          //       TextButton(
-          //         onPressed: () => _confirmFinish(context),
-          //         child: const Text('Finish'),
-          //       ),
-          //   ],
-          // ),
+
           body: switch (state) {
             WorkoutInitial() => _BuildStartPrompt(
               onStart: () =>
@@ -207,8 +178,6 @@ class WorkoutSessionPage extends StatelessWidget {
   }
 }
 
-// ── Sub-widgets (Single Responsibility) ──────────────────────────────────────
-
 class _BuildStartPrompt extends StatelessWidget {
   final VoidCallback onStart;
   const _BuildStartPrompt({required this.onStart});
@@ -253,7 +222,6 @@ class _BuildActiveSession extends StatelessWidget {
 
     return Column(
       children: [
-        // Summary strip
         Container(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -317,7 +285,6 @@ class _ExerciseCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Exercise header
             Row(
               children: [
                 Expanded(
@@ -334,7 +301,6 @@ class _ExerciseCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
 
-            // Sets table header
             const Row(
               children: [
                 SizedBox(
@@ -361,7 +327,6 @@ class _ExerciseCard extends StatelessWidget {
             ),
             const Divider(height: 8),
 
-            // Existing sets
             ...exercise.sets.asMap().entries.map((entry) {
               final i = entry.key;
               final set = entry.value;
@@ -407,7 +372,7 @@ class _ExerciseCard extends StatelessWidget {
             }),
 
             const SizedBox(height: 8),
-            // Add set button
+
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(

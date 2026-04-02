@@ -20,8 +20,8 @@ class WorkoutBloc extends Bloc<WorkoutEvent, WorkoutState> {
     required this.getWorkoutHistory,
     required this.getPersonalRecords,
     Uuid? uuid,
-  })  : uuid = uuid ?? const Uuid(),
-        super(const WorkoutInitial()) {
+  }) : uuid = uuid ?? const Uuid(),
+       super(const WorkoutInitial()) {
     on<StartWorkoutSession>(_onStartSession);
     on<AddExercise>(_onAddExercise);
     on<LogSet>(_onLogSet);
@@ -32,11 +32,13 @@ class WorkoutBloc extends Bloc<WorkoutEvent, WorkoutState> {
   }
 
   void _onStartSession(StartWorkoutSession event, Emitter<WorkoutState> emit) {
-    emit(WorkoutSessionActive(
-      sessionId: uuid.v4(),
-      sessionDate: DateTime.now(),
-      exercises: const [],
-    ));
+    emit(
+      WorkoutSessionActive(
+        sessionId: uuid.v4(),
+        sessionDate: DateTime.now(),
+        exercises: const [],
+      ),
+    );
   }
 
   void _onAddExercise(AddExercise event, Emitter<WorkoutState> emit) {
@@ -79,7 +81,9 @@ class WorkoutBloc extends Bloc<WorkoutEvent, WorkoutState> {
   }
 
   Future<void> _onFinishSession(
-      FinishWorkoutSession event, Emitter<WorkoutState> emit) async {
+    FinishWorkoutSession event,
+    Emitter<WorkoutState> emit,
+  ) async {
     final current = state;
     if (current is! WorkoutSessionActive) return;
 
@@ -91,7 +95,9 @@ class WorkoutBloc extends Bloc<WorkoutEvent, WorkoutState> {
       exercises: current.exercises,
     );
 
-    final result = await saveWorkoutSession(SaveWorkoutParams(session: session));
+    final result = await saveWorkoutSession(
+      SaveWorkoutParams(session: session),
+    );
 
     result.fold(
       (failure) => emit(WorkoutError(message: failure.message)),
@@ -100,7 +106,9 @@ class WorkoutBloc extends Bloc<WorkoutEvent, WorkoutState> {
   }
 
   Future<void> _onLoadHistory(
-      LoadWorkoutHistory event, Emitter<WorkoutState> emit) async {
+    LoadWorkoutHistory event,
+    Emitter<WorkoutState> emit,
+  ) async {
     emit(const WorkoutLoading());
     final result = await getWorkoutHistory(NoParams());
     result.fold(
@@ -110,7 +118,9 @@ class WorkoutBloc extends Bloc<WorkoutEvent, WorkoutState> {
   }
 
   Future<void> _onLoadPersonalRecords(
-      LoadPersonalRecords event, Emitter<WorkoutState> emit) async {
+    LoadPersonalRecords event,
+    Emitter<WorkoutState> emit,
+  ) async {
     emit(const WorkoutLoading());
     final result = await getPersonalRecords(NoParams());
     result.fold(

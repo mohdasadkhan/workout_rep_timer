@@ -1,12 +1,9 @@
-// =====================================================
-// lib/features/workout_timer/domain/entities/workout_config.dart
-// =====================================================
 import 'package:equatable/equatable.dart';
 
 class WorkoutConfig extends Equatable {
   final int prepareSeconds;
   final int workSeconds;
-  final int restSeconds; // intra-cycle rest
+  final int restSeconds;
   final int cyclesPerSet;
   final int numberOfSets;
   final int restBetweenSetsSeconds;
@@ -37,19 +34,20 @@ class WorkoutConfig extends Equatable {
       restSeconds: restSeconds ?? this.restSeconds,
       cyclesPerSet: cyclesPerSet ?? this.cyclesPerSet,
       numberOfSets: numberOfSets ?? this.numberOfSets,
-      restBetweenSetsSeconds: restBetweenSetsSeconds ?? this.restBetweenSetsSeconds,
+      restBetweenSetsSeconds:
+          restBetweenSetsSeconds ?? this.restBetweenSetsSeconds,
       coolDownSeconds: coolDownSeconds ?? this.coolDownSeconds,
     );
   }
 
   @override
   List<Object?> get props => [
-        prepareSeconds,
-        workSeconds,
-        restSeconds,
-        cyclesPerSet,
-        numberOfSets,
-        restBetweenSetsSeconds,
-        coolDownSeconds,
-      ];
+    prepareSeconds,
+    workSeconds,
+    restSeconds,
+    cyclesPerSet,
+    numberOfSets,
+    restBetweenSetsSeconds,
+    coolDownSeconds,
+  ];
 }

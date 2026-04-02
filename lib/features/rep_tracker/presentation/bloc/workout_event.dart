@@ -8,12 +8,10 @@ abstract class WorkoutEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Start a fresh session
 class StartWorkoutSession extends WorkoutEvent {
   const StartWorkoutSession();
 }
 
-/// Add a new exercise to the current session
 class AddExercise extends WorkoutEvent {
   final String exerciseName;
 
@@ -23,7 +21,6 @@ class AddExercise extends WorkoutEvent {
   List<Object> get props => [exerciseName];
 }
 
-/// Log a set for an existing exercise
 class LogSet extends WorkoutEvent {
   final String exerciseId;
   final ExerciseSet set;
@@ -34,7 +31,6 @@ class LogSet extends WorkoutEvent {
   List<Object> get props => [exerciseId, set];
 }
 
-/// Remove a set from an exercise
 class RemoveSet extends WorkoutEvent {
   final String exerciseId;
   final String setId;
@@ -45,17 +41,14 @@ class RemoveSet extends WorkoutEvent {
   List<Object> get props => [exerciseId, setId];
 }
 
-/// Save the current session and clear state
 class FinishWorkoutSession extends WorkoutEvent {
   const FinishWorkoutSession();
 }
 
-/// Load past sessions for the history screen
 class LoadWorkoutHistory extends WorkoutEvent {
   const LoadWorkoutHistory();
 }
 
-/// Load PRs for the records screen
 class LoadPersonalRecords extends WorkoutEvent {
   const LoadPersonalRecords();
 }
