@@ -1,9 +1,11 @@
 import 'dart:developer';
 
+import 'package:app_lifecycle/core/theme/app_colors.dart';
 import 'package:app_lifecycle/core/widgets/feature_dropdown/extension_on_appfeature.dart';
 import 'package:app_lifecycle/core/widgets/feature_dropdown/feature_dropdown.dart';
 import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_config.dart';
 import 'package:app_lifecycle/features/workout_timer/domain/usecases/generate_workout_usecase.dart';
+import 'package:app_lifecycle/features/workout_timer/presentation/screens/workout_preview_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
@@ -47,9 +49,24 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: FeatureDropdownTitle(current: AppFeature.tabataTimer),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            FeatureDropdownTitle(current: AppFeature.tabataTimer),
+            TextButton.icon(
+              onPressed: () => context.push('/tabata/preview', extra: _config),
+              icon: const Icon(Icons.visibility_outlined),
+              label: const Text('PREVIEW'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                textStyle: theme.textTheme.titleMedium,
+              ),
+            ),
+          ],
+        ),
         centerTitle: false,
         automaticallyImplyLeading: false,
       ),
@@ -64,18 +81,14 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      Text(
-                        'TOTAL TIME',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
+                      Text('TOTAL TIME', style: theme.textTheme.titleMedium),
                       const SizedBox(height: 8),
                       Text(
                         _formatTotalTime(),
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.teal,
-                            ),
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
                       ),
                     ],
                   ),
@@ -129,52 +142,70 @@ class _ConfigScreenState extends State<ConfigScreen> {
           ],
         ),
       ),
+
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: FilledButton.icon(
-            onPressed: () async {
-              var permission =
-                  await FlutterForegroundTask.checkNotificationPermission();
-              log('check notification permission >> $permission');
-              if (permission != NotificationPermission.granted) {
-                permission =
-                    await FlutterForegroundTask.requestNotificationPermission();
-                log('request notification permission >> $permission');
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: FilledButton.icon(
+              onPressed: () async {
+                // Your existing permission + battery logic remains the same
+                var permission =
+                    await FlutterForegroundTask.checkNotificationPermission();
+                log('check notification permission >> $permission');
                 if (permission != NotificationPermission.granted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Notification permission required for background timer',
+                  permission =
+                      await FlutterForegroundTask.requestNotificationPermission();
+                  log('request notification permission >> $permission');
+                  if (permission != NotificationPermission.granted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Notification permission required for background timer',
+                        ),
                       ),
-                    ),
-                  );
-                  return;
+                    );
+                    return;
+                  }
                 }
-              }
 
-              if (!await FlutterForegroundTask.isIgnoringBatteryOptimizations) {
-                final ignored =
-                    await FlutterForegroundTask.requestIgnoreBatteryOptimization();
-                if (!ignored) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Please select "No restrictions" for reliable background timer',
+                if (!await FlutterForegroundTask
+                    .isIgnoringBatteryOptimizations) {
+                  final ignored =
+                      await FlutterForegroundTask.requestIgnoreBatteryOptimization();
+                  if (!ignored) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Please select "No restrictions" for reliable background timer',
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  }
                 }
-              }
-              context.read<TimerBloc>().add(TimerStarted(_config));
 
-              context.push('/tabata/running');
-            },
-            icon: const Icon(Icons.play_arrow),
-            label: const Text('START WORKOUT', style: TextStyle(fontSize: 18)),
-            style: FilledButton.styleFrom(
-              minimumSize: const Size(double.infinity, 56),
-              backgroundColor: Colors.teal,
+                context.read<TimerBloc>().add(TimerStarted(_config));
+                context.push('/tabata/running');
+              },
+              icon: const Icon(Icons.play_arrow, size: 32),
+              label: Text(
+                'START WORKOUT',
+                style: theme.textTheme.titleLarge?.copyWith(letterSpacing: 1.2),
+                // style: TextStyle(
+                //   fontSize: 20,
+                //   fontWeight: FontWeight.bold,
+                //   letterSpacing: 1.2,
+                // ),
+              ),
+              // style: FilledButton.styleFrom(
+              //   minimumSize: const Size(double.infinity, 60),
+              //   backgroundColor: Colors.teal,
+              //   foregroundColor: Colors.white,
+              //   elevation: 4,
+              //   shadowColor: Colors.teal,
+              //   padding: const EdgeInsets.symmetric(vertical: 8),
+              // ),
             ),
           ),
         ),

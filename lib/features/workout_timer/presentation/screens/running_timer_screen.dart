@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:app_lifecycle/core/theme/app_colors.dart';
+import 'package:app_lifecycle/core/theme/app_text_styles.dart';
 import 'package:app_lifecycle/core/widgets/dialogs/exit_dialog.dart';
 import 'package:app_lifecycle/features/workout_timer/presentation/bloc/timer_effect.dart';
 import 'package:app_lifecycle/features/workout_timer/presentation/widgets/finish_overlay.dart';
@@ -77,15 +79,16 @@ class _RunningTimerScreenState extends State<RunningTimerScreen>
 
   Color _phaseColor(String phaseName) {
     final name = phaseName.toLowerCase();
-    if (name.contains('work')) return const Color(0xFF00E5A0);
-    if (name.contains('rest')) return const Color(0xFF4FC3F7);
-    if (name.contains('prepare')) return const Color(0xFFFFD54F);
-    if (name.contains('cool')) return const Color(0xFFCE93D8);
-    return const Color(0xFF00E5A0);
+    if (name.contains('work')) return AppColors.work;
+    if (name.contains('rest')) return AppColors.rest;
+    if (name.contains('prepare')) return AppColors.prepare;
+    if (name.contains('cool')) return AppColors.coolDown;
+    return AppColors.work;
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
@@ -96,7 +99,7 @@ class _RunningTimerScreenState extends State<RunningTimerScreen>
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF0A0A0F),
+        backgroundColor: AppColors.background,
         body: BlocListener<TimerBloc, TimerState>(
           listener: (context, state) {
             if (state is TimerInitial) context.pop();
@@ -269,32 +272,22 @@ class _RunningTimerScreenState extends State<RunningTimerScreen>
                                             key: ValueKey(
                                               '${s.remainingSeconds}',
                                             ),
-                                            style: TextStyle(
-                                              fontSize: 72,
-                                              fontWeight: FontWeight.w900,
-                                              color: Colors.white,
-                                              letterSpacing: -2,
-                                              shadows: [
-                                                Shadow(
-                                                  color: phaseColor.withOpacity(
-                                                    0.7,
-                                                  ),
-                                                  blurRadius: 30,
+                                            style: AppTextStyles.timerDisplay
+                                                .copyWith(
+                                                  shadows: [
+                                                    Shadow(
+                                                      color: phaseColor
+                                                          .withOpacity(0.7),
+                                                      blurRadius: 30,
+                                                    ),
+                                                  ],
                                                 ),
-                                              ],
-                                            ),
                                           ),
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
                                           '${totalDuration}s total',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: Colors.white.withOpacity(
-                                              0.35,
-                                            ),
-                                            letterSpacing: 1.5,
-                                          ),
+                                          style: theme.textTheme.labelSmall,
                                         ),
                                       ],
                                     ),
@@ -319,12 +312,7 @@ class _RunningTimerScreenState extends State<RunningTimerScreen>
                                   ),
                                   child: Text(
                                     'SEQUENCE',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white.withOpacity(0.35),
-                                      letterSpacing: 2.5,
-                                    ),
+                                    style: theme.textTheme.labelSmall,
                                   ),
                                 ),
                                 Expanded(
@@ -397,20 +385,21 @@ class _RunningTimerScreenState extends State<RunningTimerScreen>
                                             Expanded(
                                               child: Text(
                                                 phase.name,
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: isCurrent
-                                                      ? FontWeight.w700
-                                                      : FontWeight.w400,
-                                                  color: isCurrent
-                                                      ? Colors.white
-                                                      : Colors.white
-                                                            .withOpacity(
-                                                              isPast
-                                                                  ? 0.3
-                                                                  : 0.6,
-                                                            ),
-                                                ),
+                                                style: AppTextStyles
+                                                    .sequenceItem
+                                                    .copyWith(
+                                                      fontWeight: isCurrent
+                                                          ? FontWeight.w700
+                                                          : FontWeight.w400,
+                                                      color: isCurrent
+                                                          ? AppColors
+                                                                .textPrimary
+                                                          : (isPast
+                                                                ? AppColors
+                                                                      .textTertiary
+                                                                : AppColors
+                                                                      .textSecondary),
+                                                    ),
                                               ),
                                             ),
 
@@ -475,10 +464,9 @@ class _RunningTimerScreenState extends State<RunningTimerScreen>
                           child: Row(
                             children: [
                               Expanded(
-                                child: _OutlineActionButton(
-                                  icon: Icons.skip_next_rounded,
-                                  label: 'NEXT',
-                                  color: Colors.white60,
+                                child: OutlinedButton.icon(
+                                  icon: const Icon(Icons.skip_next_rounded),
+                                  label: const Text('NEXT'),
                                   onPressed: () => context
                                       .read<TimerBloc>()
                                       .add(TimerNextPhase()),
@@ -487,13 +475,15 @@ class _RunningTimerScreenState extends State<RunningTimerScreen>
                               const SizedBox(width: 12),
                               Expanded(
                                 flex: 2,
-                                child: _FilledActionButton(
-                                  icon: Icons.stop_rounded,
-                                  label: 'STOP',
-                                  color: const Color(0xFFFF4757),
+                                child: FilledButton.icon(
+                                  icon: const Icon(Icons.stop_rounded),
+                                  label: const Text('STOP'),
                                   onPressed: () => context
                                       .read<TimerBloc>()
                                       .add(TimerStopRequestedEvent()),
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: AppColors.error,
+                                  ),
                                 ),
                               ),
                             ],

@@ -1,3 +1,4 @@
+import 'package:app_lifecycle/core/theme/app_colors.dart';
 import 'package:app_lifecycle/core/widgets/feature_dropdown/extension_on_appfeature.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -149,59 +150,33 @@ class _DropdownOverlay extends StatelessWidget {
                   ),
                 );
               },
-            child: Container(
-              width: 220,
-              decoration: BoxDecoration(
-                color: const Color(0xFF2A2A2A),
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.4),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
+              child: Container(
+                width: 220,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2A2A2A),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.4),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: AppFeature.values.map((feature) {
+                    final isSelected = feature == currentFeature;
+                    return _DropdownItem(
+                      feature: feature,
+                      isSelected: isSelected,
+                      onTap: () => onSelect(feature),
+                      showDivider: feature != AppFeature.values.last,
+                    );
+                  }).toList(),
+                ),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: AppFeature.values.map((feature) {
-                  final isSelected = feature == currentFeature;
-                  return _DropdownItem(
-                    feature: feature,
-                    isSelected: isSelected,
-                    onTap: () => onSelect(feature),
-                    showDivider: feature != AppFeature.values.last,
-                  );
-                }).toList(),
-              ),
-            )
             ),
-            // child: Container(
-            //   width: 220,
-            //   decoration: BoxDecoration(
-            //     color: const Color(0xFF2A2A2A),
-            //     borderRadius: BorderRadius.circular(14),
-            //     boxShadow: [
-            //       BoxShadow(
-            //         color: Colors.black.withOpacity(0.4),
-            //         blurRadius: 20,
-            //         offset: const Offset(0, 8),
-            //       ),
-            //     ],
-            //   ),
-            //   child: Column(
-            //     mainAxisSize: MainAxisSize.min,
-            //     children: AppFeature.values.map((feature) {
-            //       final isSelected = feature == currentFeature;
-            //       return _DropdownItem(
-            //         feature: feature,
-            //         isSelected: isSelected,
-            //         onTap: () => onSelect(feature),
-            //         showDivider: feature != AppFeature.values.last,
-            //       );
-            //     }).toList(),
-            //   ),
-            // ),
           ),
         ),
       ],
@@ -246,7 +221,7 @@ class _DropdownItem extends StatelessWidget {
                   ),
                 ),
                 if (isSelected)
-                  const Icon(Icons.check, color: Color(0xFF4F9EFF), size: 20),
+                  const Icon(Icons.check, color: AppColors.primary, size: 20),
               ],
             ),
           ),
