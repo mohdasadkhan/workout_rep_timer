@@ -47,9 +47,24 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: FeatureDropdownTitle(current: AppFeature.tabataTimer),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            FeatureDropdownTitle(current: AppFeature.tabataTimer),
+            TextButton.icon(
+              onPressed: () => context.push('/tabata/preview', extra: _config),
+              icon: const Icon(Icons.visibility_outlined),
+              label: const Text('PREVIEW'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                textStyle: theme.textTheme.titleMedium,
+              ),
+            ),
+          ],
+        ),
         centerTitle: false,
         automaticallyImplyLeading: false,
       ),

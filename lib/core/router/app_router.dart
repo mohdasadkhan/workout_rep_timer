@@ -1,7 +1,9 @@
 import 'package:app_lifecycle/features/rep_tracker/presentation/pages/workout_history_page.dart';
 import 'package:app_lifecycle/features/rep_tracker/presentation/pages/workout_session_page.dart';
+import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_config.dart';
 import 'package:app_lifecycle/features/workout_timer/presentation/screens/config_screen.dart';
 import 'package:app_lifecycle/features/workout_timer/presentation/screens/running_timer_screen.dart';
+import 'package:app_lifecycle/features/workout_timer/presentation/screens/workout_preview_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -31,6 +33,17 @@ GoRouter createRouter() {
         path: '/tabata',
         pageBuilder: (context, state) =>
             _buildPage(state: state, child: const ConfigScreen()),
+      ),
+
+      GoRoute(
+        path: '/tabata/preview',
+        pageBuilder: (context, state) {
+          final config = state.extra as WorkoutConfig;
+          return _buildPage(
+            state: state,
+            child: WorkoutPreviewScreen(config: config),
+          );
+        },
       ),
       GoRoute(
         path: '/tabata/running',
