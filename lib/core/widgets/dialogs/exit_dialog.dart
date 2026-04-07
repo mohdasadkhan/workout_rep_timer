@@ -1,37 +1,141 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 Future<bool?> showExitDialog(BuildContext context) {
-  return showDialog<bool>(
+  return showGeneralDialog<bool>(
     context: context,
     barrierDismissible: true,
-    builder: (context) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'End Workout?',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        content: const Text(
-          'Your current session will be lost. Are you sure you want to exit?',
-        ),
-        actionsPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Exit'),
-          ),
-        ],
+    barrierLabel: 'Dismiss',
+    barrierColor: Colors.black87,
+    transitionDuration: const Duration(milliseconds: 400),
+    pageBuilder: (_, __, ___) => const _ExitDialog(),
+    transitionBuilder: (ctx, animation, _, child) {
+      final curved = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutBack,
+      );
+      return ScaleTransition(
+        scale: Tween<double>(begin: 0.85, end: 1.0).animate(curved),
+        child: FadeTransition(opacity: animation, child: child),
       );
     },
   );
 }
+
+class _ExitDialog extends StatelessWidget {
+  const _ExitDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    final quote = _quitQuotes[Random().nextInt(_quitQuotes.length)];
+
+    return Material(
+      color: Colors.transparent,
+      child: Center(
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 48),
+          padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+          decoration: BoxDecoration(
+            color: const Color(0xFF111111),
+            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Quit Workout?',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  decoration: TextDecoration.none,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                quote,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.white.withOpacity(0.45),
+                  fontStyle: FontStyle.italic,
+                  decoration: TextDecoration.none,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(context, false),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.07),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.12),
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Text(
+                          'Keep Going 🔥',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            decoration: TextDecoration.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(context, true),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent.withOpacity(0.15),
+                          border: Border.all(
+                            color: Colors.redAccent.withOpacity(0.4),
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Text(
+                          'Quit',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.redAccent,
+                            decoration: TextDecoration.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+const List<String> _quitQuotes = [
+  "You're so close.",
+  "Don't stop now.",
+  "Pain is progress.",
+  "Finish what you started.",
+  "Champions never quit.",
+  "One more push.",
+  "Your future self is watching.",
+  "Make it count.",
+];
+

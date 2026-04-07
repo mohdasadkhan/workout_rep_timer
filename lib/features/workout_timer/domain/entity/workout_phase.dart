@@ -1,6 +1,3 @@
-// =====================================================
-// lib/features/workout_timer/domain/entities/workout_phase.dart
-// =====================================================
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
@@ -40,5 +37,13 @@ class WorkoutPhase extends Equatable {
   }
 
   @override
-  List<Object?> get props => [name, type, durationSeconds, currentSet, totalSets, currentCycle, totalCycles];
+  List<Object?> get props => [
+    name,
+    type,
+    durationSeconds,
+    currentSet,
+    totalSets,
+    currentCycle,
+    totalCycles,
+  ];
 }

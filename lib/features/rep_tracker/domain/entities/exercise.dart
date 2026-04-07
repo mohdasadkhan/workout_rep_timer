@@ -6,15 +6,10 @@ class Exercise extends Equatable {
   final String name;
   final List<ExerciseSet> sets;
 
-  const Exercise({
-    required this.id,
-    required this.name,
-    required this.sets,
-  });
+  const Exercise({required this.id, required this.name, required this.sets});
 
   double get totalVolume => sets.fold(0, (sum, s) => sum + s.volume);
 
-  // Best set = highest weight lifted
   ExerciseSet? get bestSet => sets.isEmpty
       ? null
       : sets.reduce((a, b) => a.weightKg > b.weightKg ? a : b);

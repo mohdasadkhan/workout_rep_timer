@@ -20,27 +20,24 @@ Future<void> main() async {
       projectId: FirebaseConst.projectId,
     ),
   );
-  // IMPORTANT: Register the callback BEFORE runApp
+  FlutterForegroundTask.initCommunicationPort();
   FlutterForegroundTask.init(
     androidNotificationOptions: AndroidNotificationOptions(
       channelId: 'tabata_timer_channel',
       channelName: 'Tabata Timer',
       channelDescription: 'Shows current workout phase and time',
-      channelImportance: NotificationChannelImportance.MAX,
-      priority: NotificationPriority.MAX,
+      channelImportance: NotificationChannelImportance.LOW,
+      priority: NotificationPriority.LOW,
     ),
     iosNotificationOptions: const IOSNotificationOptions(
       showNotification: true,
       playSound: true,
     ),
     foregroundTaskOptions: ForegroundTaskOptions(
-      // interval: 1000,
-      // isOnce: false,
       autoRunOnBoot: false,
       allowWakeLock: true,
       allowWifiLock: true,
-      eventAction: ForegroundTaskEventAction.once(),
-      // Remove eventAction if it causes issues
+      eventAction: ForegroundTaskEventAction.nothing(),
     ),
   );
   runApp(const MyApp());

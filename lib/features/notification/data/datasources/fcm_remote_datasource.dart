@@ -1,5 +1,3 @@
-//SRP only FCM Responsibilities here
-
 import 'package:app_lifecycle/features/notification/data/models/notification_model.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 

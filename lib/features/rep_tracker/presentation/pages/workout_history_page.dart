@@ -21,7 +21,7 @@ class _WorkoutHistoryPageState extends State<WorkoutHistoryPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    // Load both on open
+
     context.read<WorkoutBloc>()
       ..add(const LoadWorkoutHistory())
       ..add(const LoadPersonalRecords());
@@ -48,16 +48,11 @@ class _WorkoutHistoryPageState extends State<WorkoutHistoryPage>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: const [
-          _HistoryTab(),
-          _PersonalRecordsTab(),
-        ],
+        children: const [_HistoryTab(), _PersonalRecordsTab()],
       ),
     );
   }
 }
-
-// ── History Tab ───────────────────────────────────────────────────────────────
 
 class _HistoryTab extends StatelessWidget {
   const _HistoryTab();
@@ -84,8 +79,7 @@ class _HistoryTab extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             itemCount: state.sessions.length,
             separatorBuilder: (_, __) => const SizedBox(height: 8),
-            itemBuilder: (_, i) =>
-                _SessionCard(session: state.sessions[i]),
+            itemBuilder: (_, i) => _SessionCard(session: state.sessions[i]),
           );
         }
         if (state is WorkoutError) {
@@ -108,8 +102,10 @@ class _SessionCard extends StatelessWidget {
 
     return Card(
       child: ExpansionTile(
-        title: Text(dateStr,
-            style: const TextStyle(fontWeight: FontWeight.w600)),
+        title: Text(
+          dateStr,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
         subtitle: Text(
           '$timeStr · ${session.exercises.length} exercises · '
           '${session.totalSets} sets · '
@@ -123,8 +119,10 @@ class _SessionCard extends StatelessWidget {
               ex.sets
                   .asMap()
                   .entries
-                  .map((e) =>
-                      'Set ${e.key + 1}: ${e.value.weightKg}kg × ${e.value.reps}')
+                  .map(
+                    (e) =>
+                        'Set ${e.key + 1}: ${e.value.weightKg}kg × ${e.value.reps}',
+                  )
                   .join('  ·  '),
               style: const TextStyle(fontSize: 12),
             ),
@@ -143,8 +141,6 @@ class _SessionCard extends StatelessWidget {
     );
   }
 }
-
-// ── PRs Tab ───────────────────────────────────────────────────────────────────
 
 class _PersonalRecordsTab extends StatelessWidget {
   const _PersonalRecordsTab();
@@ -174,14 +170,17 @@ class _PersonalRecordsTab extends StatelessWidget {
             itemBuilder: (_, i) {
               final pr = state.records[i];
               return ListTile(
-                tileColor:
-                    Theme.of(context).colorScheme.surfaceContainerHighest,
+                tileColor: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 leading: const Icon(Icons.emoji_events, color: Colors.amber),
-                title: Text(pr.exerciseName,
-                    style:
-                        const TextStyle(fontWeight: FontWeight.w600)),
+                title: Text(
+                  pr.exerciseName,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
                 subtitle: Text(
                   'Achieved ${DateFormat('d MMM yyyy').format(pr.achievedAt)}',
                   style: const TextStyle(fontSize: 12),
@@ -190,11 +189,17 @@ class _PersonalRecordsTab extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('${pr.bestWeightKg} kg',
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16)),
-                    Text('× ${pr.repsAtBestWeight} reps',
-                        style: const TextStyle(fontSize: 12)),
+                    Text(
+                      '${pr.bestWeightKg} kg',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      '× ${pr.repsAtBestWeight} reps',
+                      style: const TextStyle(fontSize: 12),
+                    ),
                   ],
                 ),
               );
@@ -226,9 +231,9 @@ class _EmptyState extends StatelessWidget {
           Text(
             message,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
           ),
         ],
       ),

@@ -1,6 +1,3 @@
-// =====================================================
-// lib/features/workout_timer/presentation/screens/config_screen.dart
-// =====================================================
 import 'dart:developer';
 
 import 'package:app_lifecycle/core/widgets/feature_dropdown/extension_on_appfeature.dart';
@@ -86,8 +83,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
               ),
             ),
             const SizedBox(height: 24),
-    
-            // Settings
+
             ConfigTile(
               title: 'Prepare',
               seconds: _config.prepareSeconds,
@@ -97,14 +93,12 @@ class _ConfigScreenState extends State<ConfigScreen> {
             ConfigTile(
               title: 'Work',
               seconds: _config.workSeconds,
-              onChanged: (v) =>
-                  _updateConfig(_config.copyWith(workSeconds: v)),
+              onChanged: (v) => _updateConfig(_config.copyWith(workSeconds: v)),
             ),
             ConfigTile(
               title: 'Rest (intra-cycle)',
               seconds: _config.restSeconds,
-              onChanged: (v) =>
-                  _updateConfig(_config.copyWith(restSeconds: v)),
+              onChanged: (v) => _updateConfig(_config.copyWith(restSeconds: v)),
             ),
             ConfigTile(
               title: 'Cycles per set',
@@ -158,10 +152,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   return;
                 }
               }
-    
-              // Battery optimization
-              if (!await FlutterForegroundTask
-                  .isIgnoringBatteryOptimizations) {
+
+              if (!await FlutterForegroundTask.isIgnoringBatteryOptimizations) {
                 final ignored =
                     await FlutterForegroundTask.requestIgnoreBatteryOptimization();
                 if (!ignored) {
@@ -172,21 +164,14 @@ class _ConfigScreenState extends State<ConfigScreen> {
                       ),
                     ),
                   );
-                  // Still try to start (don't return) — user already saw the screen
                 }
               }
               context.read<TimerBloc>().add(TimerStarted(_config));
-              // Navigator.push(
+
               context.push('/tabata/running');
-              //   context,
-              //   MaterialPageRoute(builder: (_) => const RunningTimerScreen()),
-              // );
             },
             icon: const Icon(Icons.play_arrow),
-            label: const Text(
-              'START WORKOUT',
-              style: TextStyle(fontSize: 18),
-            ),
+            label: const Text('START WORKOUT', style: TextStyle(fontSize: 18)),
             style: FilledButton.styleFrom(
               minimumSize: const Size(double.infinity, 56),
               backgroundColor: Colors.teal,

@@ -18,7 +18,6 @@ class WorkoutLoading extends WorkoutState {
   const WorkoutLoading();
 }
 
-/// Active session in progress
 class WorkoutSessionActive extends WorkoutState {
   final String sessionId;
   final DateTime sessionDate;

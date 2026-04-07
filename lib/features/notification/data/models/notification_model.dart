@@ -1,9 +1,6 @@
 import 'package:app_lifecycle/features/notification/domain/entities/notification_entity.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
-//Model knows about Firebase. Entity does not
-
-
 class NotificationModel extends NotificationEntity {
   NotificationModel({
     required super.id,

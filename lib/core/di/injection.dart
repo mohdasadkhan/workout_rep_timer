@@ -85,22 +85,18 @@ Future<void> registerNotificationFeature() async {
 }
 
 Future<void> registerRepTrackerFeature() async {
-  // Datasource
   getIt.registerLazySingleton<WorkoutLocalDatasource>(
     () => WorkoutLocalDatasourceImpl(hive: Hive),
   );
 
-  // Repository — binds the abstract contract to the impl (Dependency Inversion)
   getIt.registerLazySingleton<WorkoutRepository>(
     () => WorkoutRepositoryImpl(localDatasource: getIt()),
   );
 
-  // Use cases
   getIt.registerLazySingleton(() => SaveWorkoutSession(getIt()));
   getIt.registerLazySingleton(() => GetWorkoutHistory(getIt()));
   getIt.registerLazySingleton(() => GetPersonalRecords(getIt()));
 
-  // BLoC — registered as factory so each page gets a fresh instance
   getIt.registerFactory(
     () => WorkoutBloc(
       saveWorkoutSession: getIt(),
