@@ -1,5 +1,6 @@
 import 'package:app_lifecycle/core/const/firebase_const.dart';
 import 'package:app_lifecycle/core/di/injection.dart';
+import 'package:app_lifecycle/core/theme/app_theme.dart';
 import 'package:app_lifecycle/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_bloc.dart';
 import 'package:app_lifecycle/features/workout_timer/presentation/bloc/timer_bloc.dart';
@@ -56,7 +57,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp.router(
         title: 'Workout Timer',
-        theme: ThemeData.dark(useMaterial3: true),
+        theme: AppTheme.darkTheme,
         routerConfig: getIt<GoRouter>(),
       ),
     );
