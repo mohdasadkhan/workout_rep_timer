@@ -1,10 +1,13 @@
+import 'dart:developer';
+
+import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/personal_records_bloc/personal_records_bloc.dart';
+import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_bloc.dart';
+import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_event.dart';
+import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../domain/entities/workout_session.dart';
-import '../bloc/workout_bloc.dart';
-import '../bloc/workout_event.dart';
-import '../bloc/workout_state.dart';
 
 class WorkoutHistoryPage extends StatefulWidget {
   const WorkoutHistoryPage({super.key});
@@ -21,10 +24,13 @@ class _WorkoutHistoryPageState extends State<WorkoutHistoryPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-
-    context.read<WorkoutBloc>()
-      ..add(const LoadWorkoutHistory())
-      ..add(const LoadPersonalRecords());
+    // _tabController.addListener(() {
+    //   if (_tabController.index == 0) {
+    context.read<WorkoutHistoryBloc>().add(const LoadWorkoutHistory());
+    // } else {
+    context.read<PersonalRecordsBloc>().add(const LoadPersonalRecords());
+    // }
+    // });
   }
 
   @override
@@ -46,9 +52,24 @@ class _WorkoutHistoryPageState extends State<WorkoutHistoryPage>
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: const [_HistoryTab(), _PersonalRecordsTab()],
+      body: BlocBuilder<WorkoutHistoryBloc, WorkoutHistoryState>(
+        // React to all relevant states
+        buildWhen: (previous, current) =>
+            current is WorkoutHistoryLoading || current is WorkoutHistoryLoaded,
+        builder: (context, state) {
+          if (state is WorkoutHistoryLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state is WorkoutHistoryError) {
+            return Center(child: Text(state.message));
+          }
+
+          return TabBarView(
+            controller: _tabController,
+            children: const [_HistoryTab(), _PersonalRecordsTab()],
+          );
+        },
       ),
     );
   }
@@ -59,33 +80,33 @@ class _HistoryTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<WorkoutBloc, WorkoutState>(
-      buildWhen: (_, current) =>
-          current is WorkoutLoading ||
-          current is WorkoutHistoryLoaded ||
-          current is WorkoutError,
-      builder: (context, state) {
-        if (state is WorkoutLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    return BlocSelector<
+      WorkoutHistoryBloc,
+      WorkoutHistoryState,
+      List<WorkoutSession>
+    >(
+      selector: (state) {
         if (state is WorkoutHistoryLoaded) {
-          if (state.sessions.isEmpty) {
-            return const _EmptyState(
-              icon: Icons.history,
-              message: 'No workouts yet.\nFinish a session to see it here.',
-            );
-          }
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: state.sessions.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
-            itemBuilder: (_, i) => _SessionCard(session: state.sessions[i]),
+          return state.sessions;
+        }
+        return const []; // fallback only when not in Loaded state
+      },
+      builder: (context, sessions) {
+        log('session inside bloc selector >> ${sessions.length} items');
+
+        if (sessions.isEmpty) {
+          return const _EmptyState(
+            icon: Icons.history,
+            message: 'No workouts yet.\nFinish a session to see it here.',
           );
         }
-        if (state is WorkoutError) {
-          return Center(child: Text(state.message));
-        }
-        return const SizedBox.shrink();
+
+        return ListView.separated(
+          padding: const EdgeInsets.all(16),
+          itemCount: sessions.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          itemBuilder: (_, i) => _SessionCard(session: sessions[i]),
+        );
       },
     );
   }
@@ -147,69 +168,59 @@ class _PersonalRecordsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<WorkoutBloc, WorkoutState>(
-      buildWhen: (_, current) =>
-          current is WorkoutLoading ||
-          current is PersonalRecordsLoaded ||
-          current is WorkoutError,
-      builder: (context, state) {
-        if (state is WorkoutLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (state is PersonalRecordsLoaded) {
-          if (state.records.isEmpty) {
-            return const _EmptyState(
-              icon: Icons.emoji_events,
-              message: 'No PRs yet.\nLog some heavy sets to set records!',
-            );
-          }
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: state.records.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
-            itemBuilder: (_, i) {
-              final pr = state.records[i];
-              return ListTile(
-                tileColor: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                leading: const Icon(Icons.emoji_events, color: Colors.amber),
-                title: Text(
-                  pr.exerciseName,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                subtitle: Text(
-                  'Achieved ${DateFormat('d MMM yyyy').format(pr.achievedAt)}',
-                  style: const TextStyle(fontSize: 12),
-                ),
-                trailing: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '${pr.bestWeightKg} kg',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      '× ${pr.repsAtBestWeight} reps',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ],
-                ),
-              );
-            },
+    return BlocSelector<
+      PersonalRecordsBloc,
+      PersonalRecordsState,
+      List<dynamic>
+    >(
+      selector: (state) => state is PersonalRecordsLoaded ? state.records : [],
+      builder: (context, records) {
+        if (records.isEmpty) {
+          return const _EmptyState(
+            icon: Icons.emoji_events,
+            message: 'No PRs yet.\nLog some heavy sets to set records!',
           );
         }
-        if (state is WorkoutError) {
-          return Center(child: Text(state.message));
-        }
-        return const SizedBox.shrink();
+        return ListView.separated(
+          padding: const EdgeInsets.all(16),
+          itemCount: records.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          itemBuilder: (_, i) {
+            final pr = records[i];
+            return ListTile(
+              tileColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              leading: const Icon(Icons.emoji_events, color: Colors.amber),
+              title: Text(
+                pr.exerciseName,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text(
+                'Achieved ${DateFormat('d MMM yyyy').format(pr.achievedAt)}',
+                style: const TextStyle(fontSize: 12),
+              ),
+              trailing: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${pr.bestWeightKg} kg',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Text(
+                    '× ${pr.repsAtBestWeight} reps',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
       },
     );
   }

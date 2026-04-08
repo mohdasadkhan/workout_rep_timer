@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:app_lifecycle/core/utils/foreground_task_handler.dart';
 import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_config.dart';
 import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_phase.dart';

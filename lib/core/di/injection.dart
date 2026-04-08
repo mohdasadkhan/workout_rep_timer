@@ -17,7 +17,9 @@ import 'package:app_lifecycle/features/rep_tracker/domain/repositories/workout_r
 import 'package:app_lifecycle/features/rep_tracker/domain/usecases/get_personal_records.dart';
 import 'package:app_lifecycle/features/rep_tracker/domain/usecases/get_workout_history.dart';
 import 'package:app_lifecycle/features/rep_tracker/domain/usecases/save_workout_session.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_bloc.dart';
+import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/personal_records_bloc/personal_records_bloc.dart';
+import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_bloc.dart';
+import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
 import 'package:app_lifecycle/features/workout_timer/presentation/bloc/timer_bloc.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -98,11 +100,13 @@ Future<void> registerRepTrackerFeature() async {
   getIt.registerLazySingleton(() => GetPersonalRecords(getIt()));
 
   getIt.registerFactory(
-    () => WorkoutBloc(
-      saveWorkoutSession: getIt<SaveWorkoutSession>(),
-      getWorkoutHistory: getIt<GetWorkoutHistory>(),
-      getPersonalRecords: getIt<GetPersonalRecords>(),
-    ),
+    () => WorkoutSessionBloc(saveWorkoutSession: getIt<SaveWorkoutSession>()),
+  );
+  getIt.registerFactory(
+    () => WorkoutHistoryBloc(getWorkoutHistory: getIt<GetWorkoutHistory>()),
+  );
+  getIt.registerFactory(
+    () => PersonalRecordsBloc(getPersonalRecords: getIt<GetPersonalRecords>()),
   );
 }
 

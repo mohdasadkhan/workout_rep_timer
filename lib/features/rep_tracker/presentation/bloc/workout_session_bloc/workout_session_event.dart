@@ -1,18 +1,18 @@
 import 'package:equatable/equatable.dart';
-import '../../domain/entities/exercise_set.dart';
+import '../../../domain/entities/exercise_set.dart';
 
-abstract class WorkoutEvent extends Equatable {
-  const WorkoutEvent();
+abstract class WorkoutSessionEvent extends Equatable {
+  const WorkoutSessionEvent();
 
   @override
   List<Object?> get props => [];
 }
 
-class StartWorkoutSession extends WorkoutEvent {
+class StartWorkoutSession extends WorkoutSessionEvent {
   const StartWorkoutSession();
 }
 
-class AddExercise extends WorkoutEvent {
+class AddExercise extends WorkoutSessionEvent {
   final String exerciseName;
   const AddExercise({required this.exerciseName});
 
@@ -20,7 +20,7 @@ class AddExercise extends WorkoutEvent {
   List<Object?> get props => [exerciseName];
 }
 
-class LogSet extends WorkoutEvent {
+class LogSet extends WorkoutSessionEvent {
   final String exerciseId;
   final ExerciseSet set;
   const LogSet({required this.exerciseId, required this.set});
@@ -29,7 +29,7 @@ class LogSet extends WorkoutEvent {
   List<Object?> get props => [exerciseId, set];
 }
 
-class UpdateSet extends WorkoutEvent {
+class UpdateSet extends WorkoutSessionEvent {
   final String exerciseId;
   final String setId;
   final double weightKg;
@@ -45,7 +45,7 @@ class UpdateSet extends WorkoutEvent {
   List<Object?> get props => [exerciseId, setId, weightKg, reps];
 }
 
-class RemoveSet extends WorkoutEvent {
+class RemoveSet extends WorkoutSessionEvent {
   final String exerciseId;
   final String setId;
   const RemoveSet({required this.exerciseId, required this.setId});
@@ -54,7 +54,7 @@ class RemoveSet extends WorkoutEvent {
   List<Object?> get props => [exerciseId, setId];
 }
 
-class RemoveExercise extends WorkoutEvent {
+class RemoveExercise extends WorkoutSessionEvent {
   final String exerciseId;
   const RemoveExercise(this.exerciseId);
 
@@ -62,14 +62,6 @@ class RemoveExercise extends WorkoutEvent {
   List<Object?> get props => [exerciseId];
 }
 
-class FinishWorkoutSession extends WorkoutEvent {
+class FinishWorkoutSession extends WorkoutSessionEvent {
   const FinishWorkoutSession();
-}
-
-class LoadWorkoutHistory extends WorkoutEvent {
-  const LoadWorkoutHistory();
-}
-
-class LoadPersonalRecords extends WorkoutEvent {
-  const LoadPersonalRecords();
 }

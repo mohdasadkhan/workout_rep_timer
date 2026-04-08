@@ -1,8 +1,8 @@
 import 'package:app_lifecycle/core/const/firebase_const.dart';
 import 'package:app_lifecycle/core/di/injection.dart';
+import 'package:app_lifecycle/core/router/app_router.dart';
 import 'package:app_lifecycle/core/theme/app_theme.dart';
 import 'package:app_lifecycle/features/notification/presentation/bloc/notification_bloc.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_bloc.dart';
 import 'package:app_lifecycle/features/workout_timer/presentation/bloc/timer_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -58,7 +58,8 @@ class MyApp extends StatelessWidget {
       child: MaterialApp.router(
         title: 'Workout Timer',
         theme: AppTheme.darkTheme,
-        routerConfig: getIt<GoRouter>(),
+        // routerConfig: getIt<GoRouter>(),
+        routerConfig: createRouter(),
       ),
     );
   }

@@ -6,22 +6,22 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/entities/exercise_set.dart';
-import '../bloc/workout_bloc.dart';
-import '../bloc/workout_event.dart';
-import '../bloc/workout_state.dart';
+import '../bloc/workout_session_bloc/workout_session_bloc.dart';
+import '../bloc/workout_session_bloc/workout_session_event.dart';
+import '../bloc/workout_session_bloc/workout_session_state.dart';
 
 class WorkoutSessionPage extends StatelessWidget {
   const WorkoutSessionPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<WorkoutBloc, WorkoutState>(
+    return BlocConsumer<WorkoutSessionBloc, WorkoutSessionState>(
       listener: (context, state) {
         if (state is WorkoutSessionSaved) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Workout saved! Great session 💪')),
           );
-          context.read<WorkoutBloc>().add(const StartWorkoutSession());
+          context.read<WorkoutSessionBloc>().add(const StartWorkoutSession());
         }
         if (state is WorkoutError) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -54,16 +54,18 @@ class WorkoutSessionPage extends StatelessWidget {
 
           body: switch (state) {
             WorkoutInitial() => _BuildStartPrompt(
-              onStart: () =>
-                  context.read<WorkoutBloc>().add(const StartWorkoutSession()),
+              onStart: () => context.read<WorkoutSessionBloc>().add(
+                const StartWorkoutSession(),
+              ),
             ),
             WorkoutLoading() => const Center(
               child: CircularProgressIndicator(),
             ),
             WorkoutSessionActive() => _BuildActiveSession(state: state),
             _ => _BuildStartPrompt(
-              onStart: () =>
-                  context.read<WorkoutBloc>().add(const StartWorkoutSession()),
+              onStart: () => context.read<WorkoutSessionBloc>().add(
+                const StartWorkoutSession(),
+              ),
             ),
           },
           floatingActionButton: state is WorkoutSessionActive
@@ -92,7 +94,9 @@ class WorkoutSessionPage extends StatelessWidget {
           FilledButton(
             onPressed: () {
               Navigator.pop(context);
-              context.read<WorkoutBloc>().add(const FinishWorkoutSession());
+              context.read<WorkoutSessionBloc>().add(
+                const FinishWorkoutSession(),
+              );
             },
             child: const Text('Save'),
           ),
@@ -146,7 +150,7 @@ class WorkoutSessionPage extends StatelessWidget {
               ),
               onSubmitted: (value) {
                 if (value.trim().isEmpty) return;
-                context.read<WorkoutBloc>().add(
+                context.read<WorkoutSessionBloc>().add(
                   AddExercise(exerciseName: value.trim()),
                 );
                 Navigator.pop(sheetContext);
@@ -162,7 +166,7 @@ class WorkoutSessionPage extends StatelessWidget {
                 return ActionChip(
                   label: Text(name),
                   onPressed: () {
-                    context.read<WorkoutBloc>().add(
+                    context.read<WorkoutSessionBloc>().add(
                       AddExercise(exerciseName: name),
                     );
                     Navigator.pop(sheetContext);
@@ -342,7 +346,7 @@ class _ExerciseCard extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.close, size: 16),
                       padding: EdgeInsets.zero,
-                      onPressed: () => context.read<WorkoutBloc>().add(
+                      onPressed: () => context.read<WorkoutSessionBloc>().add(
                         RemoveSet(exerciseId: exercise.id, setId: set.id),
                       ),
                     ),
@@ -399,7 +403,7 @@ class _ExerciseCard extends StatelessWidget {
   }
 
   void _incrementLastRep(BuildContext context, String exerciseId) {
-    final bloc = context.read<WorkoutBloc>();
+    final bloc = context.read<WorkoutSessionBloc>();
     final current = bloc.state;
     if (current is! WorkoutSessionActive) return;
 
@@ -430,7 +434,7 @@ class _ExerciseCard extends StatelessWidget {
   }
 
   void _addNewSet(BuildContext context, String exerciseId) {
-    final bloc = context.read<WorkoutBloc>();
+    final bloc = context.read<WorkoutSessionBloc>();
     final current = bloc.state;
     if (current is! WorkoutSessionActive) return;
 
@@ -464,7 +468,9 @@ class _ExerciseCard extends StatelessWidget {
           FilledButton(
             onPressed: () {
               Navigator.pop(context);
-              context.read<WorkoutBloc>().add(RemoveExercise(exerciseId));
+              context.read<WorkoutSessionBloc>().add(
+                RemoveExercise(exerciseId),
+              );
             },
             child: const Text('Delete'),
           ),
@@ -519,7 +525,7 @@ class _ExerciseCard extends StatelessWidget {
           FilledButton(
             onPressed: () {
               if (!formKey.currentState!.validate()) return;
-              context.read<WorkoutBloc>().add(
+              context.read<WorkoutSessionBloc>().add(
                 UpdateSet(
                   exerciseId: exerciseId,
                   setId: set.id,

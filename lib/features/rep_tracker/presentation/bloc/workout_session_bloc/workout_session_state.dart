@@ -1,24 +1,22 @@
 import 'package:equatable/equatable.dart';
-import '../../domain/entities/exercise.dart';
-import '../../domain/entities/personal_record.dart';
-import '../../domain/entities/workout_session.dart';
+import '../../../domain/entities/exercise.dart';
 
-abstract class WorkoutState extends Equatable {
-  const WorkoutState();
+abstract class WorkoutSessionState extends Equatable {
+  const WorkoutSessionState();
 
   @override
   List<Object?> get props => [];
 }
 
-class WorkoutInitial extends WorkoutState {
+class WorkoutInitial extends WorkoutSessionState {
   const WorkoutInitial();
 }
 
-class WorkoutLoading extends WorkoutState {
+class WorkoutLoading extends WorkoutSessionState {
   const WorkoutLoading();
 }
 
-class WorkoutSessionActive extends WorkoutState {
+class WorkoutSessionActive extends WorkoutSessionState {
   final String sessionId;
   final DateTime sessionDate;
   final List<Exercise> exercises;
@@ -48,27 +46,11 @@ class WorkoutSessionActive extends WorkoutState {
   List<Object?> get props => [sessionId, sessionDate, exercises];
 }
 
-class WorkoutSessionSaved extends WorkoutState {
+class WorkoutSessionSaved extends WorkoutSessionState {
   const WorkoutSessionSaved();
 }
 
-class WorkoutHistoryLoaded extends WorkoutState {
-  final List<WorkoutSession> sessions;
-  const WorkoutHistoryLoaded({required this.sessions});
-
-  @override
-  List<Object?> get props => [sessions];
-}
-
-class PersonalRecordsLoaded extends WorkoutState {
-  final List<PersonalRecord> records;
-  const PersonalRecordsLoaded({required this.records});
-
-  @override
-  List<Object?> get props => [records];
-}
-
-class WorkoutError extends WorkoutState {
+class WorkoutError extends WorkoutSessionState {
   final String message;
   const WorkoutError({required this.message});
 
