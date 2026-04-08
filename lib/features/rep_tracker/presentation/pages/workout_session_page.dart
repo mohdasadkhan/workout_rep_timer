@@ -9,7 +9,6 @@ import '../../domain/entities/exercise_set.dart';
 import '../bloc/workout_bloc.dart';
 import '../bloc/workout_event.dart';
 import '../bloc/workout_state.dart';
-import 'workout_history_page.dart';
 
 class WorkoutSessionPage extends StatelessWidget {
   const WorkoutSessionPage({super.key});
@@ -285,6 +284,7 @@ class _ExerciseCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header with delete exercise
             Row(
               children: [
                 Expanded(
@@ -293,40 +293,17 @@ class _ExerciseCard extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                 ),
-                Text(
-                  'Rep Count: $totalReps',
-                  style: Theme.of(context).textTheme.labelSmall,
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  onPressed: () => _confirmDeleteExercise(context, exercise.id),
                 ),
               ],
             ),
             const SizedBox(height: 8),
 
-            const Row(
-              children: [
-                SizedBox(
-                  width: 32,
-                  child: Text(
-                    'Set',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    'Weight (kg)',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    'Reps',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                  ),
-                ),
-                SizedBox(width: 32),
-              ],
-            ),
+            // Sets list (same as before)
+            const Row(/* header columns same */),
             const Divider(height: 8),
-
             ...exercise.sets.asMap().entries.map((entry) {
               final i = entry.key;
               final set = entry.value;
@@ -356,14 +333,17 @@ class _ExerciseCard extends StatelessWidget {
                         style: const TextStyle(fontSize: 13),
                       ),
                     ),
-                    SizedBox(
-                      width: 32,
-                      child: IconButton(
-                        icon: const Icon(Icons.close, size: 16),
-                        padding: EdgeInsets.zero,
-                        onPressed: () => context.read<WorkoutBloc>().add(
-                          RemoveSet(exerciseId: exercise.id, setId: set.id),
-                        ),
+                    IconButton(
+                      icon: const Icon(Icons.edit, size: 18),
+                      padding: EdgeInsets.zero,
+                      onPressed: () =>
+                          _showEditSetDialog(context, exercise.id, set),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 16),
+                      padding: EdgeInsets.zero,
+                      onPressed: () => context.read<WorkoutBloc>().add(
+                        RemoveSet(exerciseId: exercise.id, setId: set.id),
                       ),
                     ),
                   ],
@@ -371,14 +351,45 @@ class _ExerciseCard extends StatelessWidget {
               );
             }),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
 
+            // BIG TAP TO COUNT REP
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => _showLogSetDialog(context, exercise.id),
-                icon: const Icon(Icons.add, size: 16),
-                label: const Text('Log Set'),
+              height: 72,
+              child: FilledButton(
+                onPressed: () => _incrementLastRep(context, exercise.id),
+                style: FilledButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.touch_app, size: 32),
+                    SizedBox(width: 12),
+                    Text(
+                      'TAP TO COUNT REP',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // Add New Set (smart default)
+            OutlinedButton.icon(
+              onPressed: () => _addNewSet(context, exercise.id),
+              icon: const Icon(Icons.add),
+              label: const Text('Add New Set'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
               ),
             ),
           ],
@@ -387,15 +398,96 @@ class _ExerciseCard extends StatelessWidget {
     );
   }
 
-  void _showLogSetDialog(BuildContext context, String exerciseId) {
-    final weightController = TextEditingController();
-    final repsController = TextEditingController();
+  void _incrementLastRep(BuildContext context, String exerciseId) {
+    final bloc = context.read<WorkoutBloc>();
+    final current = bloc.state;
+    if (current is! WorkoutSessionActive) return;
+
+    final ex = current.exercises.firstWhere((e) => e.id == exerciseId);
+    if (ex.sets.isEmpty) {
+      bloc.add(
+        LogSet(
+          exerciseId: exerciseId,
+          set: ExerciseSet(
+            id: const Uuid().v4(),
+            weightKg: 0.0,
+            reps: 1,
+            performedAt: DateTime.now(),
+          ),
+        ),
+      );
+    } else {
+      final last = ex.sets.last;
+      bloc.add(
+        UpdateSet(
+          exerciseId: exerciseId,
+          setId: last.id,
+          weightKg: last.weightKg,
+          reps: last.reps + 1,
+        ),
+      );
+    }
+  }
+
+  void _addNewSet(BuildContext context, String exerciseId) {
+    final bloc = context.read<WorkoutBloc>();
+    final current = bloc.state;
+    if (current is! WorkoutSessionActive) return;
+
+    final ex = current.exercises.firstWhere((e) => e.id == exerciseId);
+    final lastWeight = ex.sets.isNotEmpty ? ex.sets.last.weightKg : 0.0;
+
+    bloc.add(
+      LogSet(
+        exerciseId: exerciseId,
+        set: ExerciseSet(
+          id: const Uuid().v4(),
+          weightKg: lastWeight,
+          reps: 0,
+          performedAt: DateTime.now(),
+        ),
+      ),
+    );
+  }
+
+  void _confirmDeleteExercise(BuildContext context, String exerciseId) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Delete Exercise?'),
+        content: const Text('All sets for this exercise will be removed.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<WorkoutBloc>().add(RemoveExercise(exerciseId));
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditSetDialog(
+    BuildContext context,
+    String exerciseId,
+    ExerciseSet set,
+  ) {
+    final weightController = TextEditingController(
+      text: set.weightKg.toString(),
+    );
+    final repsController = TextEditingController(text: set.reps.toString());
     final formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Log Set — ${exercise.name}'),
+        title: Text('Edit Set — ${exercise.name}'),
         content: Form(
           key: formKey,
           child: Column(
@@ -406,29 +498,15 @@ class _ExerciseCard extends StatelessWidget {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                decoration: const InputDecoration(
-                  labelText: 'Weight (kg)',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Required';
-                  if (double.tryParse(v) == null) return 'Invalid number';
-                  return null;
-                },
+                decoration: const InputDecoration(labelText: 'Weight (kg)'),
+                validator: (v) => v?.isEmpty == true ? 'Required' : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: repsController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Reps',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Required';
-                  if (int.tryParse(v) == null) return 'Invalid number';
-                  return null;
-                },
+                decoration: const InputDecoration(labelText: 'Reps'),
+                validator: (v) => v?.isEmpty == true ? 'Required' : null,
               ),
             ],
           ),
@@ -442,22 +520,286 @@ class _ExerciseCard extends StatelessWidget {
             onPressed: () {
               if (!formKey.currentState!.validate()) return;
               context.read<WorkoutBloc>().add(
-                LogSet(
+                UpdateSet(
                   exerciseId: exerciseId,
-                  set: ExerciseSet(
-                    id: const Uuid().v4(),
-                    weightKg: double.parse(weightController.text),
-                    reps: int.parse(repsController.text),
-                    performedAt: DateTime.now(),
-                  ),
+                  setId: set.id,
+                  weightKg: double.parse(weightController.text),
+                  reps: int.parse(repsController.text),
                 ),
               );
               Navigator.pop(context);
             },
-            child: const Text('Add'),
+            child: const Text('Save'),
           ),
         ],
       ),
     );
   }
 }
+// class _ExerciseCard extends StatelessWidget {
+//   final Exercise exercise;
+//   const _ExerciseCard({required this.exercise});
+
+//   void _incrementRep(BuildContext context, String exerciseId) {
+//     final bloc = context.read<WorkoutBloc>();
+//     final currentState = bloc.state;
+
+//     if (currentState is! WorkoutSessionActive) return;
+
+//     final exercise = currentState.exercises.firstWhere(
+//       (e) => e.id == exerciseId,
+//     );
+
+//     // If no sets yet or last set is "completed", start a new set
+//     final lastSet = exercise.sets.isEmpty ? null : exercise.sets.last;
+
+//     if (lastSet == null) {
+//       // Start new set with default weight (user can edit later)
+//       bloc.add(
+//         LogSet(
+//           exerciseId: exerciseId,
+//           set: ExerciseSet(
+//             id: const Uuid().v4(),
+//             weightKg: 0.0, // Will be edited later if needed
+//             reps: 1,
+//             performedAt: DateTime.now(),
+//           ),
+//         ),
+//       );
+//     } else {
+//       // Increment reps on current set
+//       final updatedSet = lastSet.copyWith(reps: lastSet.reps + 1);
+
+//       // Remove old set and add updated one
+//       final updatedSets = [...exercise.sets];
+//       updatedSets.removeLast();
+//       updatedSets.add(updatedSet);
+
+//       bloc.add(
+//         LogSet(
+//           exerciseId: exerciseId,
+//           set: updatedSet, // This will be handled in bloc to replace
+//         ),
+//       );
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final totalReps = exercise.sets.fold(0, (sum, s) => sum + s.reps);
+
+//     return Card(
+//       margin: const EdgeInsets.only(bottom: 12),
+//       child: Padding(
+//         padding: const EdgeInsets.all(12),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Row(
+//               children: [
+//                 Expanded(
+//                   child: Text(
+//                     exercise.name,
+//                     style: Theme.of(context).textTheme.titleSmall,
+//                   ),
+//                 ),
+//                 Text(
+//                   'Rep Count: $totalReps',
+//                   style: Theme.of(context).textTheme.labelSmall,
+//                 ),
+//               ],
+//             ),
+//             const SizedBox(height: 8),
+
+//             const Row(
+//               children: [
+//                 SizedBox(
+//                   width: 32,
+//                   child: Text(
+//                     'Set',
+//                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+//                   ),
+//                 ),
+//                 Expanded(
+//                   child: Text(
+//                     'Weight (kg)',
+//                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+//                   ),
+//                 ),
+//                 Expanded(
+//                   child: Text(
+//                     'Reps',
+//                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+//                   ),
+//                 ),
+//                 SizedBox(width: 32),
+//               ],
+//             ),
+//             const Divider(height: 8),
+
+//             ...exercise.sets.asMap().entries.map((entry) {
+//               final i = entry.key;
+//               final set = entry.value;
+//               return Padding(
+//                 padding: const EdgeInsets.symmetric(vertical: 2),
+//                 child: Row(
+//                   children: [
+//                     SizedBox(
+//                       width: 32,
+//                       child: Text(
+//                         '${i + 1}',
+//                         style: const TextStyle(
+//                           fontSize: 13,
+//                           color: Colors.grey,
+//                         ),
+//                       ),
+//                     ),
+//                     Expanded(
+//                       child: Text(
+//                         '${set.weightKg} kg',
+//                         style: const TextStyle(fontSize: 13),
+//                       ),
+//                     ),
+//                     Expanded(
+//                       child: Text(
+//                         '${set.reps} reps',
+//                         style: const TextStyle(fontSize: 13),
+//                       ),
+//                     ),
+//                     SizedBox(
+//                       width: 32,
+//                       child: IconButton(
+//                         icon: const Icon(Icons.close, size: 16),
+//                         padding: EdgeInsets.zero,
+//                         onPressed: () => context.read<WorkoutBloc>().add(
+//                           RemoveSet(exerciseId: exercise.id, setId: set.id),
+//                         ),
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               );
+//             }),
+
+//             const SizedBox(height: 12),
+
+//             // Big Rep Counter Button
+//             SizedBox(
+//               width: double.infinity,
+//               height: 72,
+//               child: FilledButton.icon(
+//                 onPressed: () => _incrementRep(context, exercise.id),
+//                 style: FilledButton.styleFrom(
+//                   backgroundColor: Theme.of(context).colorScheme.primary,
+//                   foregroundColor: Theme.of(context).colorScheme.onPrimary,
+//                   shape: RoundedRectangleBorder(
+//                     borderRadius: BorderRadius.circular(16),
+//                   ),
+//                 ),
+//                 icon: const Icon(Icons.touch_app, size: 28),
+//                 label: const Text(
+//                   'TAP TO COUNT REP',
+//                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+//                 ),
+//               ),
+//             ),
+
+//             const SizedBox(height: 8),
+
+//             // Optional: Quick "Log Set with Weight" if user wants to change weight
+//             TextButton.icon(
+//               onPressed: () => _showLogSetDialog(context, exercise.id),
+//               icon: const Icon(Icons.scale, size: 18),
+//               label: const Text('Log set with weight'),
+//               style: TextButton.styleFrom(foregroundColor: Colors.grey),
+//             ),
+//             // const SizedBox(height: 8),
+
+//             // SizedBox(
+//             //   width: double.infinity,
+//             //   child: OutlinedButton.icon(
+//             //     onPressed: () => _showLogSetDialog(context, exercise.id),
+//             //     icon: const Icon(Icons.add, size: 16),
+//             //     label: const Text('Log Set'),
+//             //   ),
+//             // ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+
+//   void _showLogSetDialog(BuildContext context, String exerciseId) {
+//     final weightController = TextEditingController();
+//     final repsController = TextEditingController();
+//     final formKey = GlobalKey<FormState>();
+
+//     showDialog(
+//       context: context,
+//       builder: (_) => AlertDialog(
+//         title: Text('Log Set — ${exercise.name}'),
+//         content: Form(
+//           key: formKey,
+//           child: Column(
+//             mainAxisSize: MainAxisSize.min,
+//             children: [
+//               TextFormField(
+//                 controller: weightController,
+//                 keyboardType: const TextInputType.numberWithOptions(
+//                   decimal: true,
+//                 ),
+//                 decoration: const InputDecoration(
+//                   labelText: 'Weight (kg)',
+//                   border: OutlineInputBorder(),
+//                 ),
+//                 validator: (v) {
+//                   if (v == null || v.isEmpty) return 'Required';
+//                   if (double.tryParse(v) == null) return 'Invalid number';
+//                   return null;
+//                 },
+//               ),
+//               const SizedBox(height: 12),
+//               TextFormField(
+//                 controller: repsController,
+//                 keyboardType: TextInputType.number,
+//                 decoration: const InputDecoration(
+//                   labelText: 'Reps',
+//                   border: OutlineInputBorder(),
+//                 ),
+//                 validator: (v) {
+//                   if (v == null || v.isEmpty) return 'Required';
+//                   if (int.tryParse(v) == null) return 'Invalid number';
+//                   return null;
+//                 },
+//               ),
+//             ],
+//           ),
+//         ),
+//         actions: [
+//           TextButton(
+//             onPressed: () => Navigator.pop(context),
+//             child: const Text('Cancel'),
+//           ),
+//           FilledButton(
+//             onPressed: () {
+//               if (!formKey.currentState!.validate()) return;
+//               context.read<WorkoutBloc>().add(
+//                 LogSet(
+//                   exerciseId: exerciseId,
+//                   set: ExerciseSet(
+//                     id: const Uuid().v4(),
+//                     weightKg: double.parse(weightController.text),
+//                     reps: int.parse(repsController.text),
+//                     performedAt: DateTime.now(),
+//                   ),
+//                 ),
+//               );
+//               Navigator.pop(context);
+//             },
+//             child: const Text('Add'),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }

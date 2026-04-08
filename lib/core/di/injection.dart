@@ -99,9 +99,9 @@ Future<void> registerRepTrackerFeature() async {
 
   getIt.registerFactory(
     () => WorkoutBloc(
-      saveWorkoutSession: getIt(),
-      getWorkoutHistory: getIt(),
-      getPersonalRecords: getIt(),
+      saveWorkoutSession: getIt<SaveWorkoutSession>(),
+      getWorkoutHistory: getIt<GetWorkoutHistory>(),
+      getPersonalRecords: getIt<GetPersonalRecords>(),
     ),
   );
 }

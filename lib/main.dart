@@ -52,7 +52,7 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => getIt<TimerBloc>()),
-        BlocProvider(create: (_) => getIt<WorkoutBloc>()),
+        // BlocProvider(create: (_) => getIt<WorkoutBloc>()),
         BlocProvider(create: (_) => getIt<NotificationBloc>()),
       ],
       child: MaterialApp.router(

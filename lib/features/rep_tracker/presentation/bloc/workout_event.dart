@@ -14,31 +14,52 @@ class StartWorkoutSession extends WorkoutEvent {
 
 class AddExercise extends WorkoutEvent {
   final String exerciseName;
-
   const AddExercise({required this.exerciseName});
 
   @override
-  List<Object> get props => [exerciseName];
+  List<Object?> get props => [exerciseName];
 }
 
 class LogSet extends WorkoutEvent {
   final String exerciseId;
   final ExerciseSet set;
-
   const LogSet({required this.exerciseId, required this.set});
 
   @override
-  List<Object> get props => [exerciseId, set];
+  List<Object?> get props => [exerciseId, set];
+}
+
+class UpdateSet extends WorkoutEvent {
+  final String exerciseId;
+  final String setId;
+  final double weightKg;
+  final int reps;
+  const UpdateSet({
+    required this.exerciseId,
+    required this.setId,
+    required this.weightKg,
+    required this.reps,
+  });
+
+  @override
+  List<Object?> get props => [exerciseId, setId, weightKg, reps];
 }
 
 class RemoveSet extends WorkoutEvent {
   final String exerciseId;
   final String setId;
-
   const RemoveSet({required this.exerciseId, required this.setId});
 
   @override
-  List<Object> get props => [exerciseId, setId];
+  List<Object?> get props => [exerciseId, setId];
+}
+
+class RemoveExercise extends WorkoutEvent {
+  final String exerciseId;
+  const RemoveExercise(this.exerciseId);
+
+  @override
+  List<Object?> get props => [exerciseId];
 }
 
 class FinishWorkoutSession extends WorkoutEvent {

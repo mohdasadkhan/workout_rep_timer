@@ -29,8 +29,12 @@ class WorkoutSessionActive extends WorkoutState {
     required this.exercises,
   });
 
-  int get totalSets => exercises.fold(0, (s, e) => s + e.sets.length);
-  double get totalVolume => exercises.fold(0.0, (s, e) => s + e.totalVolume);
+  int get totalSets => exercises.fold(0, (sum, e) => sum + e.sets.length);
+
+  double get totalVolume => exercises.fold(
+    0.0,
+    (sum, e) => sum + e.sets.fold(0.0, (s, set) => s + set.weightKg * set.reps),
+  );
 
   WorkoutSessionActive copyWith({List<Exercise>? exercises}) {
     return WorkoutSessionActive(
@@ -41,7 +45,7 @@ class WorkoutSessionActive extends WorkoutState {
   }
 
   @override
-  List<Object> get props => [sessionId, sessionDate, exercises];
+  List<Object?> get props => [sessionId, sessionDate, exercises];
 }
 
 class WorkoutSessionSaved extends WorkoutState {
@@ -50,27 +54,24 @@ class WorkoutSessionSaved extends WorkoutState {
 
 class WorkoutHistoryLoaded extends WorkoutState {
   final List<WorkoutSession> sessions;
-
   const WorkoutHistoryLoaded({required this.sessions});
 
   @override
-  List<Object> get props => [sessions];
+  List<Object?> get props => [sessions];
 }
 
 class PersonalRecordsLoaded extends WorkoutState {
   final List<PersonalRecord> records;
-
   const PersonalRecordsLoaded({required this.records});
 
   @override
-  List<Object> get props => [records];
+  List<Object?> get props => [records];
 }
 
 class WorkoutError extends WorkoutState {
   final String message;
-
   const WorkoutError({required this.message});
 
   @override
-  List<Object> get props => [message];
+  List<Object?> get props => [message];
 }

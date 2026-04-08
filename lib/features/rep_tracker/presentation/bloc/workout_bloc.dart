@@ -25,7 +25,9 @@ class WorkoutBloc extends Bloc<WorkoutEvent, WorkoutState> {
     on<StartWorkoutSession>(_onStartSession);
     on<AddExercise>(_onAddExercise);
     on<LogSet>(_onLogSet);
+    on<UpdateSet>(_onUpdateSet);
     on<RemoveSet>(_onRemoveSet);
+    on<RemoveExercise>(_onRemoveExercise);
     on<FinishWorkoutSession>(_onFinishSession);
     on<LoadWorkoutHistory>(_onLoadHistory);
     on<LoadPersonalRecords>(_onLoadPersonalRecords);
@@ -66,17 +68,42 @@ class WorkoutBloc extends Bloc<WorkoutEvent, WorkoutState> {
     emit(current.copyWith(exercises: exercises));
   }
 
+  void _onUpdateSet(UpdateSet event, Emitter<WorkoutState> emit) {
+    final current = state;
+    if (current is! WorkoutSessionActive) return;
+
+    final exercises = current.exercises.map((ex) {
+      if (ex.id != event.exerciseId) return ex;
+      final updatedSets = ex.sets.map((set) {
+        if (set.id != event.setId) return set;
+        return set.copyWith(weightKg: event.weightKg, reps: event.reps);
+      }).toList();
+      return ex.copyWith(sets: updatedSets);
+    }).toList();
+
+    emit(current.copyWith(exercises: exercises));
+  }
+
   void _onRemoveSet(RemoveSet event, Emitter<WorkoutState> emit) {
     final current = state;
     if (current is! WorkoutSessionActive) return;
 
     final exercises = current.exercises.map((ex) {
       if (ex.id != event.exerciseId) return ex;
-      return ex.copyWith(
-        sets: ex.sets.where((s) => s.id != event.setId).toList(),
-      );
+      final updatedSets = ex.sets.where((s) => s.id != event.setId).toList();
+      return ex.copyWith(sets: updatedSets);
     }).toList();
 
+    emit(current.copyWith(exercises: exercises));
+  }
+
+  void _onRemoveExercise(RemoveExercise event, Emitter<WorkoutState> emit) {
+    final current = state;
+    if (current is! WorkoutSessionActive) return;
+
+    final exercises = current.exercises
+        .where((e) => e.id != event.exerciseId)
+        .toList();
     emit(current.copyWith(exercises: exercises));
   }
 
