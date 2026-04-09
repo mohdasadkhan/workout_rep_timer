@@ -50,9 +50,9 @@ class WorkoutSessionSaved extends WorkoutSessionState {
   const WorkoutSessionSaved();
 }
 
-class WorkoutError extends WorkoutSessionState {
+class WorkoutSessionError extends WorkoutSessionState {
   final String message;
-  const WorkoutError({required this.message});
+  const WorkoutSessionError({required this.message});
 
   @override
   List<Object?> get props => [message];

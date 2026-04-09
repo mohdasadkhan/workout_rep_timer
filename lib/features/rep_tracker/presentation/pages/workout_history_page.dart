@@ -1,13 +1,15 @@
-import 'dart:developer';
-
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/personal_records_bloc/personal_records_bloc.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_bloc.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_event.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_state.dart';
+import 'package:app_lifecycle/features/rep_tracker/domain/entities/personal_record.dart';
+import 'package:app_lifecycle/features/rep_tracker/domain/entities/workout_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
-import '../../domain/entities/workout_session.dart';
+
+import '../bloc/personal_records_bloc/personal_records_bloc.dart';
+import '../bloc/workout_history_bloc/workout_history_bloc.dart';
+import '../bloc/workout_history_bloc/workout_history_event.dart';
+import '../bloc/workout_history_bloc/workout_history_state.dart';
+import '../widgets/history_and_prs_widgets/empty_state.dart';
+import '../widgets/history_and_prs_widgets/personal_record_card.dart';
+import '../widgets/history_and_prs_widgets/session_card.dart';
 
 class WorkoutHistoryPage extends StatefulWidget {
   const WorkoutHistoryPage({super.key});
@@ -24,13 +26,10 @@ class _WorkoutHistoryPageState extends State<WorkoutHistoryPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    // _tabController.addListener(() {
-    //   if (_tabController.index == 0) {
+
+    // Load data once
     context.read<WorkoutHistoryBloc>().add(const LoadWorkoutHistory());
-    // } else {
     context.read<PersonalRecordsBloc>().add(const LoadPersonalRecords());
-    // }
-    // });
   }
 
   @override
@@ -52,29 +51,15 @@ class _WorkoutHistoryPageState extends State<WorkoutHistoryPage>
           ],
         ),
       ),
-      body: BlocBuilder<WorkoutHistoryBloc, WorkoutHistoryState>(
-        // React to all relevant states
-        buildWhen: (previous, current) =>
-            current is WorkoutHistoryLoading || current is WorkoutHistoryLoaded,
-        builder: (context, state) {
-          if (state is WorkoutHistoryLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (state is WorkoutHistoryError) {
-            return Center(child: Text(state.message));
-          }
-
-          return TabBarView(
-            controller: _tabController,
-            children: const [_HistoryTab(), _PersonalRecordsTab()],
-          );
-        },
+      body: TabBarView(
+        controller: _tabController,
+        children: const [_HistoryTab(), _PersonalRecordsTab()],
       ),
     );
   }
 }
 
+// ── History Tab ─────────────────────────────────────────────────────
 class _HistoryTab extends StatelessWidget {
   const _HistoryTab();
 
@@ -85,17 +70,11 @@ class _HistoryTab extends StatelessWidget {
       WorkoutHistoryState,
       List<WorkoutSession>
     >(
-      selector: (state) {
-        if (state is WorkoutHistoryLoaded) {
-          return state.sessions;
-        }
-        return const []; // fallback only when not in Loaded state
-      },
+      selector: (state) =>
+          state is WorkoutHistoryLoaded ? state.sessions : const [],
       builder: (context, sessions) {
-        log('session inside bloc selector >> ${sessions.length} items');
-
         if (sessions.isEmpty) {
-          return const _EmptyState(
+          return const EmptyState(
             icon: Icons.history,
             message: 'No workouts yet.\nFinish a session to see it here.',
           );
@@ -104,65 +83,15 @@ class _HistoryTab extends StatelessWidget {
         return ListView.separated(
           padding: const EdgeInsets.all(16),
           itemCount: sessions.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (_, i) => _SessionCard(session: sessions[i]),
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          itemBuilder: (_, i) => SessionCard(session: sessions[i]),
         );
       },
     );
   }
 }
 
-class _SessionCard extends StatelessWidget {
-  final WorkoutSession session;
-  const _SessionCard({required this.session});
-
-  @override
-  Widget build(BuildContext context) {
-    final dateStr = DateFormat('EEE, d MMM yyyy').format(session.date);
-    final timeStr = DateFormat('HH:mm').format(session.date);
-
-    return Card(
-      child: ExpansionTile(
-        title: Text(
-          dateStr,
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        subtitle: Text(
-          '$timeStr · ${session.exercises.length} exercises · '
-          '${session.totalSets} sets · '
-          '${session.totalVolume.toStringAsFixed(0)} kg',
-        ),
-        children: session.exercises.map((ex) {
-          return ListTile(
-            dense: true,
-            title: Text(ex.name),
-            subtitle: Text(
-              ex.sets
-                  .asMap()
-                  .entries
-                  .map(
-                    (e) =>
-                        'Set ${e.key + 1}: ${e.value.weightKg}kg × ${e.value.reps}',
-                  )
-                  .join('  ·  '),
-              style: const TextStyle(fontSize: 12),
-            ),
-            trailing: ex.bestSet != null
-                ? Chip(
-                    label: Text(
-                      'Best: ${ex.bestSet!.weightKg}kg',
-                      style: const TextStyle(fontSize: 11),
-                    ),
-                    padding: EdgeInsets.zero,
-                  )
-                : null,
-          );
-        }).toList(),
-      ),
-    );
-  }
-}
-
+// ── Personal Records Tab ────────────────────────────────────────────
 class _PersonalRecordsTab extends StatelessWidget {
   const _PersonalRecordsTab();
 
@@ -171,83 +100,25 @@ class _PersonalRecordsTab extends StatelessWidget {
     return BlocSelector<
       PersonalRecordsBloc,
       PersonalRecordsState,
-      List<dynamic>
+      List<PersonalRecord>
     >(
-      selector: (state) => state is PersonalRecordsLoaded ? state.records : [],
+      selector: (state) =>
+          state is PersonalRecordsLoaded ? state.records : const [],
       builder: (context, records) {
         if (records.isEmpty) {
-          return const _EmptyState(
+          return const EmptyState(
             icon: Icons.emoji_events,
             message: 'No PRs yet.\nLog some heavy sets to set records!',
           );
         }
+
         return ListView.separated(
           padding: const EdgeInsets.all(16),
           itemCount: records.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (_, i) {
-            final pr = records[i];
-            return ListTile(
-              tileColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              leading: const Icon(Icons.emoji_events, color: Colors.amber),
-              title: Text(
-                pr.exerciseName,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle: Text(
-                'Achieved ${DateFormat('d MMM yyyy').format(pr.achievedAt)}',
-                style: const TextStyle(fontSize: 12),
-              ),
-              trailing: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${pr.bestWeightKg} kg',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  Text(
-                    '× ${pr.repsAtBestWeight} reps',
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-            );
-          },
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          itemBuilder: (_, i) => PersonalRecordCard(pr: records[i]),
         );
       },
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  final IconData icon;
-  final String message;
-  const _EmptyState({required this.icon, required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 56, color: Colors.grey),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
-          ),
-        ],
-      ),
     );
   }
 }

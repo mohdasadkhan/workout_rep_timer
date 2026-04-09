@@ -12,6 +12,48 @@ import '../bloc/workout_session_bloc/workout_session_state.dart';
 
 class WorkoutSessionPage extends StatelessWidget {
   const WorkoutSessionPage({super.key});
+  // NEW: Consistent with Timer feature exit flow
+  void _showExitDialog(BuildContext context) {
+    const quotes = [
+      "Don't stop now — you're building something great!",
+      "Pain is progress. Keep going!",
+      "One more set. You got this!",
+      "The grind never stops… but you can pause.",
+      "Future you is already proud.",
+    ];
+    final quote = quotes[DateTime.now().millisecond % quotes.length];
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Leave Session?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(quote, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            const Text('Your progress is saved until you Finish or Discard.'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context), // continue
+            child: const Text('Continue'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<WorkoutSessionBloc>().add(const DiscardSession());
+            },
+            child: const Text(
+              'Discard Session',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +65,7 @@ class WorkoutSessionPage extends StatelessWidget {
           );
           context.read<WorkoutSessionBloc>().add(const StartWorkoutSession());
         }
-        if (state is WorkoutError) {
+        if (state is WorkoutSessionError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
@@ -33,48 +75,55 @@ class WorkoutSessionPage extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        return Scaffold(
-          appBar: AppBar(
-            title: FeatureDropdownTitle(current: AppFeature.repTracker),
-            centerTitle: false,
-            automaticallyImplyLeading: false,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.history),
-                tooltip: 'History',
-                onPressed: () => context.push('/rep-tracker/history'),
-              ),
-              if (state is WorkoutSessionActive && state.exercises.isNotEmpty)
-                TextButton(
-                  onPressed: () => _confirmFinish(context),
-                  child: const Text('Finish'),
-                ),
-            ],
-          ),
-
-          body: switch (state) {
-            WorkoutInitial() => _BuildStartPrompt(
-              onStart: () => context.read<WorkoutSessionBloc>().add(
-                const StartWorkoutSession(),
-              ),
-            ),
-            WorkoutLoading() => const Center(
-              child: CircularProgressIndicator(),
-            ),
-            WorkoutSessionActive() => _BuildActiveSession(state: state),
-            _ => _BuildStartPrompt(
-              onStart: () => context.read<WorkoutSessionBloc>().add(
-                const StartWorkoutSession(),
-              ),
-            ),
+        return WillPopScope(
+          onWillPop: () async {
+            if (state is! WorkoutSessionActive) return true;
+            _showExitDialog(context);
+            return false;
           },
-          floatingActionButton: state is WorkoutSessionActive
-              ? FloatingActionButton.extended(
-                  onPressed: () => _showAddExerciseSheet(context),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Exercise'),
-                )
-              : null,
+          child: Scaffold(
+            appBar: AppBar(
+              title: FeatureDropdownTitle(current: AppFeature.repTracker),
+              centerTitle: false,
+              automaticallyImplyLeading: false,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.history),
+                  tooltip: 'History',
+                  onPressed: () => context.push('/rep-tracker/history'),
+                ),
+                if (state is WorkoutSessionActive && state.exercises.isNotEmpty)
+                  TextButton(
+                    onPressed: () => _confirmFinish(context),
+                    child: const Text('Finish'),
+                  ),
+              ],
+            ),
+
+            body: switch (state) {
+              WorkoutInitial() => _BuildStartPrompt(
+                onStart: () => context.read<WorkoutSessionBloc>().add(
+                  const StartWorkoutSession(),
+                ),
+              ),
+              WorkoutLoading() => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              WorkoutSessionActive() => _BuildActiveSession(state: state),
+              _ => _BuildStartPrompt(
+                onStart: () => context.read<WorkoutSessionBloc>().add(
+                  const StartWorkoutSession(),
+                ),
+              ),
+            },
+            floatingActionButton: state is WorkoutSessionActive
+                ? FloatingActionButton.extended(
+                    onPressed: () => _showAddExerciseSheet(context),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Exercise'),
+                  )
+                : null,
+          ),
         );
       },
     );
@@ -200,10 +249,13 @@ class _BuildStartPrompt extends StatelessWidget {
           const SizedBox(height: 8),
           const Text('Start a new session to log your sets.'),
           const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: onStart,
-            icon: const Icon(Icons.play_arrow),
-            label: const Text('Start Session'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            child: FilledButton.icon(
+              onPressed: onStart,
+              icon: const Icon(Icons.play_arrow),
+              label: const Text('Start Session'),
+            ),
           ),
         ],
       ),
@@ -279,8 +331,6 @@ class _ExerciseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final totalReps = exercise.sets.fold(0, (sum, s) => sum + s.reps);
-
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -357,36 +407,6 @@ class _ExerciseCard extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // BIG TAP TO COUNT REP
-            SizedBox(
-              width: double.infinity,
-              height: 72,
-              child: FilledButton(
-                onPressed: () => _incrementLastRep(context, exercise.id),
-                style: FilledButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.touch_app, size: 32),
-                    SizedBox(width: 12),
-                    Text(
-                      'TAP TO COUNT REP',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
             // Add New Set (smart default)
             OutlinedButton.icon(
               onPressed: () => _addNewSet(context, exercise.id),
@@ -402,37 +422,6 @@ class _ExerciseCard extends StatelessWidget {
     );
   }
 
-  void _incrementLastRep(BuildContext context, String exerciseId) {
-    final bloc = context.read<WorkoutSessionBloc>();
-    final current = bloc.state;
-    if (current is! WorkoutSessionActive) return;
-
-    final ex = current.exercises.firstWhere((e) => e.id == exerciseId);
-    if (ex.sets.isEmpty) {
-      bloc.add(
-        LogSet(
-          exerciseId: exerciseId,
-          set: ExerciseSet(
-            id: const Uuid().v4(),
-            weightKg: 0.0,
-            reps: 1,
-            performedAt: DateTime.now(),
-          ),
-        ),
-      );
-    } else {
-      final last = ex.sets.last;
-      bloc.add(
-        UpdateSet(
-          exerciseId: exerciseId,
-          setId: last.id,
-          weightKg: last.weightKg,
-          reps: last.reps + 1,
-        ),
-      );
-    }
-  }
-
   void _addNewSet(BuildContext context, String exerciseId) {
     final bloc = context.read<WorkoutSessionBloc>();
     final current = bloc.state;
@@ -440,6 +429,7 @@ class _ExerciseCard extends StatelessWidget {
 
     final ex = current.exercises.firstWhere((e) => e.id == exerciseId);
     final lastWeight = ex.sets.isNotEmpty ? ex.sets.last.weightKg : 0.0;
+    final lastRep = ex.sets.isNotEmpty ? ex.sets.last.reps : 0;
 
     bloc.add(
       LogSet(
@@ -447,7 +437,7 @@ class _ExerciseCard extends StatelessWidget {
         set: ExerciseSet(
           id: const Uuid().v4(),
           weightKg: lastWeight,
-          reps: 0,
+          reps: lastRep,
           performedAt: DateTime.now(),
         ),
       ),

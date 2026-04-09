@@ -27,7 +27,6 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:hive/hive.dart';
 
 final getIt = GetIt.instance;
 
@@ -100,7 +99,10 @@ Future<void> registerRepTrackerFeature() async {
   getIt.registerLazySingleton(() => GetPersonalRecords(getIt()));
 
   getIt.registerFactory(
-    () => WorkoutSessionBloc(saveWorkoutSession: getIt<SaveWorkoutSession>()),
+    () => WorkoutSessionBloc(
+      saveWorkoutSession: getIt<SaveWorkoutSession>(),
+      workoutRepository: getIt<WorkoutRepository>(),
+    ),
   );
   getIt.registerFactory(
     () => WorkoutHistoryBloc(getWorkoutHistory: getIt<GetWorkoutHistory>()),

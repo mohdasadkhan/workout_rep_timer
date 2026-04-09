@@ -65,3 +65,11 @@ class RemoveExercise extends WorkoutSessionEvent {
 class FinishWorkoutSession extends WorkoutSessionEvent {
   const FinishWorkoutSession();
 }
+
+class LoadActiveSession extends WorkoutSessionEvent {
+  const LoadActiveSession();
+}
+
+class DiscardSession extends WorkoutSessionEvent {
+  const DiscardSession();
+}

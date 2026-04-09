@@ -13,12 +13,14 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
   const WorkoutRepositoryImpl({required this.localDatasource});
 
   @override
-  Future<Either<Failure, void>> saveWorkoutSession(
-      WorkoutSession session) async {
+  Future<Either<Failure, Unit>> saveWorkoutSession(
+    WorkoutSession session,
+  ) async {
     try {
-      await localDatasource
-          .saveWorkoutSession(WorkoutSessionModel.fromEntity(session));
-      return const Right(null);
+      await localDatasource.saveWorkoutSession(
+        WorkoutSessionModel.fromEntity(session),
+      );
+      return const Right(unit);
     } on CacheException catch (e) {
       return Left(CacheFailure(message: e.message));
     }
@@ -69,5 +71,54 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
 
     return recordMap.values.toList()
       ..sort((a, b) => b.achievedAt.compareTo(a.achievedAt));
+  }
+
+  // @override
+  // Future<Either<Failure, Unit>> clearActiveSession() {
+  //   // TODO: implement clearActiveSession
+  //   throw UnimplementedError();
+  // }
+
+  // @override
+  // Future<Either<WorkoutSession, Unit>> loadActiveSession() {
+  //   // TODO: implement loadActiveSession
+  //   throw UnimplementedError();
+  // }
+
+  @override
+  Future<Either<Failure, Unit>> saveActiveSession(
+    WorkoutSession session,
+  ) async {
+    try {
+      await localDatasource.saveActiveSession(
+        WorkoutSessionModel.fromEntity(session),
+      );
+      return const Right(unit);
+    } on CacheException catch (e) {
+      return Left(Failure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Option<WorkoutSession>> loadActiveSession() async {
+    try {
+      final model = await localDatasource.loadActiveSession();
+      if (model != null) {
+        return optionOf(model.toEntity());
+      }
+      return none();
+    } on CacheException {
+      return none();
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> clearActiveSession() async {
+    try {
+      await localDatasource.clearActiveSession();
+      return Right(unit);
+    } on CacheException catch (e) {
+      return Left(Failure(message: e.toString()));
+    }
   }
 }

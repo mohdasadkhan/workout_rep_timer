@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:app_lifecycle/features/rep_tracker/domain/repositories/workout_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import '../../../domain/entities/exercise.dart';
@@ -9,14 +12,12 @@ import 'workout_session_state.dart';
 class WorkoutSessionBloc
     extends Bloc<WorkoutSessionEvent, WorkoutSessionState> {
   final SaveWorkoutSession saveWorkoutSession;
-  // final GetWorkoutHistory getWorkoutHistory;
-  // final GetPersonalRecords getPersonalRecords;
+  final WorkoutRepository workoutRepository;
   final Uuid uuid;
 
   WorkoutSessionBloc({
     required this.saveWorkoutSession,
-    // required this.getWorkoutHistory,
-    // required this.getPersonalRecords,
+    required this.workoutRepository,
     Uuid? uuid,
   }) : uuid = uuid ?? const Uuid(),
        super(const WorkoutInitial()) {
@@ -27,14 +28,14 @@ class WorkoutSessionBloc
     on<RemoveSet>(_onRemoveSet);
     on<RemoveExercise>(_onRemoveExercise);
     on<FinishWorkoutSession>(_onFinishSession);
-    // on<LoadWorkoutHistory>(_onLoadHistory);
-    // on<LoadPersonalRecords>(_onLoadPersonalRecords);
+    on<LoadActiveSession>(_onLoadActiveSession); // ← new
+    on<DiscardSession>(_onDiscardSession); // ← new
   }
 
-  void _onStartSession(
+  Future<void> _onStartSession(
     StartWorkoutSession event,
     Emitter<WorkoutSessionState> emit,
-  ) {
+  ) async {
     emit(
       WorkoutSessionActive(
         sessionId: uuid.v4(),
@@ -42,9 +43,13 @@ class WorkoutSessionBloc
         exercises: const [],
       ),
     );
+    await _persistActiveSession();
   }
 
-  void _onAddExercise(AddExercise event, Emitter<WorkoutSessionState> emit) {
+  Future<void> _onAddExercise(
+    AddExercise event,
+    Emitter<WorkoutSessionState> emit,
+  ) async {
     final current = state;
     if (current is! WorkoutSessionActive) return;
 
@@ -55,9 +60,13 @@ class WorkoutSessionBloc
       ],
     );
     emit(updated);
+    await _persistActiveSession();
   }
 
-  void _onLogSet(LogSet event, Emitter<WorkoutSessionState> emit) {
+  Future<void> _onLogSet(
+    LogSet event,
+    Emitter<WorkoutSessionState> emit,
+  ) async {
     final current = state;
     if (current is! WorkoutSessionActive) return;
 
@@ -67,9 +76,13 @@ class WorkoutSessionBloc
     }).toList();
 
     emit(current.copyWith(exercises: exercises));
+    await _persistActiveSession();
   }
 
-  void _onUpdateSet(UpdateSet event, Emitter<WorkoutSessionState> emit) {
+  Future<void> _onUpdateSet(
+    UpdateSet event,
+    Emitter<WorkoutSessionState> emit,
+  ) async {
     final current = state;
     if (current is! WorkoutSessionActive) return;
 
@@ -83,9 +96,13 @@ class WorkoutSessionBloc
     }).toList();
 
     emit(current.copyWith(exercises: exercises));
+    await _persistActiveSession();
   }
 
-  void _onRemoveSet(RemoveSet event, Emitter<WorkoutSessionState> emit) {
+  Future<void> _onRemoveSet(
+    RemoveSet event,
+    Emitter<WorkoutSessionState> emit,
+  ) async {
     final current = state;
     if (current is! WorkoutSessionActive) return;
 
@@ -96,12 +113,13 @@ class WorkoutSessionBloc
     }).toList();
 
     emit(current.copyWith(exercises: exercises));
+    await _persistActiveSession();
   }
 
-  void _onRemoveExercise(
+  Future<void> _onRemoveExercise(
     RemoveExercise event,
     Emitter<WorkoutSessionState> emit,
-  ) {
+  ) async {
     final current = state;
     if (current is! WorkoutSessionActive) return;
 
@@ -109,6 +127,7 @@ class WorkoutSessionBloc
         .where((e) => e.id != event.exerciseId)
         .toList();
     emit(current.copyWith(exercises: exercises));
+    await _persistActiveSession();
   }
 
   Future<void> _onFinishSession(
@@ -131,32 +150,49 @@ class WorkoutSessionBloc
     );
 
     result.fold(
-      (failure) => emit(WorkoutError(message: failure.message)),
+      (failure) => emit(WorkoutSessionError(message: failure.message)),
       (_) => emit(const WorkoutSessionSaved()),
+    );
+    await _persistActiveSession();
+  }
+
+  // NEW: Hydration on app start / navigation return
+  Future<void> _onLoadActiveSession(
+    LoadActiveSession event,
+    Emitter<WorkoutSessionState> emit,
+  ) async {
+    final active = await workoutRepository.loadActiveSession();
+    log('inside load Active session active data >> $active');
+    active.fold(
+      () => emit(WorkoutInitial()),
+      (session) => emit(
+        WorkoutSessionActive(
+          sessionId: session.id,
+          sessionDate: session.date,
+          exercises: session.exercises,
+        ),
+      ),
     );
   }
 
-  // Future<void> _onLoadHistory(
-  //   LoadWorkoutHistory event,
-  //   Emitter<WorkoutSessionState> emit,
-  // ) async {
-  //   emit(const WorkoutLoading());
-  //   final result = await getWorkoutHistory(NoParams());
-  //   result.fold(
-  //     (failure) => emit(WorkoutError(message: failure.message)),
-  //     (sessions) => emit(WorkoutHistoryLoaded(sessions: sessions)),
-  //   );
-  // }
+  Future<void> _onDiscardSession(
+    DiscardSession event,
+    Emitter<WorkoutSessionState> emit,
+  ) async {
+    await workoutRepository.clearActiveSession();
+    emit(const WorkoutInitial());
+  }
 
-  // Future<void> _onLoadPersonalRecords(
-  //   LoadPersonalRecords event,
-  //   Emitter<WorkoutSessionState> emit,
-  // ) async {
-  //   emit(const WorkoutLoading());
-  //   final result = await getPersonalRecords(NoParams());
-  //   result.fold(
-  //     (failure) => emit(WorkoutError(message: failure.message)),
-  //     (records) => emit(PersonalRecordsLoaded(records: records)),
-  //   );
-  // }
+  // Helper — called after every mutation
+  Future<void> _persistActiveSession() async {
+    final current = state;
+    if (current is! WorkoutSessionActive) return;
+
+    final session = WorkoutSession(
+      id: current.sessionId,
+      date: current.sessionDate,
+      exercises: current.exercises,
+    );
+    await workoutRepository.saveActiveSession(session);
+  }
 }

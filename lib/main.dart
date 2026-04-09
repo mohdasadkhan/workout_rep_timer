@@ -3,12 +3,13 @@ import 'package:app_lifecycle/core/di/injection.dart';
 import 'package:app_lifecycle/core/router/app_router.dart';
 import 'package:app_lifecycle/core/theme/app_theme.dart';
 import 'package:app_lifecycle/features/notification/presentation/bloc/notification_bloc.dart';
+import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
+import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_event.dart';
 import 'package:app_lifecycle/features/workout_timer/presentation/bloc/timer_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
-import 'package:go_router/go_router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +42,7 @@ Future<void> main() async {
       eventAction: ForegroundTaskEventAction.nothing(),
     ),
   );
+  // getIt<WorkoutSessionBloc>().add(const LoadActiveSession());
   runApp(const MyApp());
 }
 
@@ -52,13 +54,15 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => getIt<TimerBloc>()),
-        // BlocProvider(create: (_) => getIt<WorkoutBloc>()),
+        BlocProvider.value(
+          value: getIt<WorkoutSessionBloc>()..add(LoadActiveSession()),
+        ),
+
         BlocProvider(create: (_) => getIt<NotificationBloc>()),
       ],
       child: MaterialApp.router(
         title: 'Workout Timer',
         theme: AppTheme.darkTheme,
-        // routerConfig: getIt<GoRouter>(),
         routerConfig: createRouter(),
       ),
     );

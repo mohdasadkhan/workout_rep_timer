@@ -35,29 +35,22 @@ GoRouter createRouter() {
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/rep-tracker',
 
-    // 🔥 Deep link error handling
     errorPageBuilder: (context, state) => _buildPage(
       state: state,
       child: const Scaffold(body: Center(child: Text('Page not found'))),
     ),
 
     routes: [
-      // ───────────── TABATA (Workout Timer Feature) ─────────────
       GoRoute(
         path: '/tabata',
         pageBuilder: (context, state) =>
             _buildPage(state: state, child: const ConfigScreen()),
 
         routes: [
-          /// Preview Screen (Deep link safe)
           GoRoute(
             path: 'preview',
             pageBuilder: (context, state) {
               final params = state.uri.queryParameters;
-
-              /// ❗ Instead of extra → use query params
-              /// Example deep link:
-              /// myapp://tabata/preview?rounds=5&work=30&rest=10
 
               final config = WorkoutConfig.fromQuery(params);
 
@@ -68,7 +61,6 @@ GoRouter createRouter() {
             },
           ),
 
-          /// Running Screen
           GoRoute(
             path: 'running',
             pageBuilder: (context, state) =>
@@ -77,16 +69,10 @@ GoRouter createRouter() {
         ],
       ),
 
-      // ───────────── REP TRACKER FEATURE ─────────────
       GoRoute(
         path: '/rep-tracker',
-        pageBuilder: (context, state) => _buildPage(
-          state: state,
-          child: BlocProvider(
-            create: (_) => getIt<WorkoutSessionBloc>(),
-            child: const WorkoutSessionPage(),
-          ),
-        ),
+        pageBuilder: (context, state) =>
+            _buildPage(state: state, child: const WorkoutSessionPage()),
 
         routes: [
           GoRoute(
