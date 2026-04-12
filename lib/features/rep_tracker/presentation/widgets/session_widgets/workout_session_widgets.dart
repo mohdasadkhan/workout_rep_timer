@@ -213,33 +213,13 @@ class StartPrompt extends StatelessWidget {
 }
 
 // ─── Active Session ───────────────────────────────────────────────────────────
-class ActiveSession extends StatefulWidget {
+class ActiveSession extends StatelessWidget {
   final WorkoutSessionActive state;
   const ActiveSession({super.key, required this.state});
 
   @override
-  State<ActiveSession> createState() => _ActiveSessionState();
-}
-
-class _ActiveSessionState extends State<ActiveSession> {
-  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
-
-  @override
-  void didUpdateWidget(covariant ActiveSession oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.state.exercises.length > oldWidget.state.exercises.length) {
-      // New exercise added
-      final newIndex = widget.state.exercises.length - 1;
-      _listKey.currentState?.insertItem(
-        newIndex,
-        duration: const Duration(milliseconds: 400),
-      );
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (widget.state.exercises.isEmpty) {
+    if (state.exercises.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -257,7 +237,7 @@ class _ActiveSessionState extends State<ActiveSession> {
               ),
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Tap "+ Add Exercise" to begin.',
               style: AppTextStyles.bodyMedium,
             ),
@@ -268,89 +248,19 @@ class _ActiveSessionState extends State<ActiveSession> {
 
     return Column(
       children: [
-        SessionStatsBar(state: widget.state),
+        SessionStatsBar(state: state),
         const SizedBox(height: 8),
         Expanded(
-          child: AnimatedList(
-            key: _listKey,
+          child: ListView.builder(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-            initialItemCount: widget.state.exercises.length,
-            itemBuilder: (context, index, animation) {
-              return _buildExerciseCardWithAnimation(
-                widget.state.exercises[index],
-                animation,
-              );
-            },
+            itemCount: state.exercises.length,
+            itemBuilder: (_, i) => ExerciseCard(exercise: state.exercises[i]),
           ),
         ),
       ],
     );
   }
-
-  Widget _buildExerciseCardWithAnimation(
-    Exercise exercise,
-    Animation<double> animation,
-  ) {
-    return SlideTransition(
-      position: Tween<Offset>(
-        begin: const Offset(0, 0.3),
-        end: Offset.zero,
-      ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
-      child: FadeTransition(
-        opacity: animation,
-        child: ExerciseCard(exercise: exercise),
-      ),
-    );
-  }
 }
-// class ActiveSession extends StatelessWidget {
-//   final WorkoutSessionActive state;
-//   const ActiveSession({super.key, required this.state});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     if (state.exercises.isEmpty) {
-//       return Center(
-//         child: Column(
-//           mainAxisSize: MainAxisSize.min,
-//           children: [
-//             const Icon(
-//               Icons.add_box_outlined,
-//               size: 52,
-//               color: AppColors.textTertiary,
-//             ),
-//             const SizedBox(height: 16),
-//             Text(
-//               'No exercises yet',
-//               style: AppTextStyles.titleMedium.copyWith(
-//                 color: AppColors.textTertiary,
-//               ),
-//             ),
-//             const SizedBox(height: 6),
-//             Text(
-//               'Tap "+ Add Exercise" to begin.',
-//               style: AppTextStyles.bodyMedium,
-//             ),
-//           ],
-//         ),
-//       );
-//     }
-
-//     return Column(
-//       children: [
-//         SessionStatsBar(state: state),
-//         const SizedBox(height: 8),
-//         Expanded(
-//           child: ListView.builder(
-//             padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-//             itemCount: state.exercises.length,
-//             itemBuilder: (_, i) => ExerciseCard(exercise: state.exercises[i]),
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-// }
 
 // ─── Stats Bar ────────────────────────────────────────────────────────────────
 
@@ -996,125 +906,125 @@ class _SheetField extends StatelessWidget {
 
 // ─── Add Exercise Bottom Sheet ────────────────────────────────────────────────
 
-void showAddExerciseSheet(BuildContext context) {
-  final controller = TextEditingController();
-  const presets = [
-    'Bench Press',
-    'Squat',
-    'Deadlift',
-    'Overhead Press',
-    'Pull-up',
-    'Barbell Row',
-    'Lat Pulldown',
-    'Bicep Curl',
-    'Tricep Pushdown',
-    'Leg Press',
-    'Cable Fly',
-    'Leg Curl',
-  ];
+// void showAddExerciseSheet(BuildContext context) {
+//   final controller = TextEditingController();
+//   const presets = [
+//     'Bench Press',
+//     'Squat',
+//     'Deadlift',
+//     'Overhead Press',
+//     'Pull-up',
+//     'Barbell Row',
+//     'Lat Pulldown',
+//     'Bicep Curl',
+//     'Tricep Pushdown',
+//     'Leg Press',
+//     'Cable Fly',
+//     'Leg Curl',
+//   ];
 
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: AppColors.surface,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-    ),
-    builder: (sheetContext) => Padding(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        8,
-        20,
-        MediaQuery.of(sheetContext).viewInsets.bottom + 24,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          Text('Add Exercise', style: AppTextStyles.titleLarge),
-          const SizedBox(height: 16),
-          TextField(
-            controller: controller,
-            autofocus: true,
-            style: const TextStyle(color: AppColors.textPrimary),
-            decoration: InputDecoration(
-              hintText: 'Exercise name',
-              hintStyle: const TextStyle(color: AppColors.textTertiary),
-              filled: true,
-              fillColor: AppColors.card,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                  color: AppColors.primary,
-                  width: 1.5,
-                ),
-              ),
-              prefixIcon: const Icon(
-                Icons.fitness_center,
-                color: AppColors.textTertiary,
-              ),
-            ),
-            onSubmitted: (value) {
-              if (value.trim().isEmpty) return;
-              context.read<WorkoutSessionBloc>().add(
-                AddExercise(exerciseName: value.trim()),
-              );
-              Navigator.pop(sheetContext);
-            },
-          ),
-          const SizedBox(height: 20),
-          Text('QUICK PICK', style: AppTextStyles.labelSmall),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: presets.map((name) {
-              return GestureDetector(
-                onTap: () {
-                  context.read<WorkoutSessionBloc>().add(
-                    AddExercise(exerciseName: name),
-                  );
-                  Navigator.pop(sheetContext);
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.card,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white12),
-                  ),
-                  child: Text(
-                    name,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    ),
-  );
-}
+//   showModalBottomSheet(
+//     context: context,
+//     isScrollControlled: true,
+//     backgroundColor: AppColors.surface,
+//     shape: const RoundedRectangleBorder(
+//       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+//     ),
+//     builder: (sheetContext) => Padding(
+//       padding: EdgeInsets.fromLTRB(
+//         20,
+//         8,
+//         20,
+//         MediaQuery.of(sheetContext).viewInsets.bottom + 24,
+//       ),
+//       child: Column(
+//         mainAxisSize: MainAxisSize.min,
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           Center(
+//             child: Container(
+//               width: 40,
+//               height: 4,
+//               margin: const EdgeInsets.only(bottom: 20),
+//               decoration: BoxDecoration(
+//                 color: Colors.white24,
+//                 borderRadius: BorderRadius.circular(2),
+//               ),
+//             ),
+//           ),
+//           Text('Add Exercise', style: AppTextStyles.titleLarge),
+//           const SizedBox(height: 16),
+//           TextField(
+//             controller: controller,
+//             autofocus: true,
+//             style: const TextStyle(color: AppColors.textPrimary),
+//             decoration: InputDecoration(
+//               hintText: 'Exercise name',
+//               hintStyle: const TextStyle(color: AppColors.textTertiary),
+//               filled: true,
+//               fillColor: AppColors.card,
+//               border: OutlineInputBorder(
+//                 borderRadius: BorderRadius.circular(12),
+//                 borderSide: BorderSide.none,
+//               ),
+//               focusedBorder: OutlineInputBorder(
+//                 borderRadius: BorderRadius.circular(12),
+//                 borderSide: const BorderSide(
+//                   color: AppColors.primary,
+//                   width: 1.5,
+//                 ),
+//               ),
+//               prefixIcon: const Icon(
+//                 Icons.fitness_center,
+//                 color: AppColors.textTertiary,
+//               ),
+//             ),
+//             onSubmitted: (value) {
+//               if (value.trim().isEmpty) return;
+//               context.read<WorkoutSessionBloc>().add(
+//                 AddExercise(exerciseName: value.trim()),
+//               );
+//               Navigator.pop(sheetContext);
+//             },
+//           ),
+//           const SizedBox(height: 20),
+//           Text('QUICK PICK', style: AppTextStyles.labelSmall),
+//           const SizedBox(height: 10),
+//           Wrap(
+//             spacing: 8,
+//             runSpacing: 8,
+//             children: presets.map((name) {
+//               return GestureDetector(
+//                 onTap: () {
+//                   context.read<WorkoutSessionBloc>().add(
+//                     AddExercise(exerciseName: name),
+//                   );
+//                   Navigator.pop(sheetContext);
+//                 },
+//                 child: Container(
+//                   padding: const EdgeInsets.symmetric(
+//                     horizontal: 14,
+//                     vertical: 8,
+//                   ),
+//                   decoration: BoxDecoration(
+//                     color: AppColors.card,
+//                     borderRadius: BorderRadius.circular(20),
+//                     border: Border.all(color: Colors.white12),
+//                   ),
+//                   child: Text(
+//                     name,
+//                     style: const TextStyle(
+//                       color: AppColors.textPrimary,
+//                       fontSize: 13,
+//                       fontWeight: FontWeight.w500,
+//                     ),
+//                   ),
+//                 ),
+//               );
+//             }).toList(),
+//           ),
+//         ],
+//       ),
+//     ),
+//   );
+// }

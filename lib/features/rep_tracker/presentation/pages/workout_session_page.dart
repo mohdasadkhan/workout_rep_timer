@@ -2,6 +2,7 @@ import 'package:app_lifecycle/core/theme/app_colors.dart';
 import 'package:app_lifecycle/core/widgets/dialogs/exit_dialog.dart';
 import 'package:app_lifecycle/core/widgets/feature_dropdown/extension_on_appfeature.dart';
 import 'package:app_lifecycle/core/widgets/feature_dropdown/feature_dropdown.dart';
+import 'package:app_lifecycle/features/rep_tracker/presentation/widgets/session_widgets/add_exercise_bottom_sheet.dart';
 import 'package:app_lifecycle/features/rep_tracker/presentation/widgets/session_widgets/workout_session_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -126,7 +127,7 @@ class WorkoutSessionPage extends StatelessWidget {
             },
             floatingActionButton: state is WorkoutSessionActive
                 ? FloatingActionButton.extended(
-                    onPressed: () => showAddExerciseSheet(context),
+                    onPressed: () => AddExerciseBottomSheet.show(context),
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.black,
                     icon: const Icon(Icons.add),
