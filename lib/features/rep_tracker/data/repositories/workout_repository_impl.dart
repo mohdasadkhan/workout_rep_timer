@@ -37,6 +37,16 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
   }
 
   @override
+  Future<Either<Failure, Unit>> deleteWorkoutSession(String sessionId) async {
+    try {
+      await localDatasource.deleteWorkoutSession(sessionId);
+      return const Right(unit);
+    } catch (e) {
+      return Left(CacheFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, List<PersonalRecord>>> getPersonalRecords() async {
     try {
       final models = await localDatasource.getWorkoutHistory();
@@ -72,18 +82,6 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
     return recordMap.values.toList()
       ..sort((a, b) => b.achievedAt.compareTo(a.achievedAt));
   }
-
-  // @override
-  // Future<Either<Failure, Unit>> clearActiveSession() {
-  //   // TODO: implement clearActiveSession
-  //   throw UnimplementedError();
-  // }
-
-  // @override
-  // Future<Either<WorkoutSession, Unit>> loadActiveSession() {
-  //   // TODO: implement loadActiveSession
-  //   throw UnimplementedError();
-  // }
 
   @override
   Future<Either<Failure, Unit>> saveActiveSession(

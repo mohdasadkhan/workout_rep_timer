@@ -8,6 +8,7 @@ import '../models/workout_session_model.dart';
 abstract class WorkoutLocalDatasource {
   Future<void> saveWorkoutSession(WorkoutSessionModel session);
   Future<List<WorkoutSessionModel>> getWorkoutHistory();
+  Future<void> deleteWorkoutSession(String sessionId);
   Future<void> saveActiveSession(WorkoutSessionModel session);
   Future<WorkoutSessionModel?> loadActiveSession();
   Future<void> clearActiveSession();
@@ -49,6 +50,21 @@ class WorkoutLocalDatasourceImpl implements WorkoutLocalDatasource {
         ..sort((a, b) => b.date.compareTo(a.date));
     } catch (e) {
       throw CacheException(message: 'Failed to load history: $e');
+    }
+  }
+
+  @override
+  Future<void> deleteWorkoutSession(String sessionId) async {
+    try {
+      final box = await _box;
+
+      if (!box.containsKey(sessionId)) {
+        throw CacheException(message: 'Session not found');
+      }
+
+      await box.delete(sessionId);
+    } catch (e) {
+      throw CacheException(message: 'Failed to delete workout: $e');
     }
   }
 

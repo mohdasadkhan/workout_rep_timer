@@ -1,37 +1,95 @@
 import 'package:app_lifecycle/core/constants/pref_keys.dart';
+import 'package:app_lifecycle/core/di/injection.dart';
 import 'package:app_lifecycle/core/theme/app_colors.dart';
 import 'package:app_lifecycle/core/theme/app_text_styles.dart';
 import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
 import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_event.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class AddExerciseBottomSheet extends StatefulWidget {
-  const AddExerciseBottomSheet({super.key});
+class AddExerciseBottomSheet extends StatelessWidget {
+  final String initialCategory;
+  const AddExerciseBottomSheet({super.key, this.initialCategory = 'All'});
 
-  static Future<void> show(BuildContext context) {
+  static Future<void> show(
+    BuildContext context, {
+    String initialCategory = 'All',
+  }) {
+    // Spring-style entry: slides up 12% + fades in, settles with elasticOut
+    final controller = AnimationController(
+      vsync: Navigator.of(context),
+      duration: const Duration(milliseconds: 420),
+    );
+
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
+      transitionAnimationController: controller,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (context) => const AddExerciseBottomSheet(),
-    );
+      builder: (context) => _SpringWrapper(
+        controller: controller,
+        child: AddExerciseBottomSheet(initialCategory: initialCategory),
+      ),
+    ).whenComplete(() {
+      if (!controller.isAnimating) controller.dispose();
+    });
   }
 
   @override
-  State<AddExerciseBottomSheet> createState() => _AddExerciseBottomSheetState();
+  Widget build(BuildContext context) =>
+      _AddExerciseContent(initialCategory: initialCategory);
 }
 
-class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
+// ─── Spring animation wrapper ─────────────────────────────────────────────────
+// SlideTransition: starts 12% below final position, elasticOut → natural settle.
+// FadeTransition: completes in first 35% of the animation so content appears sharp.
+
+class _SpringWrapper extends StatelessWidget {
+  final AnimationController controller;
+  final Widget child;
+  const _SpringWrapper({required this.controller, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final slide = Tween<Offset>(
+      begin: const Offset(0, 0.12),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: controller, curve: Curves.elasticOut));
+
+    final fade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: controller,
+        curve: const Interval(0.0, 0.35, curve: Curves.easeOut),
+      ),
+    );
+
+    return SlideTransition(
+      position: slide,
+      child: FadeTransition(opacity: fade, child: child),
+    );
+  }
+}
+
+// ─── Sheet content ────────────────────────────────────────────────────────────
+
+class _AddExerciseContent extends StatefulWidget {
+  final String initialCategory;
+  const _AddExerciseContent({required this.initialCategory});
+
+  @override
+  State<_AddExerciseContent> createState() => _AddExerciseContentState();
+}
+
+class _AddExerciseContentState extends State<_AddExerciseContent> {
   final TextEditingController _controller = TextEditingController();
   String _searchQuery = '';
-  String _selectedCategory = 'All';
+  late String _selectedCategory;
 
   final List<String> _categories = ['All', 'Push', 'Pull', 'Legs', 'Core'];
 
@@ -74,49 +132,27 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
     ],
   };
 
-  final ScrollController _categoryScrollController = ScrollController();
+  final ScrollController _categoryScrollCtrl = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _loadLastCategory();
+    _selectedCategory = widget.initialCategory;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToSelected());
   }
 
-  Future<void> _loadLastCategory() async {
-    final prefs = await SharedPreferences.getInstance();
-    final saved = prefs.getString(PrefKeys.lastExerciseCategory);
-    if (saved != null && _categories.contains(saved)) {
-      setState(() => _selectedCategory = saved);
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToSelectedCategory();
-      });
-    }
-  }
-
-  Future<void> _saveLastCategory(String category) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(PrefKeys.lastExerciseCategory, category);
-  }
-
-  void _scrollToSelectedCategory() {
-    if (!_categoryScrollController.hasClients) return;
-
+  void _scrollToSelected() {
+    if (!_categoryScrollCtrl.hasClients) return;
     final index = _categories.indexOf(_selectedCategory);
     if (index == -1) return;
-
-    const double itemWidth = 108;
-    final double targetOffset =
+    const itemWidth = 108.0;
+    final target =
         (index * itemWidth) -
         (MediaQuery.of(context).size.width / 2) +
         (itemWidth / 2);
-
-    _categoryScrollController.animateTo(
-      targetOffset.clamp(
-        0.0,
-        _categoryScrollController.position.maxScrollExtent,
-      ),
-      duration: const Duration(milliseconds: 280),
+    _categoryScrollCtrl.animateTo(
+      target.clamp(0.0, _categoryScrollCtrl.position.maxScrollExtent),
+      duration: const Duration(milliseconds: 160),
       curve: Curves.easeOutCubic,
     );
   }
@@ -124,8 +160,13 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
   @override
   void dispose() {
     _controller.dispose();
-    _categoryScrollController.dispose();
+    _categoryScrollCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveLastCategory(String category) async {
+    final prefs = getIt<SharedPreferences>();
+    await prefs.setString(PrefKeys.lastExerciseCategory, category);
   }
 
   void _addExercise(String name) {
@@ -134,17 +175,15 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
     context.read<WorkoutSessionBloc>().add(
       AddExercise(exerciseName: name.trim()),
     );
-    Navigator.pop(context);
+    context.pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    final filteredPresets = _exercisePresets.entries
+    final filtered = _exercisePresets.entries
         .where((e) => _selectedCategory == 'All' || e.key == _selectedCategory)
         .expand((e) => e.value)
-        .where(
-          (name) => name.toLowerCase().contains(_searchQuery.toLowerCase()),
-        )
+        .where((n) => n.toLowerCase().contains(_searchQuery.toLowerCase()))
         .toList();
 
     return SingleChildScrollView(
@@ -158,6 +197,7 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Drag handle
           Center(
             child: Container(
               width: 40,
@@ -173,6 +213,7 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
           Text('Add Exercise', style: AppTextStyles.titleLarge),
           const SizedBox(height: 20),
 
+          // Search field
           TextField(
             controller: _controller,
             autofocus: true,
@@ -211,18 +252,19 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
                     )
                   : null,
             ),
-            onChanged: (value) => setState(() => _searchQuery = value.trim()),
+            onChanged: (v) => setState(() => _searchQuery = v.trim()),
             onSubmitted: _addExercise,
           ),
 
           const SizedBox(height: 24),
 
+          // Category chips
           SingleChildScrollView(
-            controller: _categoryScrollController,
+            controller: _categoryScrollCtrl,
             scrollDirection: Axis.horizontal,
             child: Row(
               children: _categories.map((cat) {
-                final isSelected = _selectedCategory == cat;
+                final selected = _selectedCategory == cat;
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: ChoiceChip(
@@ -231,26 +273,27 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
                       cat,
                       style: TextStyle(
                         fontSize: 14.5,
-                        fontWeight: isSelected
+                        fontWeight: selected
                             ? FontWeight.w600
                             : FontWeight.w500,
-                        color: isSelected
+                        color: selected
                             ? AppColors.primary
                             : AppColors.textPrimary,
                       ),
                     ),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      if (selected) {
+                    selected: selected,
+                    onSelected: (v) {
+                      if (v) {
                         HapticFeedback.lightImpact();
                         setState(() => _selectedCategory = cat);
                         _saveLastCategory(cat);
+                        _scrollToSelected();
                       }
                     },
                     backgroundColor: AppColors.card,
                     selectedColor: AppColors.primary.withOpacity(0.15),
                     side: BorderSide(
-                      color: isSelected
+                      color: selected
                           ? AppColors.primary.withOpacity(0.6)
                           : Colors.white.withOpacity(0.1),
                     ),
@@ -258,7 +301,7 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
                       horizontal: 14,
                       vertical: 8,
                     ),
-                    elevation: isSelected ? 1 : 0,
+                    elevation: selected ? 1 : 0,
                   ),
                 );
               }).toList(),
@@ -266,11 +309,10 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
           ),
 
           const SizedBox(height: 28),
-
           Text('QUICK PICK', style: AppTextStyles.labelSmall),
           const SizedBox(height: 12),
 
-          filteredPresets.isEmpty && _searchQuery.isNotEmpty
+          filtered.isEmpty && _searchQuery.isNotEmpty
               ? const Center(
                   child: Padding(
                     padding: EdgeInsets.symmetric(vertical: 40),
@@ -284,35 +326,10 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
                     ),
                   ),
                 )
-              : AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  transitionBuilder: (child, animation) => FadeTransition(
-                    opacity: animation,
-                    child: SlideTransition(
-                      position:
-                          Tween<Offset>(
-                            begin: const Offset(0, 0.08),
-                            end: Offset.zero,
-                          ).animate(
-                            CurvedAnimation(
-                              parent: animation,
-                              curve: Curves.easeOutCubic,
-                            ),
-                          ),
-                      child: child,
-                    ),
-                  ),
-                  child: Wrap(
-                    key: ValueKey(_selectedCategory + _searchQuery),
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: List.generate(filteredPresets.length, (index) {
-                      return _buildExerciseChip(
-                        filteredPresets[index],
-                        staggerDelay: index * 35,
-                      );
-                    }),
-                  ),
+              : Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: filtered.map(_buildChip).toList(),
                 ),
 
           const SizedBox(height: 20),
@@ -321,34 +338,27 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
     );
   }
 
-  Widget _buildExerciseChip(String name, {int staggerDelay = 0}) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: Duration(milliseconds: 200 + staggerDelay),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) =>
-          Transform.scale(scale: value, child: child),
-      child: Material(
-        color: AppColors.card,
+  Widget _buildChip(String name) {
+    return Material(
+      color: AppColors.card,
+      borderRadius: BorderRadius.circular(22),
+      child: InkWell(
         borderRadius: BorderRadius.circular(22),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(22),
-          onTap: () => _addExercise(name),
-          splashColor: AppColors.primary.withOpacity(0.22),
-          highlightColor: AppColors.primary.withOpacity(0.1),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: Colors.white.withOpacity(0.08)),
-            ),
-            child: Text(
-              name,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
+        onTap: () => _addExercise(name),
+        splashColor: AppColors.primary.withOpacity(0.22),
+        highlightColor: AppColors.primary.withOpacity(0.1),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Colors.white.withOpacity(0.08)),
+          ),
+          child: Text(
+            name,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),

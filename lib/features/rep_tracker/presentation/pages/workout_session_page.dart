@@ -1,3 +1,5 @@
+import 'package:app_lifecycle/core/constants/pref_keys.dart';
+import 'package:app_lifecycle/core/di/injection.dart';
 import 'package:app_lifecycle/core/theme/app_colors.dart';
 import 'package:app_lifecycle/core/widgets/dialogs/exit_dialog.dart';
 import 'package:app_lifecycle/core/widgets/feature_dropdown/extension_on_appfeature.dart';
@@ -7,6 +9,7 @@ import 'package:app_lifecycle/features/rep_tracker/presentation/widgets/session_
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../bloc/workout_session_bloc/workout_session_bloc.dart';
 import '../bloc/workout_session_bloc/workout_session_event.dart';
 import '../bloc/workout_session_bloc/workout_session_state.dart';
@@ -100,15 +103,34 @@ class WorkoutSessionPage extends StatelessWidget {
               centerTitle: false,
               automaticallyImplyLeading: false,
               actions: [
-                IconButton(
-                  icon: const Icon(Icons.history),
-                  tooltip: 'History',
-                  onPressed: () => context.push('/rep-tracker/history'),
+                // History — clock-rotate icon, quiet icon button
+                Container(
+                  width: 36,
+                  height: 36,
+                  margin: const EdgeInsets.only(right: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.white.withOpacity(0.07)),
+                  ),
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    icon: const Icon(
+                      Icons.history_rounded,
+                      size: 18,
+                      color: AppColors.textSecondary,
+                    ),
+                    tooltip: 'History',
+                    onPressed: () => context.push('/rep-tracker/history'),
+                  ),
                 ),
+
+                // Finish pill — only while a session is active with exercises
                 if (state is WorkoutSessionActive && state.exercises.isNotEmpty)
                   FinishButton(onTap: () => _confirmFinish(context)),
               ],
             ),
+
             body: switch (state) {
               WorkoutInitial() => StartPrompt(
                 onStart: () => context.read<WorkoutSessionBloc>().add(
@@ -125,15 +147,35 @@ class WorkoutSessionPage extends StatelessWidget {
                 ),
               ),
             },
+
+            // Small extended FAB — bottom-right, doesn't block scrolling
+            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
             floatingActionButton: state is WorkoutSessionActive
                 ? FloatingActionButton.extended(
-                    onPressed: () => AddExerciseBottomSheet.show(context),
+                    onPressed: () async {
+                      final prefs = getIt<SharedPreferences>();
+                      final lastCategory =
+                          prefs.getString(PrefKeys.lastExerciseCategory) ??
+                          'All';
+                      await AddExerciseBottomSheet.show(
+                        context,
+                        initialCategory: lastCategory,
+                      );
+                    },
                     backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.black,
-                    icon: const Icon(Icons.add),
+                    foregroundColor: Colors.white,
+                    elevation: 4,
+                    icon: const Icon(Icons.add_rounded, size: 20),
                     label: const Text(
                       'Add Exercise',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
                     ),
                   )
                 : null,

@@ -10,7 +10,48 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 
-// ─── Finish AppBar Button ─────────────────────────────────────────────────────
+// ─── Muscle category helper ───────────────────────────────────────────────────
+
+String _muscleCategory(String name) {
+  final n = name.toLowerCase();
+  const push = [
+    'press',
+    'push',
+    'fly',
+    'dip',
+    'raise',
+    'tricep',
+    'chest',
+    'shoulder',
+  ];
+  const pull = [
+    'pull',
+    'row',
+    'curl',
+    'lat',
+    'deadlift',
+    'bicep',
+    'hammer',
+    'face pull',
+  ];
+  const legs = [
+    'squat',
+    'leg',
+    'lunge',
+    'calf',
+    'romanian',
+    'hip thrust',
+    'glute',
+  ];
+  const core = ['plank', 'crunch', 'twist', 'ab ', 'hanging'];
+  if (push.any((k) => n.contains(k))) return 'Push';
+  if (pull.any((k) => n.contains(k))) return 'Pull';
+  if (legs.any((k) => n.contains(k))) return 'Legs';
+  if (core.any((k) => n.contains(k))) return 'Core';
+  return '';
+}
+
+// ─── Finish pill (AppBar action) ──────────────────────────────────────────────
 
 class FinishButton extends StatelessWidget {
   final VoidCallback onTap;
@@ -19,24 +60,31 @@ class FinishButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: TextButton(
-        onPressed: onTap,
-        style: TextButton.styleFrom(
-          foregroundColor: AppColors.primary,
-          textStyle: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 14,
-            letterSpacing: 0.5,
+      padding: const EdgeInsets.only(right: 12),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.12),
+            border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            'FINISH',
+            style: AppTextStyles.labelSmall.copyWith(
+              color: AppColors.primary,
+              fontSize: 11,
+              letterSpacing: 1.2,
+            ),
           ),
         ),
-        child: const Text('FINISH'),
       ),
     );
   }
 }
 
-// ─── Shared styled dialog ─────────────────────────────────────────────────────
+// ─── Shared dialog ────────────────────────────────────────────────────────────
 
 class AppDialog extends StatelessWidget {
   final String title;
@@ -166,15 +214,15 @@ class StartPrompt extends StatelessWidget {
                 color: AppColors.primary.withOpacity(0.08),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.18),
+                    color: AppColors.primary.withOpacity(0.15),
                     blurRadius: 40,
-                    spreadRadius: 10,
+                    spreadRadius: 8,
                   ),
                 ],
               ),
               child: const Icon(
                 Icons.fitness_center,
-                size: 48,
+                size: 46,
                 color: AppColors.primary,
               ),
             ),
@@ -186,20 +234,20 @@ class StartPrompt extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Start a session to log your sets and track your progress.',
+              'Start a session to log your sets\nand track your progress.',
               style: AppTextStyles.bodyMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
             FilledButton.icon(
               onPressed: onStart,
-              icon: const Icon(Icons.play_arrow_rounded, size: 26),
+              icon: const Icon(Icons.play_arrow_rounded, size: 24),
               label: Text(
                 'START SESSION',
                 style: AppTextStyles.titleMedium.copyWith(letterSpacing: 1.1),
               ),
               style: FilledButton.styleFrom(
-                minimumSize: const Size(double.infinity, 58),
+                minimumSize: const Size(double.infinity, 56),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -213,6 +261,7 @@ class StartPrompt extends StatelessWidget {
 }
 
 // ─── Active Session ───────────────────────────────────────────────────────────
+
 class ActiveSession extends StatelessWidget {
   final WorkoutSessionActive state;
   const ActiveSession({super.key, required this.state});
@@ -249,10 +298,9 @@ class ActiveSession extends StatelessWidget {
     return Column(
       children: [
         SessionStatsBar(state: state),
-        const SizedBox(height: 8),
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
             itemCount: state.exercises.length,
             itemBuilder: (_, i) => ExerciseCard(exercise: state.exercises[i]),
           ),
@@ -271,32 +319,24 @@ class SessionStatsBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          StatChip(
-            label: 'Exercises',
-            value: '${state.exercises.length}',
-            color: AppColors.primary,
-          ),
-          const _VerticalDivider(),
-          StatChip(
-            label: 'Total Sets',
-            value: '${state.totalSets}',
-            color: Colors.blueAccent,
-          ),
-          const _VerticalDivider(),
-          StatChip(
+          _StatItem(label: 'Exercises', value: '${state.exercises.length}'),
+          _StatDivider(),
+          _StatItem(label: 'Sets', value: '${state.totalSets}'),
+          _StatDivider(),
+          _StatItem(
             label: 'Volume',
-            value: '${state.totalVolume.toStringAsFixed(0)} kg',
-            color: Colors.orangeAccent,
+            value: state.totalVolume.toStringAsFixed(0),
+            unit: 'kg',
+            accentValue: true,
           ),
         ],
       ),
@@ -304,41 +344,69 @@ class SessionStatsBar extends StatelessWidget {
   }
 }
 
-class _VerticalDivider extends StatelessWidget {
-  const _VerticalDivider();
-
-  @override
-  Widget build(BuildContext context) =>
-      Container(width: 1, height: 32, color: Colors.white10);
-}
-
-class StatChip extends StatelessWidget {
+class _StatItem extends StatelessWidget {
   final String label;
   final String value;
-  final Color color;
-  const StatChip({
-    super.key,
+  final String? unit;
+  final bool accentValue;
+
+  const _StatItem({
     required this.label,
     required this.value,
-    required this.color,
+    this.unit,
+    this.accentValue = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: AppTextStyles.headlineMedium.copyWith(
-            fontSize: 22,
-            color: color,
+    return Expanded(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: value,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: accentValue
+                        ? AppColors.primary
+                        : AppColors.textPrimary,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                if (unit != null)
+                  TextSpan(
+                    text: ' $unit',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textTertiary,
+                    ),
+                  ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 2),
-        Text(label.toUpperCase(), style: AppTextStyles.labelSmall),
-      ],
+          const SizedBox(height: 2),
+          Text(
+            label.toUpperCase(),
+            style: AppTextStyles.labelSmall.copyWith(
+              fontSize: 9,
+              letterSpacing: 1.2,
+            ),
+          ),
+        ],
+      ),
     );
   }
+}
+
+class _StatDivider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) =>
+      Container(width: 1, height: 28, color: Colors.white.withOpacity(0.05));
 }
 
 // ─── Exercise Card ────────────────────────────────────────────────────────────
@@ -349,117 +417,153 @@ class ExerciseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final totalReps = exercise.sets.fold(0, (sum, s) => sum + s.reps);
+    final category = _muscleCategory(exercise.name);
+    final setCount = exercise.sets.length;
+    final totalVolume = exercise.sets.fold(
+      0.0,
+      (sum, s) => sum + (s.weightKg * s.reps),
+    );
+
+    // ── Sub-label under exercise name: "PUSH  ·  3 sets"
+    // Category and set count together — one quiet line, no repeated badges.
+    final subParts = <String>[
+      if (category.isNotEmpty) category.toUpperCase(),
+      if (setCount > 0) '$setCount ${setCount == 1 ? 'set' : 'sets'}',
+    ];
+    final subLabel = subParts.join('  ·  ');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(width: 4, color: AppColors.primary),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header ──────────────────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 12, 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Left: name + "PUSH  ·  3 sets"
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              exercise.name,
-                              style: AppTextStyles.titleLarge,
-                            ),
-                          ),
-                          if (totalReps > 0)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                '$totalReps reps',
-                                style: AppTextStyles.labelLarge.copyWith(
-                                  color: AppColors.primary,
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ),
-                          const SizedBox(width: 4),
-                          GestureDetector(
-                            onTap: () =>
-                                _confirmDeleteExercise(context, exercise.id),
-                            child: const Icon(
-                              Icons.delete_outline,
-                              color: AppColors.error,
-                              size: 20,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        exercise.name,
+                        style: AppTextStyles.titleMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-
-                      if (exercise.sets.isNotEmpty) ...[
-                        const SizedBox(height: 10),
-                        // Column headers
-                        const SetTableHeader(),
-                        const SizedBox(height: 4),
-                        const Divider(color: Colors.white10, height: 1),
+                      if (subLabel.isNotEmpty) ...[
                         const SizedBox(height: 2),
-                        // Set rows — each row is tappable
-                        ...exercise.sets.asMap().entries.map((entry) {
-                          return SetRow(
-                            index: entry.key,
-                            set: entry.value,
-                            exerciseId: exercise.id,
-                            exerciseName: exercise.name,
-                          );
-                        }),
+                        Text(
+                          subLabel,
+                          style: AppTextStyles.labelSmall.copyWith(
+                            color: AppColors.primary,
+                            fontSize: 10,
+                            letterSpacing: 1.4,
+                          ),
+                        ),
                       ],
-
-                      const SizedBox(height: 12),
-
-                      // Add new set
-                      OutlinedButton.icon(
-                        onPressed: () => _addNewSet(context, exercise.id),
-                        icon: const Icon(Icons.add, size: 16),
-                        label: Text(
-                          'Add New Set',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.primary,
-                          side: const BorderSide(
-                            color: AppColors.primary,
-                            width: 1,
-                          ),
-                          minimumSize: const Size(double.infinity, 44),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 10),
+
+                // Volume badge
+                if (totalVolume > 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    margin: const EdgeInsets.only(top: 1),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.08),
+                      border: Border.all(
+                        color: AppColors.primary.withOpacity(0.18),
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          totalVolume >= 1000
+                              ? '${(totalVolume / 1000).toStringAsFixed(1)}k'
+                              : totalVolume.toStringAsFixed(0),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                            letterSpacing: -0.3,
+                            height: 1.1,
+                          ),
+                        ),
+                        Text(
+                          'kg vol',
+                          style: AppTextStyles.labelSmall.copyWith(
+                            fontSize: 8,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(width: 8),
+
+                // Delete exercise
+                GestureDetector(
+                  onTap: () => _confirmDeleteExercise(context, exercise.id),
+                  child: Container(
+                    width: 30,
+                    height: 30,
+                    margin: const EdgeInsets.only(top: 1),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                    child: const Icon(
+                      Icons.delete_outline_rounded,
+                      color: AppColors.error,
+                      size: 15,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+
+          // ── Sets list ────────────────────────────────────────────────────────
+          if (exercise.sets.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
+              child: Column(
+                children: [
+                  _SetColumnHeader(),
+                  const SizedBox(height: 2),
+                  ...exercise.sets.asMap().entries.map((entry) {
+                    return SetRow(
+                      index: entry.key,
+                      set: entry.value,
+                      allSets: exercise.sets,
+                      exerciseId: exercise.id,
+                      exerciseName: exercise.name,
+                      isLatest: entry.key == exercise.sets.length - 1,
+                    );
+                  }),
+                ],
+              ),
+            ),
+
+          // ── Add Set ─────────────────────────────────────────────────────────
+          _AddSetButton(onTap: () => _addNewSet(context, exercise.id)),
+        ],
       ),
     );
   }
@@ -491,7 +595,7 @@ class ExerciseCard extends StatelessWidget {
       context: context,
       builder: (_) => AppDialog(
         title: 'Delete Exercise?',
-        icon: Icons.delete_outline,
+        icon: Icons.delete_outline_rounded,
         iconColor: AppColors.error,
         content: const Text('All sets for this exercise will be removed.'),
         actions: [
@@ -514,126 +618,161 @@ class ExerciseCard extends StatelessWidget {
   }
 }
 
-// ─── Set Table Header ─────────────────────────────────────────────────────────
+// ─── Set column header ────────────────────────────────────────────────────────
 
-class SetTableHeader extends StatelessWidget {
-  const SetTableHeader({super.key});
-
+class _SetColumnHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final style = AppTextStyles.labelSmall.copyWith(
+      fontSize: 9,
+      letterSpacing: 0.8,
+    );
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.only(bottom: 4, left: 2),
       child: Row(
         children: [
-          SizedBox(
-            width: 30,
-            child: Text('SET', style: AppTextStyles.labelSmall),
-          ),
-          Expanded(child: Text('WEIGHT', style: AppTextStyles.labelSmall)),
-          Expanded(child: Text('REPS', style: AppTextStyles.labelSmall)),
-          const SizedBox(width: 28), // delete button space
+          SizedBox(width: 32, child: Text('SET', style: style)),
+          Expanded(child: Text('WEIGHT', style: style)),
+          Expanded(child: Text('REPS', style: style)),
+          const SizedBox(width: 30),
         ],
       ),
     );
   }
 }
 
-// ─── Set Row (fully tappable) ─────────────────────────────────────────────────
+// ─── Set Row ─────────────────────────────────────────────────────────────────
 
 class SetRow extends StatelessWidget {
   final int index;
   final ExerciseSet set;
+  final List<ExerciseSet> allSets; // needed for auto-fill downstream on edit
   final String exerciseId;
   final String exerciseName;
+  final bool isLatest;
 
   const SetRow({
     super.key,
     required this.index,
     required this.set,
+    required this.allSets,
     required this.exerciseId,
     required this.exerciseName,
+    this.isLatest = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        // Tapping anywhere on the row opens the edit sheet
-        onTap: () => showEditSetSheet(
-          context: context,
-          set: set,
-          exerciseId: exerciseId,
-          exerciseName: exerciseName,
-        ),
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-          child: Row(
-            children: [
-              // Set number badge
-              Container(
-                width: 26,
-                height: 26,
-                decoration: BoxDecoration(
-                  color: Colors.white70,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Center(
-                  child: Text(
-                    '${index + 1}',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textTertiary,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Material(
+        color: isLatest
+            ? AppColors.primary.withOpacity(0.07)
+            : Colors.white.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(10),
+        child: InkWell(
+          onTap: () => showEditSetSheet(
+            context: context,
+            set: set,
+            editedIndex: index,
+            allSets: allSets,
+            exerciseId: exerciseId,
+            exerciseName: exerciseName,
+          ),
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isLatest
+                    ? AppColors.primary.withOpacity(0.15)
+                    : Colors.transparent,
+              ),
+            ),
+            child: Row(
+              children: [
+                // Set number badge
+                Container(
+                  width: 26,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    color: isLatest
+                        ? AppColors.primary.withOpacity(0.2)
+                        : Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${index + 1}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: isLatest
+                            ? AppColors.primary
+                            : AppColors.textTertiary,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  _formatWeight(set.weightKg),
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textPrimary,
+                const SizedBox(width: 6),
+
+                Expanded(
+                  child: Text(
+                    _formatWeight(set.weightKg),
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: isLatest
+                          ? AppColors.textPrimary
+                          : AppColors.textSecondary,
+                      fontWeight: isLatest ? FontWeight.w600 : FontWeight.w400,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
-              ),
-              Expanded(
-                child: Text(
-                  '${set.reps} reps',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textPrimary,
+
+                Expanded(
+                  child: Text(
+                    '${set.reps} reps',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: isLatest
+                          ? AppColors.textPrimary
+                          : AppColors.textSecondary,
+                      fontWeight: isLatest ? FontWeight.w600 : FontWeight.w400,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
-              ),
-              // Delete only — edit is the whole row tap
-              GestureDetector(
-                onTap: () => context.read<WorkoutSessionBloc>().add(
-                  RemoveSet(exerciseId: exerciseId, setId: set.id),
-                ),
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: AppColors.error.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+
+                // Per-set delete
+                GestureDetector(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    context.read<WorkoutSessionBloc>().add(
+                      RemoveSet(exerciseId: exerciseId, setId: set.id),
+                    );
+                  },
+                  child: Container(
+                    width: 26,
+                    height: 26,
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                    child: const Icon(
+                      Icons.close_rounded,
+                      size: 12,
+                      color: AppColors.error,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.close,
-                    size: 14,
-                    color: AppColors.error,
-                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  /// Formats weight: shows whole number if no decimal needed (e.g. 80 not 80.0)
   String _formatWeight(double weight) {
     if (weight == 0) return '0 kg';
     return weight % 1 == 0
@@ -642,12 +781,54 @@ class SetRow extends StatelessWidget {
   }
 }
 
+// ─── Add Set button ───────────────────────────────────────────────────────────
+
+class _AddSetButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _AddSetButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(12, 6, 12, 12),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.white.withOpacity(0.08)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.add_rounded, size: 13, color: AppColors.textTertiary),
+            const SizedBox(width: 5),
+            Text(
+              'Add set',
+              style: AppTextStyles.labelSmall.copyWith(
+                color: AppColors.textTertiary,
+                fontSize: 11,
+                letterSpacing: 0.4,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // ─── Edit Set Bottom Sheet ────────────────────────────────────────────────────
-// Sheet instead of dialog: faster to reach on mobile, keyboard-native
 
 void showEditSetSheet({
   required BuildContext context,
   required ExerciseSet set,
+  required int editedIndex, // position of this set in allSets
+  required List<ExerciseSet> allSets, // full list — used for auto-fill
   required String exerciseId,
   required String exerciseName,
 }) {
@@ -658,10 +839,11 @@ void showEditSetSheet({
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
-    // useSafeArea keeps it above home bar
     useSafeArea: true,
     builder: (sheetCtx) => _EditSetSheetContent(
       set: set,
+      editedIndex: editedIndex,
+      allSets: allSets,
       exerciseId: exerciseId,
       exerciseName: exerciseName,
     ),
@@ -670,11 +852,15 @@ void showEditSetSheet({
 
 class _EditSetSheetContent extends StatefulWidget {
   final ExerciseSet set;
+  final int editedIndex;
+  final List<ExerciseSet> allSets;
   final String exerciseId;
   final String exerciseName;
 
   const _EditSetSheetContent({
     required this.set,
+    required this.editedIndex,
+    required this.allSets,
     required this.exerciseId,
     required this.exerciseName,
   });
@@ -728,14 +914,41 @@ class _EditSetSheetContentState extends State<_EditSetSheetContent> {
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
-    context.read<WorkoutSessionBloc>().add(
+
+    final newWeight = double.parse(_weightCtrl.text);
+    final newReps = int.parse(_repsCtrl.text);
+    final bloc = context.read<WorkoutSessionBloc>();
+
+    // Save the edited set
+    bloc.add(
       UpdateSet(
         exerciseId: widget.exerciseId,
         setId: widget.set.id,
-        weightKg: double.parse(_weightCtrl.text),
-        reps: int.parse(_repsCtrl.text),
+        weightKg: newWeight,
+        reps: newReps,
       ),
     );
+
+    // Auto-fill: walk sets BELOW the edited one.
+    // For each consecutive set that is still 0 kg AND 0 reps, copy the new value.
+    // Stop as soon as we hit a set that already has real data.
+    for (var i = widget.editedIndex + 1; i < widget.allSets.length; i++) {
+      final below = widget.allSets[i];
+      if (below.weightKg == 0 && below.reps == 0) {
+        bloc.add(
+          UpdateSet(
+            exerciseId: widget.exerciseId,
+            setId: below.id,
+            weightKg: newWeight,
+            reps: newReps,
+          ),
+        );
+      } else {
+        // Hit a set with real data — stop propagating
+        break;
+      }
+    }
+
     Navigator.pop(context);
   }
 
@@ -785,7 +998,6 @@ class _EditSetSheetContentState extends State<_EditSetSheetContent> {
               ],
             ),
             const SizedBox(height: 20),
-
             Row(
               children: [
                 Expanded(
@@ -797,8 +1009,7 @@ class _EditSetSheetContentState extends State<_EditSetSheetContent> {
                       decimal: true,
                     ),
                     textInputAction: TextInputAction.next,
-                    onFieldSubmitted: (_) =>
-                        _repsFocus.requestFocus(), // ← Key Fix
+                    onFieldSubmitted: (_) => _repsFocus.requestFocus(),
                     validator: (v) =>
                         (v?.trim().isEmpty ?? true) ? 'Required' : null,
                   ),
@@ -811,16 +1022,14 @@ class _EditSetSheetContentState extends State<_EditSetSheetContent> {
                     label: 'Reps',
                     keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.done,
-                    onFieldSubmitted: (_) => _save(), // ← Done key saves
+                    onFieldSubmitted: (_) => _save(),
                     validator: (v) =>
                         (v?.trim().isEmpty ?? true) ? 'Required' : null,
                   ),
                 ),
               ],
             ),
-
             const SizedBox(height: 24),
-
             FilledButton(
               onPressed: _save,
               style: FilledButton.styleFrom(
@@ -870,17 +1079,13 @@ class _SheetField extends StatelessWidget {
       keyboardType: keyboardType,
       textInputAction: textInputAction ?? TextInputAction.next,
       onFieldSubmitted: onFieldSubmitted,
-      // Select-all on tap so user replaces value in one go
       onTap: () => controller.selection = TextSelection(
         baseOffset: 0,
         extentOffset: controller.text.length,
       ),
       style: AppTextStyles.headlineMedium.copyWith(fontSize: 24),
       textAlign: TextAlign.center,
-      inputFormatters: [
-        // Prevents letters being typed
-        FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
-      ],
+      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: AppColors.textTertiary),
@@ -903,128 +1108,3 @@ class _SheetField extends StatelessWidget {
     );
   }
 }
-
-// ─── Add Exercise Bottom Sheet ────────────────────────────────────────────────
-
-// void showAddExerciseSheet(BuildContext context) {
-//   final controller = TextEditingController();
-//   const presets = [
-//     'Bench Press',
-//     'Squat',
-//     'Deadlift',
-//     'Overhead Press',
-//     'Pull-up',
-//     'Barbell Row',
-//     'Lat Pulldown',
-//     'Bicep Curl',
-//     'Tricep Pushdown',
-//     'Leg Press',
-//     'Cable Fly',
-//     'Leg Curl',
-//   ];
-
-//   showModalBottomSheet(
-//     context: context,
-//     isScrollControlled: true,
-//     backgroundColor: AppColors.surface,
-//     shape: const RoundedRectangleBorder(
-//       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-//     ),
-//     builder: (sheetContext) => Padding(
-//       padding: EdgeInsets.fromLTRB(
-//         20,
-//         8,
-//         20,
-//         MediaQuery.of(sheetContext).viewInsets.bottom + 24,
-//       ),
-//       child: Column(
-//         mainAxisSize: MainAxisSize.min,
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           Center(
-//             child: Container(
-//               width: 40,
-//               height: 4,
-//               margin: const EdgeInsets.only(bottom: 20),
-//               decoration: BoxDecoration(
-//                 color: Colors.white24,
-//                 borderRadius: BorderRadius.circular(2),
-//               ),
-//             ),
-//           ),
-//           Text('Add Exercise', style: AppTextStyles.titleLarge),
-//           const SizedBox(height: 16),
-//           TextField(
-//             controller: controller,
-//             autofocus: true,
-//             style: const TextStyle(color: AppColors.textPrimary),
-//             decoration: InputDecoration(
-//               hintText: 'Exercise name',
-//               hintStyle: const TextStyle(color: AppColors.textTertiary),
-//               filled: true,
-//               fillColor: AppColors.card,
-//               border: OutlineInputBorder(
-//                 borderRadius: BorderRadius.circular(12),
-//                 borderSide: BorderSide.none,
-//               ),
-//               focusedBorder: OutlineInputBorder(
-//                 borderRadius: BorderRadius.circular(12),
-//                 borderSide: const BorderSide(
-//                   color: AppColors.primary,
-//                   width: 1.5,
-//                 ),
-//               ),
-//               prefixIcon: const Icon(
-//                 Icons.fitness_center,
-//                 color: AppColors.textTertiary,
-//               ),
-//             ),
-//             onSubmitted: (value) {
-//               if (value.trim().isEmpty) return;
-//               context.read<WorkoutSessionBloc>().add(
-//                 AddExercise(exerciseName: value.trim()),
-//               );
-//               Navigator.pop(sheetContext);
-//             },
-//           ),
-//           const SizedBox(height: 20),
-//           Text('QUICK PICK', style: AppTextStyles.labelSmall),
-//           const SizedBox(height: 10),
-//           Wrap(
-//             spacing: 8,
-//             runSpacing: 8,
-//             children: presets.map((name) {
-//               return GestureDetector(
-//                 onTap: () {
-//                   context.read<WorkoutSessionBloc>().add(
-//                     AddExercise(exerciseName: name),
-//                   );
-//                   Navigator.pop(sheetContext);
-//                 },
-//                 child: Container(
-//                   padding: const EdgeInsets.symmetric(
-//                     horizontal: 14,
-//                     vertical: 8,
-//                   ),
-//                   decoration: BoxDecoration(
-//                     color: AppColors.card,
-//                     borderRadius: BorderRadius.circular(20),
-//                     border: Border.all(color: Colors.white12),
-//                   ),
-//                   child: Text(
-//                     name,
-//                     style: const TextStyle(
-//                       color: AppColors.textPrimary,
-//                       fontSize: 13,
-//                       fontWeight: FontWeight.w500,
-//                     ),
-//                   ),
-//                 ),
-//               );
-//             }).toList(),
-//           ),
-//         ],
-//       ),
-//     ),
-//   );
-// }

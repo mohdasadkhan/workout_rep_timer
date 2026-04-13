@@ -6,6 +6,7 @@ import '../entities/workout_session.dart';
 abstract class WorkoutRepository {
   Future<Either<Failure, Unit>> saveWorkoutSession(WorkoutSession session);
   Future<Either<Failure, List<WorkoutSession>>> getWorkoutHistory();
+  Future<Either<Failure, Unit>> deleteWorkoutSession(String sessionId);
   Future<Either<Failure, List<PersonalRecord>>> getPersonalRecords();
   Future<Either<Failure, Unit>> saveActiveSession(WorkoutSession session);
   Future<Option<WorkoutSession>> loadActiveSession();
