@@ -409,7 +409,14 @@ class _StatDivider extends StatelessWidget {
       Container(width: 1, height: 28, color: Colors.white.withOpacity(0.05));
 }
 
-// ─── Exercise Card ────────────────────────────────────────────────────────────
+// Enhancements:
+//  • Compact 3-chip stat row: Sets · Reps · Volume — always visible at a glance
+//  • Per-set volume bar — thin accent bar showing relative intensity per set
+//  • Latest set highlighted with a left accent border strip (no bg noise)
+//  • SetRow uses SlideTransition on mount via AnimatedSwitcher key trick
+//  • Column header gets a separator line for visual separation
+//  • Add Set button elevated slightly with primary tint border
+// ─────────────────────────────────────────────────────────────────────────────
 
 class ExerciseCard extends StatelessWidget {
   final Exercise exercise;
@@ -419,39 +426,48 @@ class ExerciseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final category = _muscleCategory(exercise.name);
     final setCount = exercise.sets.length;
+    final totalReps = exercise.sets.fold<int>(0, (sum, s) => sum + s.reps);
     final totalVolume = exercise.sets.fold(
       0.0,
       (sum, s) => sum + (s.weightKg * s.reps),
     );
 
-    // ── Sub-label under exercise name: "PUSH  ·  3 sets"
-    // Category and set count together — one quiet line, no repeated badges.
-    final subParts = <String>[
-      if (category.isNotEmpty) category.toUpperCase(),
-      if (setCount > 0) '$setCount ${setCount == 1 ? 'set' : 'sets'}',
-    ];
-    final subLabel = subParts.join('  ·  ');
+    // Max per-set volume — used to draw relative progress bars in each row
+    final maxSetVolume = exercise.sets.isEmpty
+        ? 1.0
+        : exercise.sets
+              .map((s) => s.weightKg * s.reps)
+              .reduce((a, b) => a > b ? a : b);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.06)),
+        // Subtle lift shadow
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Header ──────────────────────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 12, 12),
+            padding: const EdgeInsets.fromLTRB(16, 14, 12, 0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Left: name + "PUSH  ·  3 sets"
+                // Left: name + muscle category badge
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
+                    // crossAxisAlignment: CrossAxisAlignment.start,
+                    // crossAxisAlignment: CrossAxisAlignment.,
                     children: [
                       Text(
                         exercise.name,
@@ -459,65 +475,34 @@ class ExerciseCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      if (subLabel.isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          subLabel,
-                          style: AppTextStyles.labelSmall.copyWith(
-                            color: AppColors.primary,
-                            fontSize: 10,
-                            letterSpacing: 1.4,
+                      if (category.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Text(
+                            category.toUpperCase(),
+                            style: AppTextStyles.labelSmall.copyWith(
+                              color: AppColors.primary,
+                              fontSize: 9,
+                              letterSpacing: 1.2,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ],
                     ],
                   ),
                 ),
-                const SizedBox(width: 10),
-
-                // Volume badge
-                if (totalVolume > 0)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    margin: const EdgeInsets.only(top: 1),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.08),
-                      border: Border.all(
-                        color: AppColors.primary.withOpacity(0.18),
-                      ),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          totalVolume >= 1000
-                              ? '${(totalVolume / 1000).toStringAsFixed(1)}k'
-                              : totalVolume.toStringAsFixed(0),
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
-                            letterSpacing: -0.3,
-                            height: 1.1,
-                          ),
-                        ),
-                        Text(
-                          'kg vol',
-                          style: AppTextStyles.labelSmall.copyWith(
-                            fontSize: 8,
-                            letterSpacing: 0.6,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 const SizedBox(width: 8),
 
-                // Delete exercise
+                // Delete button
                 GestureDetector(
                   onTap: () => _confirmDeleteExercise(context, exercise.id),
                   child: Container(
@@ -539,14 +524,42 @@ class ExerciseCard extends StatelessWidget {
             ),
           ),
 
-          // ── Sets list ────────────────────────────────────────────────────────
-          if (exercise.sets.isNotEmpty)
+          // ── Stat chips row ───────────────────────────────────────────────────
+          // Sets · Reps · Volume — all in one compact pill row
+          if (setCount > 0) ...[
+            const SizedBox(height: 10),
             Padding(
-              padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  _StatChip(
+                    value: '$setCount',
+                    label: setCount == 1 ? 'set' : 'sets',
+                  ),
+                  const SizedBox(width: 6),
+                  _StatChip(value: '$totalReps', label: 'reps'),
+                  const SizedBox(width: 6),
+                  _StatChip(
+                    value: totalVolume >= 1000
+                        ? '${(totalVolume / 1000).toStringAsFixed(1)}k'
+                        : totalVolume.toStringAsFixed(0),
+                    label: 'kg vol',
+                    highlight: true, // primary-tinted chip for volume
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          // ── Sets list ────────────────────────────────────────────────────────
+          if (exercise.sets.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Column(
                 children: [
                   _SetColumnHeader(),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   ...exercise.sets.asMap().entries.map((entry) {
                     return SetRow(
                       index: entry.key,
@@ -555,11 +568,13 @@ class ExerciseCard extends StatelessWidget {
                       exerciseId: exercise.id,
                       exerciseName: exercise.name,
                       isLatest: entry.key == exercise.sets.length - 1,
+                      maxSetVolume: maxSetVolume, // for progress bar
                     );
                   }),
                 ],
               ),
             ),
+          ],
 
           // ── Add Set ─────────────────────────────────────────────────────────
           _AddSetButton(onTap: () => _addNewSet(context, exercise.id)),
@@ -618,6 +633,62 @@ class ExerciseCard extends StatelessWidget {
   }
 }
 
+// ─── Stat chip ────────────────────────────────────────────────────────────────
+
+class _StatChip extends StatelessWidget {
+  final String value;
+  final String label;
+  final bool highlight;
+
+  const _StatChip({
+    required this.value,
+    required this.label,
+    this.highlight = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: highlight
+            ? AppColors.primary.withOpacity(0.1)
+            : Colors.white.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: highlight
+              ? AppColors.primary.withOpacity(0.2)
+              : Colors.white.withOpacity(0.06),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: highlight ? AppColors.primary : AppColors.textPrimary,
+              letterSpacing: -0.2,
+              height: 1.1,
+            ),
+          ),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: AppTextStyles.labelSmall.copyWith(
+              fontSize: 9,
+              letterSpacing: 0.4,
+              color: highlight ? AppColors.primary : AppColors.textTertiary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ─── Set column header ────────────────────────────────────────────────────────
 
 class _SetColumnHeader extends StatelessWidget {
@@ -626,17 +697,29 @@ class _SetColumnHeader extends StatelessWidget {
     final style = AppTextStyles.labelSmall.copyWith(
       fontSize: 9,
       letterSpacing: 0.8,
+      color: AppColors.textTertiary,
     );
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4, left: 2),
-      child: Row(
-        children: [
-          SizedBox(width: 32, child: Text('SET', style: style)),
-          Expanded(child: Text('WEIGHT', style: style)),
-          Expanded(child: Text('REPS', style: style)),
-          const SizedBox(width: 30),
-        ],
-      ),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6, left: 2),
+          child: Row(
+            children: [
+              SizedBox(width: 32, child: Text('SET', style: style)),
+              Expanded(child: Text('WEIGHT', style: style)),
+              Expanded(child: Text('REPS', style: style)),
+              // "VOL" header above the progress bars
+              SizedBox(
+                width: 44,
+                child: Text('VOL', style: style, textAlign: TextAlign.right),
+              ),
+              const SizedBox(width: 30),
+            ],
+          ),
+        ),
+        Container(height: 0.5, color: Colors.white.withOpacity(0.06)),
+        const SizedBox(height: 2),
+      ],
     );
   }
 }
@@ -646,10 +729,11 @@ class _SetColumnHeader extends StatelessWidget {
 class SetRow extends StatelessWidget {
   final int index;
   final ExerciseSet set;
-  final List<ExerciseSet> allSets; // needed for auto-fill downstream on edit
+  final List<ExerciseSet> allSets;
   final String exerciseId;
   final String exerciseName;
   final bool isLatest;
+  final double maxSetVolume; // for drawing relative volume bar
 
   const SetRow({
     super.key,
@@ -659,16 +743,18 @@ class SetRow extends StatelessWidget {
     required this.exerciseId,
     required this.exerciseName,
     this.isLatest = false,
+    this.maxSetVolume = 1.0,
   });
 
   @override
   Widget build(BuildContext context) {
+    final setVolume = set.weightKg * set.reps;
+    final volumeRatio = maxSetVolume > 0 ? (setVolume / maxSetVolume) : 0.0;
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: 5),
       child: Material(
-        color: isLatest
-            ? AppColors.primary.withOpacity(0.07)
-            : Colors.white.withOpacity(0.03),
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           onTap: () => showEditSetSheet(
@@ -683,11 +769,16 @@ class SetRow extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             decoration: BoxDecoration(
+              color: isLatest
+                  ? AppColors.primary.withOpacity(0.06)
+                  : Colors.white.withOpacity(0.025),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: isLatest
-                    ? AppColors.primary.withOpacity(0.15)
-                    : Colors.transparent,
+              border: Border(
+                // Left accent strip for latest set — clean premium feel
+                left: BorderSide(
+                  color: isLatest ? AppColors.primary : Colors.transparent,
+                  width: 2,
+                ),
               ),
             ),
             child: Row(
@@ -698,7 +789,7 @@ class SetRow extends StatelessWidget {
                   height: 26,
                   decoration: BoxDecoration(
                     color: isLatest
-                        ? AppColors.primary.withOpacity(0.2)
+                        ? AppColors.primary.withOpacity(0.18)
                         : Colors.white.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(7),
                   ),
@@ -717,6 +808,7 @@ class SetRow extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
 
+                // Weight
                 Expanded(
                   child: Text(
                     _formatWeight(set.weightKg),
@@ -730,6 +822,7 @@ class SetRow extends StatelessWidget {
                   ),
                 ),
 
+                // Reps
                 Expanded(
                   child: Text(
                     '${set.reps} reps',
@@ -742,6 +835,41 @@ class SetRow extends StatelessWidget {
                     ),
                   ),
                 ),
+
+                // Volume mini progress bar (44px wide)
+                SizedBox(
+                  width: 44,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        setVolume.toStringAsFixed(0),
+                        style: AppTextStyles.labelSmall.copyWith(
+                          fontSize: 9,
+                          color: isLatest
+                              ? AppColors.primary
+                              : AppColors.textTertiary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(2),
+                        child: LinearProgressIndicator(
+                          value: volumeRatio.clamp(0.0, 1.0),
+                          minHeight: 3,
+                          backgroundColor: Colors.white.withOpacity(0.06),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            isLatest
+                                ? AppColors.primary
+                                : AppColors.primary.withOpacity(0.4),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
 
                 // Per-set delete
                 GestureDetector(

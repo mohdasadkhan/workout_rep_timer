@@ -3,7 +3,6 @@ import 'package:app_lifecycle/core/theme/app_text_styles.dart';
 import 'package:app_lifecycle/features/rep_tracker/domain/entities/workout_session.dart';
 import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_bloc.dart';
 import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_event.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,6 +27,7 @@ class SessionCard extends StatelessWidget {
       DeleteWorkoutSessionEvent(session: session, sessionId: session.id),
     );
 
+    messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
       SnackBar(
         behavior: SnackBarBehavior.floating,
@@ -36,14 +36,15 @@ class SessionCard extends StatelessWidget {
         duration: const Duration(seconds: 4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         backgroundColor: const Color(0xFF1E1E1E),
+        // Fix: explicit colors on all Text/Icon, no const on Row to avoid theme bleed
         content: Row(
-          children: const [
-            Icon(Icons.delete_outline, color: Colors.white70),
-            SizedBox(width: 12),
+          children: [
+            const Icon(Icons.delete_outline, color: Colors.white70, size: 20),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(
-                "Workout deleted",
-                style: TextStyle(
+                'Workout deleted',
+                style: AppTextStyles.bodyMedium.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w500,
                 ),
@@ -52,8 +53,8 @@ class SessionCard extends StatelessWidget {
           ],
         ),
         action: SnackBarAction(
-          label: "UNDO",
-          textColor: Colors.greenAccent,
+          label: 'UNDO',
+          textColor: AppColors.primary,
           onPressed: () {
             historyBloc.add(RestoreWorkoutSessionEvent(session));
           },
@@ -182,7 +183,6 @@ class SessionCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 3),
-
                     Text(
                       '${session.exercises.length} exercises  ·  ${session.totalSets} sets  ·  ${session.totalVolume.toStringAsFixed(0)} kg',
                       style: AppTextStyles.bodyMedium.copyWith(
@@ -193,8 +193,6 @@ class SessionCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -211,11 +209,9 @@ class SessionCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 6),
-
               GestureDetector(
                 onTap: () {
                   HapticFeedback.lightImpact();
-
                   _confirmDelete(context);
                 },
                 child: Container(
@@ -300,7 +296,6 @@ class SessionCard extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 8),
-
                         ...exercise.sets.asMap().entries.map((entry) {
                           final i = entry.key;
                           final s = entry.value;
@@ -364,7 +359,6 @@ class SessionCard extends StatelessWidget {
                             ),
                           );
                         }),
-
                         if (totalReps > 0)
                           Padding(
                             padding: const EdgeInsets.only(top: 4, left: 2),
