@@ -10,8 +10,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 
-// ─── Muscle category helper ───────────────────────────────────────────────────
-
 String _muscleCategory(String name) {
   final n = name.toLowerCase();
   const push = [
@@ -51,8 +49,6 @@ String _muscleCategory(String name) {
   return '';
 }
 
-// ─── Finish pill (AppBar action) ──────────────────────────────────────────────
-
 class FinishButton extends StatelessWidget {
   final VoidCallback onTap;
   const FinishButton({super.key, required this.onTap});
@@ -83,8 +79,6 @@ class FinishButton extends StatelessWidget {
     );
   }
 }
-
-// ─── Shared dialog ────────────────────────────────────────────────────────────
 
 class AppDialog extends StatelessWidget {
   final String title;
@@ -192,8 +186,6 @@ class DialogButton extends StatelessWidget {
   }
 }
 
-// ─── Start Prompt ─────────────────────────────────────────────────────────────
-
 class StartPrompt extends StatelessWidget {
   final VoidCallback onStart;
   const StartPrompt({super.key, required this.onStart});
@@ -260,8 +252,6 @@ class StartPrompt extends StatelessWidget {
   }
 }
 
-// ─── Active Session ───────────────────────────────────────────────────────────
-
 class ActiveSession extends StatelessWidget {
   final WorkoutSessionActive state;
   const ActiveSession({super.key, required this.state});
@@ -309,8 +299,6 @@ class ActiveSession extends StatelessWidget {
     );
   }
 }
-
-// ─── Stats Bar ────────────────────────────────────────────────────────────────
 
 class SessionStatsBar extends StatelessWidget {
   final WorkoutSessionActive state;
@@ -409,15 +397,6 @@ class _StatDivider extends StatelessWidget {
       Container(width: 1, height: 28, color: Colors.white.withOpacity(0.05));
 }
 
-// Enhancements:
-//  • Compact 3-chip stat row: Sets · Reps · Volume — always visible at a glance
-//  • Per-set volume bar — thin accent bar showing relative intensity per set
-//  • Latest set highlighted with a left accent border strip (no bg noise)
-//  • SetRow uses SlideTransition on mount via AnimatedSwitcher key trick
-//  • Column header gets a separator line for visual separation
-//  • Add Set button elevated slightly with primary tint border
-// ─────────────────────────────────────────────────────────────────────────────
-
 class ExerciseCard extends StatelessWidget {
   final Exercise exercise;
   const ExerciseCard({super.key, required this.exercise});
@@ -432,7 +411,6 @@ class ExerciseCard extends StatelessWidget {
       (sum, s) => sum + (s.weightKg * s.reps),
     );
 
-    // Max per-set volume — used to draw relative progress bars in each row
     final maxSetVolume = exercise.sets.isEmpty
         ? 1.0
         : exercise.sets
@@ -445,7 +423,7 @@ class ExerciseCard extends StatelessWidget {
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white.withOpacity(0.06)),
-        // Subtle lift shadow
+
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.25),
@@ -457,17 +435,13 @@ class ExerciseCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header ──────────────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 12, 0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Left: name + muscle category badge
                 Expanded(
                   child: Row(
-                    // crossAxisAlignment: CrossAxisAlignment.start,
-                    // crossAxisAlignment: CrossAxisAlignment.,
                     children: [
                       Text(
                         exercise.name,
@@ -502,7 +476,6 @@ class ExerciseCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
 
-                // Delete button
                 GestureDetector(
                   onTap: () => _confirmDeleteExercise(context, exercise.id),
                   child: Container(
@@ -524,8 +497,6 @@ class ExerciseCard extends StatelessWidget {
             ),
           ),
 
-          // ── Stat chips row ───────────────────────────────────────────────────
-          // Sets · Reps · Volume — all in one compact pill row
           if (setCount > 0) ...[
             const SizedBox(height: 10),
             Padding(
@@ -544,14 +515,13 @@ class ExerciseCard extends StatelessWidget {
                         ? '${(totalVolume / 1000).toStringAsFixed(1)}k'
                         : totalVolume.toStringAsFixed(0),
                     label: 'kg vol',
-                    highlight: true, // primary-tinted chip for volume
+                    highlight: true,
                   ),
                 ],
               ),
             ),
           ],
 
-          // ── Sets list ────────────────────────────────────────────────────────
           if (exercise.sets.isNotEmpty) ...[
             const SizedBox(height: 12),
             Padding(
@@ -568,7 +538,7 @@ class ExerciseCard extends StatelessWidget {
                       exerciseId: exercise.id,
                       exerciseName: exercise.name,
                       isLatest: entry.key == exercise.sets.length - 1,
-                      maxSetVolume: maxSetVolume, // for progress bar
+                      maxSetVolume: maxSetVolume,
                     );
                   }),
                 ],
@@ -576,7 +546,6 @@ class ExerciseCard extends StatelessWidget {
             ),
           ],
 
-          // ── Add Set ─────────────────────────────────────────────────────────
           _AddSetButton(onTap: () => _addNewSet(context, exercise.id)),
         ],
       ),
@@ -633,8 +602,6 @@ class ExerciseCard extends StatelessWidget {
   }
 }
 
-// ─── Stat chip ────────────────────────────────────────────────────────────────
-
 class _StatChip extends StatelessWidget {
   final String value;
   final String label;
@@ -689,8 +656,6 @@ class _StatChip extends StatelessWidget {
   }
 }
 
-// ─── Set column header ────────────────────────────────────────────────────────
-
 class _SetColumnHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -708,7 +673,7 @@ class _SetColumnHeader extends StatelessWidget {
               SizedBox(width: 32, child: Text('SET', style: style)),
               Expanded(child: Text('WEIGHT', style: style)),
               Expanded(child: Text('REPS', style: style)),
-              // "VOL" header above the progress bars
+
               SizedBox(
                 width: 44,
                 child: Text('VOL', style: style, textAlign: TextAlign.right),
@@ -724,8 +689,6 @@ class _SetColumnHeader extends StatelessWidget {
   }
 }
 
-// ─── Set Row ─────────────────────────────────────────────────────────────────
-
 class SetRow extends StatelessWidget {
   final int index;
   final ExerciseSet set;
@@ -733,7 +696,7 @@ class SetRow extends StatelessWidget {
   final String exerciseId;
   final String exerciseName;
   final bool isLatest;
-  final double maxSetVolume; // for drawing relative volume bar
+  final double maxSetVolume;
 
   const SetRow({
     super.key,
@@ -774,7 +737,6 @@ class SetRow extends StatelessWidget {
                   : Colors.white.withOpacity(0.025),
               borderRadius: BorderRadius.circular(10),
               border: Border(
-                // Left accent strip for latest set — clean premium feel
                 left: BorderSide(
                   color: isLatest ? AppColors.primary : Colors.transparent,
                   width: 2,
@@ -783,7 +745,6 @@ class SetRow extends StatelessWidget {
             ),
             child: Row(
               children: [
-                // Set number badge
                 Container(
                   width: 26,
                   height: 26,
@@ -808,7 +769,6 @@ class SetRow extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
 
-                // Weight
                 Expanded(
                   child: Text(
                     _formatWeight(set.weightKg),
@@ -822,7 +782,6 @@ class SetRow extends StatelessWidget {
                   ),
                 ),
 
-                // Reps
                 Expanded(
                   child: Text(
                     '${set.reps} reps',
@@ -836,7 +795,6 @@ class SetRow extends StatelessWidget {
                   ),
                 ),
 
-                // Volume mini progress bar (44px wide)
                 SizedBox(
                   width: 44,
                   child: Column(
@@ -871,7 +829,6 @@ class SetRow extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
 
-                // Per-set delete
                 GestureDetector(
                   onTap: () {
                     HapticFeedback.lightImpact();
@@ -908,8 +865,6 @@ class SetRow extends StatelessWidget {
         : '${weight.toStringAsFixed(1)} kg';
   }
 }
-
-// ─── Add Set button ───────────────────────────────────────────────────────────
 
 class _AddSetButton extends StatelessWidget {
   final VoidCallback onTap;
@@ -950,13 +905,11 @@ class _AddSetButton extends StatelessWidget {
   }
 }
 
-// ─── Edit Set Bottom Sheet ────────────────────────────────────────────────────
-
 void showEditSetSheet({
   required BuildContext context,
   required ExerciseSet set,
-  required int editedIndex, // position of this set in allSets
-  required List<ExerciseSet> allSets, // full list — used for auto-fill
+  required int editedIndex,
+  required List<ExerciseSet> allSets,
   required String exerciseId,
   required String exerciseName,
 }) {
@@ -1047,7 +1000,6 @@ class _EditSetSheetContentState extends State<_EditSetSheetContent> {
     final newReps = int.parse(_repsCtrl.text);
     final bloc = context.read<WorkoutSessionBloc>();
 
-    // Save the edited set
     bloc.add(
       UpdateSet(
         exerciseId: widget.exerciseId,
@@ -1057,9 +1009,6 @@ class _EditSetSheetContentState extends State<_EditSetSheetContent> {
       ),
     );
 
-    // Auto-fill: walk sets BELOW the edited one.
-    // For each consecutive set that is still 0 kg AND 0 reps, copy the new value.
-    // Stop as soon as we hit a set that already has real data.
     for (var i = widget.editedIndex + 1; i < widget.allSets.length; i++) {
       final below = widget.allSets[i];
       if (below.weightKg == 0 && below.reps == 0) {
@@ -1072,7 +1021,6 @@ class _EditSetSheetContentState extends State<_EditSetSheetContent> {
           ),
         );
       } else {
-        // Hit a set with real data — stop propagating
         break;
       }
     }
@@ -1177,8 +1125,6 @@ class _EditSetSheetContentState extends State<_EditSetSheetContent> {
     );
   }
 }
-
-// ─── Sheet field ──────────────────────────────────────────────────────────────
 
 class _SheetField extends StatelessWidget {
   final TextEditingController controller;

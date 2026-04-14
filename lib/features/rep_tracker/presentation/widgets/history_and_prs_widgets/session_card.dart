@@ -10,57 +10,14 @@ import 'package:intl/intl.dart';
 
 class SessionCard extends StatelessWidget {
   final WorkoutSession session;
-  const SessionCard({super.key, required this.session});
+  final VoidCallback? onDelete;
+  const SessionCard({super.key, required this.session, this.onDelete});
 
   String _formatWeight(double weight) {
     if (weight == 0) return '0 kg';
     return weight % 1 == 0
         ? '${weight.toInt()} kg'
         : '${weight.toStringAsFixed(1)} kg';
-  }
-
-  void onDelete(BuildContext context, WorkoutSession session) {
-    final historyBloc = context.read<WorkoutHistoryBloc>();
-    final messenger = ScaffoldMessenger.of(context);
-
-    historyBloc.add(
-      DeleteWorkoutSessionEvent(session: session, sessionId: session.id),
-    );
-
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(12),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        duration: const Duration(seconds: 4),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        backgroundColor: const Color(0xFF1E1E1E),
-        // Fix: explicit colors on all Text/Icon, no const on Row to avoid theme bleed
-        content: Row(
-          children: [
-            const Icon(Icons.delete_outline, color: Colors.white70, size: 20),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Workout deleted',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
-        ),
-        action: SnackBarAction(
-          label: 'UNDO',
-          textColor: AppColors.primary,
-          onPressed: () {
-            historyBloc.add(RestoreWorkoutSessionEvent(session));
-          },
-        ),
-      ),
-    );
   }
 
   void _confirmDelete(BuildContext context) {
@@ -120,7 +77,7 @@ class SessionCard extends StatelessWidget {
                     child: FilledButton(
                       onPressed: () {
                         Navigator.pop(context);
-                        onDelete(context, session);
+                        onDelete!();
                       },
                       style: FilledButton.styleFrom(
                         backgroundColor: AppColors.error,
