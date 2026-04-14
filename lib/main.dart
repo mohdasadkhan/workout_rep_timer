@@ -42,7 +42,7 @@ Future<void> main() async {
       eventAction: ForegroundTaskEventAction.nothing(),
     ),
   );
-  // getIt<WorkoutSessionBloc>().add(const LoadActiveSession());
+
   runApp(const MyApp());
 }
 

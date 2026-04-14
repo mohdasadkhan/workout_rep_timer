@@ -1,13 +1,15 @@
+import 'package:app_lifecycle/core/constants/pref_keys.dart';
+import 'package:app_lifecycle/core/di/injection.dart'; // for getIt
 import 'package:app_lifecycle/core/theme/app_text_styles.dart';
 import 'package:app_lifecycle/core/widgets/feature_dropdown/dropdown_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/app_colors.dart';
 import 'extension_on_appfeature.dart';
 
 class FeatureDropdownTitle extends StatefulWidget {
   final AppFeature current;
-
   const FeatureDropdownTitle({super.key, required this.current});
 
   @override
@@ -48,7 +50,6 @@ class _FeatureDropdownTitleState extends State<FeatureDropdownTitle>
     }
 
     _chevronController.forward();
-
     final renderBox = context.findRenderObject() as RenderBox;
     final offset = renderBox.localToGlobal(Offset.zero);
     final size = renderBox.size;
@@ -61,7 +62,13 @@ class _FeatureDropdownTitleState extends State<FeatureDropdownTitle>
         onSelect: (feature) {
           _chevronController.reverse();
           _removeOverlay();
+
           if (feature != widget.current) {
+            // 🔥 Persist last opened feature (fire-and-forget)
+            getIt<SharedPreferences>().setString(
+              PrefKeys.lastOpenedFeature,
+              feature.route,
+            );
             context.go(feature.route);
           }
         },
@@ -71,7 +78,6 @@ class _FeatureDropdownTitleState extends State<FeatureDropdownTitle>
         },
       ),
     );
-
     Overlay.of(context).insert(_overlay!);
   }
 

@@ -103,7 +103,6 @@ class WorkoutSessionPage extends StatelessWidget {
               centerTitle: false,
               automaticallyImplyLeading: false,
               actions: [
-                // History — clock-rotate icon, quiet icon button
                 Container(
                   width: 36,
                   height: 36,
@@ -125,7 +124,6 @@ class WorkoutSessionPage extends StatelessWidget {
                   ),
                 ),
 
-                // Finish pill — only while a session is active with exercises
                 if (state is WorkoutSessionActive && state.exercises.isNotEmpty)
                   FinishButton(onTap: () => _confirmFinish(context)),
               ],
@@ -148,7 +146,6 @@ class WorkoutSessionPage extends StatelessWidget {
               ),
             },
 
-            // Small extended FAB — bottom-right, doesn't block scrolling
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
             floatingActionButton: state is WorkoutSessionActive
                 ? FloatingActionButton.extended(

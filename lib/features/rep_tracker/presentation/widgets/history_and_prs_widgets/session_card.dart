@@ -1,11 +1,8 @@
 import 'package:app_lifecycle/core/theme/app_colors.dart';
 import 'package:app_lifecycle/core/theme/app_text_styles.dart';
 import 'package:app_lifecycle/features/rep_tracker/domain/entities/workout_session.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_bloc.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 class SessionCard extends StatelessWidget {
