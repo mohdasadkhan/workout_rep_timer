@@ -4,7 +4,11 @@ import '../entities/personal_record.dart';
 import '../entities/workout_session.dart';
 
 abstract class WorkoutRepository {
-  Future<Either<Failure, void>> saveWorkoutSession(WorkoutSession session);
+  Future<Either<Failure, Unit>> saveWorkoutSession(WorkoutSession session);
   Future<Either<Failure, List<WorkoutSession>>> getWorkoutHistory();
+  Future<Either<Failure, Unit>> deleteWorkoutSession(String sessionId);
   Future<Either<Failure, List<PersonalRecord>>> getPersonalRecords();
+  Future<Either<Failure, Unit>> saveActiveSession(WorkoutSession session);
+  Future<Option<WorkoutSession>> loadActiveSession();
+  Future<Either<Failure, Unit>> clearActiveSession();
 }

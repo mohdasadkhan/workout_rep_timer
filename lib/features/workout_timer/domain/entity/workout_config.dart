@@ -40,6 +40,23 @@ class WorkoutConfig extends Equatable {
     );
   }
 
+  factory WorkoutConfig.fromQuery(Map<String, String> query) {
+    int parse(String key, int defaultValue) {
+      final value = int.tryParse(query[key] ?? '');
+      if (value == null || value < 0) return defaultValue;
+      return value;
+    }
+
+    return WorkoutConfig(
+      prepareSeconds: parse('prepare', 30),
+      workSeconds: parse('work', 60),
+      restSeconds: parse('rest', 0),
+      cyclesPerSet: parse('cycles', 1),
+      numberOfSets: parse('sets', 3),
+      restBetweenSetsSeconds: parse('setRest', 90),
+      coolDownSeconds: parse('cooldown', 0),
+    );
+  }
   @override
   List<Object?> get props => [
     prepareSeconds,

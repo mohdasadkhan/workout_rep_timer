@@ -5,14 +5,12 @@ import 'package:app_lifecycle/core/widgets/feature_dropdown/extension_on_appfeat
 import 'package:app_lifecycle/core/widgets/feature_dropdown/feature_dropdown.dart';
 import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_config.dart';
 import 'package:app_lifecycle/features/workout_timer/domain/usecases/generate_workout_usecase.dart';
-import 'package:app_lifecycle/features/workout_timer/presentation/screens/workout_preview_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:go_router/go_router.dart';
 import '../bloc/timer_bloc.dart';
 import '../widgets/config_tile.dart';
-import 'running_timer_screen.dart';
 
 class ConfigScreen extends StatefulWidget {
   const ConfigScreen({super.key});
@@ -150,7 +148,6 @@ class _ConfigScreenState extends State<ConfigScreen> {
             cursor: SystemMouseCursors.click,
             child: FilledButton.icon(
               onPressed: () async {
-                // Your existing permission + battery logic remains the same
                 var permission =
                     await FlutterForegroundTask.checkNotificationPermission();
                 log('check notification permission >> $permission');
@@ -192,20 +189,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
               label: Text(
                 'START WORKOUT',
                 style: theme.textTheme.titleLarge?.copyWith(letterSpacing: 1.2),
-                // style: TextStyle(
-                //   fontSize: 20,
-                //   fontWeight: FontWeight.bold,
-                //   letterSpacing: 1.2,
-                // ),
               ),
-              // style: FilledButton.styleFrom(
-              //   minimumSize: const Size(double.infinity, 60),
-              //   backgroundColor: Colors.teal,
-              //   foregroundColor: Colors.white,
-              //   elevation: 4,
-              //   shadowColor: Colors.teal,
-              //   padding: const EdgeInsets.symmetric(vertical: 8),
-              // ),
             ),
           ),
         ),

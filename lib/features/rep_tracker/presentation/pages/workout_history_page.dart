@@ -1,10 +1,17 @@
+import 'package:app_lifecycle/core/theme/app_colors.dart';
+import 'package:app_lifecycle/core/theme/app_text_styles.dart';
+import 'package:app_lifecycle/features/rep_tracker/domain/entities/workout_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
-import '../../domain/entities/workout_session.dart';
-import '../bloc/workout_bloc.dart';
-import '../bloc/workout_event.dart';
-import '../bloc/workout_state.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+
+import '../bloc/personal_records_bloc/personal_records_bloc.dart';
+import '../bloc/workout_history_bloc/workout_history_bloc.dart';
+import '../bloc/workout_history_bloc/workout_history_event.dart';
+import '../bloc/workout_history_bloc/workout_history_state.dart';
+import '../widgets/history_and_prs_widgets/empty_state.dart';
+import '../widgets/history_and_prs_widgets/personal_record_card.dart';
+import '../widgets/history_and_prs_widgets/session_card.dart';
 
 class WorkoutHistoryPage extends StatefulWidget {
   const WorkoutHistoryPage({super.key});
@@ -21,10 +28,8 @@ class _WorkoutHistoryPageState extends State<WorkoutHistoryPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-
-    context.read<WorkoutBloc>()
-      ..add(const LoadWorkoutHistory())
-      ..add(const LoadPersonalRecords());
+    context.read<WorkoutHistoryBloc>().add(const LoadWorkoutHistory());
+    context.read<PersonalRecordsBloc>().add(const LoadPersonalRecords());
   }
 
   @override
@@ -38,12 +43,41 @@ class _WorkoutHistoryPageState extends State<WorkoutHistoryPage>
     return Scaffold(
       appBar: AppBar(
         title: const Text('History & PRs'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'History'),
-            Tab(text: 'Personal Records'),
-          ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(44),
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withOpacity(0.06)),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              indicator: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+              ),
+              indicatorSize: TabBarIndicatorSize.tab,
+              dividerColor: Colors.transparent,
+              labelStyle: AppTextStyles.labelSmall.copyWith(
+                fontSize: 12,
+                letterSpacing: 0.4,
+                color: AppColors.primary,
+              ),
+              unselectedLabelStyle: AppTextStyles.labelSmall.copyWith(
+                fontSize: 12,
+                letterSpacing: 0.4,
+                color: AppColors.textTertiary,
+              ),
+              tabs: const [
+                Tab(text: 'History'),
+                Tab(text: 'Personal Records'),
+              ],
+            ),
+          ),
         ),
       ),
       body: TabBarView(
@@ -54,89 +88,191 @@ class _WorkoutHistoryPageState extends State<WorkoutHistoryPage>
   }
 }
 
-class _HistoryTab extends StatelessWidget {
+class _HistoryTab extends StatefulWidget {
   const _HistoryTab();
 
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<WorkoutBloc, WorkoutState>(
-      buildWhen: (_, current) =>
-          current is WorkoutLoading ||
-          current is WorkoutHistoryLoaded ||
-          current is WorkoutError,
-      builder: (context, state) {
-        if (state is WorkoutLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (state is WorkoutHistoryLoaded) {
-          if (state.sessions.isEmpty) {
-            return const _EmptyState(
-              icon: Icons.history,
-              message: 'No workouts yet.\nFinish a session to see it here.',
-            );
-          }
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: state.sessions.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
-            itemBuilder: (_, i) => _SessionCard(session: state.sessions[i]),
-          );
-        }
-        if (state is WorkoutError) {
-          return Center(child: Text(state.message));
-        }
-        return const SizedBox.shrink();
-      },
-    );
-  }
+  State<_HistoryTab> createState() => _HistoryTabState();
 }
 
-class _SessionCard extends StatelessWidget {
-  final WorkoutSession session;
-  const _SessionCard({required this.session});
+class _HistoryTabState extends State<_HistoryTab> {
+  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final dateStr = DateFormat('EEE, d MMM yyyy').format(session.date);
-    final timeStr = DateFormat('HH:mm').format(session.date);
-
-    return Card(
-      child: ExpansionTile(
-        title: Text(
-          dateStr,
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        subtitle: Text(
-          '$timeStr · ${session.exercises.length} exercises · '
-          '${session.totalSets} sets · '
-          '${session.totalVolume.toStringAsFixed(0)} kg',
-        ),
-        children: session.exercises.map((ex) {
-          return ListTile(
-            dense: true,
-            title: Text(ex.name),
-            subtitle: Text(
-              ex.sets
-                  .asMap()
-                  .entries
-                  .map(
-                    (e) =>
-                        'Set ${e.key + 1}: ${e.value.weightKg}kg × ${e.value.reps}',
-                  )
-                  .join('  ·  '),
-              style: const TextStyle(fontSize: 12),
-            ),
-            trailing: ex.bestSet != null
-                ? Chip(
-                    label: Text(
-                      'Best: ${ex.bestSet!.weightKg}kg',
-                      style: const TextStyle(fontSize: 11),
-                    ),
-                    padding: EdgeInsets.zero,
-                  )
-                : null,
+    return BlocConsumer<WorkoutHistoryBloc, WorkoutHistoryState>(
+      listenWhen: (prev, curr) => curr is WorkoutHistoryLoaded,
+      listener: (context, state) {
+        if (state is WorkoutHistoryLoaded) {
+          context.read<PersonalRecordsBloc>().add(const LoadPersonalRecords());
+        }
+      },
+      builder: (context, state) {
+        if (state is WorkoutHistoryLoading) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
           );
-        }).toList(),
+        }
+
+        if (state is WorkoutHistoryError) {
+          return Center(
+            child: Text(state.message, style: AppTextStyles.bodyMedium),
+          );
+        }
+
+        final sessions = state is WorkoutHistoryLoaded
+            ? state.sessions
+            : <WorkoutSession>[];
+
+        if (sessions.isEmpty) {
+          return const EmptyState(
+            icon: Icons.history_rounded,
+            message: 'No workouts yet.\nFinish a session to see it here.',
+          );
+        }
+
+        return AnimationLimiter(
+          child: AnimatedList(
+            key: _listKey,
+            controller: _scrollController,
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+            initialItemCount: sessions.length,
+            itemBuilder: (context, index, animation) {
+              final session = sessions[index];
+              return AnimationConfiguration.staggeredList(
+                position: index,
+                duration: const Duration(milliseconds: 450),
+                child: SlideAnimation(
+                  verticalOffset: 50.0,
+                  child: FadeInAnimation(
+                    child: SizeTransition(
+                      sizeFactor: animation,
+                      child: SlideTransition(
+                        position: animation.drive(
+                          Tween(
+                            begin: const Offset(0, 0.2),
+                            end: Offset.zero,
+                          ).chain(CurveTween(curve: Curves.easeOutCubic)),
+                        ),
+                        child: ScaleTransition(
+                          scale: animation.drive(
+                            Tween(
+                              begin: 0.92,
+                              end: 1.0,
+                            ).chain(CurveTween(curve: Curves.easeOutBack)),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: SessionCard(
+                              session: session,
+                              onDelete: () => _removeItem(index, session),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  void _removeItem(int index, WorkoutSession session) {
+    final listState = _listKey.currentState!;
+    listState.removeItem(
+      index,
+      (context, animation) => AnimationConfiguration.staggeredList(
+        position: index,
+        child: SlideAnimation(
+          verticalOffset: 50,
+          child: FadeInAnimation(
+            child: SizeTransition(
+              sizeFactor: animation,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: SessionCard(session: session),
+              ),
+            ),
+          ),
+        ),
+      ),
+      duration: const Duration(milliseconds: 280),
+    );
+
+    context.read<WorkoutHistoryBloc>().add(
+      DeleteWorkoutSessionEvent(session: session, sessionId: session.id),
+    );
+
+    _showUndoSnackBar(context, session);
+  }
+
+  void _showUndoSnackBar(BuildContext context, WorkoutSession session) {
+    final bloc = context.read<WorkoutHistoryBloc>();
+    final messenger = ScaffoldMessenger.of(context);
+
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        duration: const Duration(seconds: 5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: const Color(0xFF1E1E1E),
+        content: Row(
+          children: [
+            Icon(
+              Icons.delete_outline_rounded,
+              color: AppColors.error,
+              size: 22,
+            ),
+            const SizedBox(width: 14),
+            const Expanded(
+              child: Text(
+                'Session deleted',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ],
+        ),
+        action: SnackBarAction(
+          label: 'UNDO',
+          textColor: AppColors.primary,
+          onPressed: () {
+            bloc.add(RestoreWorkoutSessionEvent(session));
+
+            _listKey.currentState?.insertItem(0);
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _scrollController.animateTo(
+                0,
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeOutCubic,
+              );
+            });
+          },
+        ),
       ),
     );
   }
@@ -147,96 +283,45 @@ class _PersonalRecordsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<WorkoutBloc, WorkoutState>(
-      buildWhen: (_, current) =>
-          current is WorkoutLoading ||
-          current is PersonalRecordsLoaded ||
-          current is WorkoutError,
+    return BlocBuilder<PersonalRecordsBloc, PersonalRecordsState>(
       builder: (context, state) {
-        if (state is WorkoutLoading) {
+        if (state is PersonalRecordLoading) {
           return const Center(child: CircularProgressIndicator());
         }
+
         if (state is PersonalRecordsLoaded) {
-          if (state.records.isEmpty) {
-            return const _EmptyState(
-              icon: Icons.emoji_events,
+          final records = state.records;
+
+          if (records.isEmpty) {
+            return const EmptyState(
+              icon: Icons.emoji_events_rounded,
               message: 'No PRs yet.\nLog some heavy sets to set records!',
             );
           }
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: state.records.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
-            itemBuilder: (_, i) {
-              final pr = state.records[i];
-              return ListTile(
-                tileColor: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                leading: const Icon(Icons.emoji_events, color: Colors.amber),
-                title: Text(
-                  pr.exerciseName,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                subtitle: Text(
-                  'Achieved ${DateFormat('d MMM yyyy').format(pr.achievedAt)}',
-                  style: const TextStyle(fontSize: 12),
-                ),
-                trailing: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '${pr.bestWeightKg} kg',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+
+          return AnimationLimiter(
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+              itemCount: records.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              itemBuilder: (context, index) {
+                return AnimationConfiguration.staggeredList(
+                  position: index,
+                  duration: const Duration(milliseconds: 450),
+                  child: SlideAnimation(
+                    verticalOffset: 40.0,
+                    child: FadeInAnimation(
+                      child: PersonalRecordCard(pr: records[index]),
                     ),
-                    Text(
-                      '× ${pr.repsAtBestWeight} reps',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ],
-                ),
-              );
-            },
+                  ),
+                );
+              },
+            ),
           );
         }
-        if (state is WorkoutError) {
-          return Center(child: Text(state.message));
-        }
-        return const SizedBox.shrink();
+
+        return const SizedBox();
       },
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  final IconData icon;
-  final String message;
-  const _EmptyState({required this.icon, required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 56, color: Colors.grey),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
-          ),
-        ],
-      ),
     );
   }
 }
