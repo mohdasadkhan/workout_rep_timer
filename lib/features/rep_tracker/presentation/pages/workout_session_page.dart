@@ -65,10 +65,13 @@ class WorkoutSessionPage extends StatelessWidget {
                 children: [
                   Icon(Icons.check_circle_outline, color: AppColors.primary),
                   SizedBox(width: 12),
-                  Text('Workout saved! Great session 💪'),
+                  Text(
+                    'Workout saved! Great session 💪',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ],
               ),
-              backgroundColor: AppColors.surface,
+              backgroundColor: AppColors.card,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -145,7 +148,6 @@ class WorkoutSessionPage extends StatelessWidget {
                 ),
               ),
             },
-
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
             floatingActionButton: state is WorkoutSessionActive
                 ? FloatingActionButton.extended(

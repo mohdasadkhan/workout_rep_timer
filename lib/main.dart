@@ -57,7 +57,6 @@ class MyApp extends StatelessWidget {
         BlocProvider.value(
           value: getIt<WorkoutSessionBloc>()..add(LoadActiveSession()),
         ),
-
         BlocProvider(create: (_) => getIt<NotificationBloc>()),
       ],
       child: MaterialApp.router(
