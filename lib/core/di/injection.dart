@@ -14,10 +14,13 @@ import 'package:app_lifecycle/features/notification/presentation/bloc/notificati
 import 'package:app_lifecycle/features/rep_tracker/data/datasources/workout_local_datasource.dart';
 import 'package:app_lifecycle/features/rep_tracker/data/repositories/workout_repository_impl.dart';
 import 'package:app_lifecycle/features/rep_tracker/domain/repositories/workout_repository.dart';
+import 'package:app_lifecycle/features/rep_tracker/domain/usecases/delete_workout_session.dart';
 import 'package:app_lifecycle/features/rep_tracker/domain/usecases/get_personal_records.dart';
 import 'package:app_lifecycle/features/rep_tracker/domain/usecases/get_workout_history.dart';
 import 'package:app_lifecycle/features/rep_tracker/domain/usecases/save_workout_session.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_bloc.dart';
+import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/personal_records_bloc/personal_records_bloc.dart';
+import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_bloc.dart';
+import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
 import 'package:app_lifecycle/features/workout_timer/presentation/bloc/timer_bloc.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -25,7 +28,6 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:hive/hive.dart';
 
 final getIt = GetIt.instance;
 
@@ -95,13 +97,23 @@ Future<void> registerRepTrackerFeature() async {
 
   getIt.registerLazySingleton(() => SaveWorkoutSession(getIt()));
   getIt.registerLazySingleton(() => GetWorkoutHistory(getIt()));
+  getIt.registerLazySingleton(() => DeleteWorkoutSessionUsecase(getIt()));
   getIt.registerLazySingleton(() => GetPersonalRecords(getIt()));
 
   getIt.registerFactory(
-    () => WorkoutBloc(
-      saveWorkoutSession: getIt(),
-      getWorkoutHistory: getIt(),
-      getPersonalRecords: getIt(),
+    () => WorkoutSessionBloc(
+      saveWorkoutSession: getIt<SaveWorkoutSession>(),
+      workoutRepository: getIt<WorkoutRepository>(),
+    ),
+  );
+  getIt.registerFactory(
+    () => PersonalRecordsBloc(getPersonalRecords: getIt<GetPersonalRecords>()),
+  );
+  getIt.registerFactory(
+    () => WorkoutHistoryBloc(
+      getWorkoutHistory: getIt<GetWorkoutHistory>(),
+      deleteWorkoutSession: getIt<DeleteWorkoutSessionUsecase>(),
+      saveWorkoutSession: getIt<SaveWorkoutSession>(),
     ),
   );
 }
