@@ -1,17 +1,18 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:app_lifecycle/core/theme/app_colors.dart';
-import 'package:app_lifecycle/core/theme/app_text_styles.dart';
-import 'package:app_lifecycle/core/widgets/dialogs/exit_dialog.dart';
-import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_phase.dart';
-import 'package:app_lifecycle/features/workout_timer/presentation/bloc/timer_effect.dart';
-import 'package:app_lifecycle/features/workout_timer/presentation/widgets/finish_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../bloc/timer_bloc.dart';
+
+import 'package:app_lifecycle/core/theme/app_colors.dart';
+import 'package:app_lifecycle/core/theme/app_text_styles.dart';
+import 'package:app_lifecycle/core/widgets/dialogs/exit_dialog.dart';
+import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_phase.dart';
+import 'package:app_lifecycle/features/workout_timer/presentation/bloc/timer_bloc.dart';
+import 'package:app_lifecycle/features/workout_timer/presentation/bloc/timer_effect.dart';
+import 'package:app_lifecycle/features/workout_timer/presentation/widgets/finish_overlay.dart';
 
 class RunningTimerScreen extends StatefulWidget {
   const RunningTimerScreen({super.key});
@@ -20,11 +21,8 @@ class RunningTimerScreen extends StatefulWidget {
   State<RunningTimerScreen> createState() => _RunningTimerScreenState();
 }
 
-class _RunningTimerScreenState extends State<RunningTimerScreen>
-    with TickerProviderStateMixin {
+class _RunningTimerScreenState extends State<RunningTimerScreen> {
   late final StreamSubscription _effectSub;
-  late final AnimationController _pulseController;
-  late final Animation<double> _pulseAnimation;
 
   @override
   void initState() {
@@ -35,25 +33,18 @@ class _RunningTimerScreenState extends State<RunningTimerScreen>
       DeviceOrientation.portraitDown,
     ]);
 
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )..repeat(reverse: true);
-
-    _pulseAnimation = Tween<double>(begin: 0.97, end: 1.03).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-
     final bloc = context.read<TimerBloc>();
+
     _effectSub = bloc.effectStream.listen((effect) async {
       if (effect is ShowStopDialogEffect && mounted) {
         final shouldExit = await showExitDialog(context);
-        if (mounted) {
-          if (shouldExit == true) {
-            bloc.add(TimerStopped());
-          } else {
-            bloc.add(TimerResumed());
-          }
+
+        if (!mounted) return;
+
+        if (shouldExit == true) {
+          bloc.add(TimerStopped());
+        } else {
+          bloc.add(TimerResumed());
         }
       }
     });
@@ -63,7 +54,6 @@ class _RunningTimerScreenState extends State<RunningTimerScreen>
   void dispose() {
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     _effectSub.cancel();
-    _pulseController.dispose();
     super.dispose();
   }
 
@@ -73,7 +63,9 @@ class _RunningTimerScreenState extends State<RunningTimerScreen>
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
+
         final shouldExit = await showExitDialog(context);
+
         if (shouldExit == true && context.mounted) {
           context.read<TimerBloc>().add(TimerStopped());
         }
@@ -84,133 +76,215 @@ class _RunningTimerScreenState extends State<RunningTimerScreen>
           listener: (context, state) {
             if (state is TimerFinished && context.mounted) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (context.mounted) showFinishOverlay(context);
+                if (context.mounted) {
+                  showFinishOverlay(context);
+                }
               });
             }
+
             if (state is TimerInitial && context.mounted) {
               context.pop();
             }
           },
-          child: BlocBuilder<TimerBloc, TimerState>(
-            builder: (context, state) {
-              if (state is! TimerRunning) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              final s = state;
-              final currentPhase = s.sequence[s.currentIndex];
-              final phaseColor = currentPhase.color;
-
-              return Stack(
-                children: [
-                  Positioned(
-                    top: -100,
-                    left: -80,
-                    child: RepaintBoundary(
-                      child: _AmbientGlow(color: phaseColor, size: 400),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: -80,
-                    right: -60,
-                    child: RepaintBoundary(
-                      child: _AmbientGlow(
-                        color: phaseColor.withOpacity(0.4),
-                        size: 300,
-                      ),
-                    ),
-                  ),
-
-                  SafeArea(
-                    child: Column(
-                      children: [
-                        _TopBar(
-                          currentSet: s.currentSet,
-                          totalSets: s.totalSets,
-                          phaseColor: phaseColor,
-                          isPaused: s.isPaused,
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        RepaintBoundary(
-                          child: _PhaseBadge(
-                            key: ValueKey(s.currentIndex),
-                            label: currentPhase.name.toUpperCase(),
-                            color: phaseColor,
-                          ),
-                        ),
-
-                        Expanded(
-                          flex: 5,
-                          child: Center(
-                            child: TimerCircle(
-                              remainingSeconds: s.remainingSeconds,
-                              totalDuration: currentPhase.durationSeconds,
-                              phaseColor: phaseColor,
-                              isPaused: s.isPaused,
-                              pulseAnimation: _pulseAnimation,
-                            ),
-                          ),
-                        ),
-
-                        Expanded(
-                          flex: 4,
-                          child: _SequenceList(
-                            sequence: s.sequence,
-                            currentIndex: s.currentIndex,
-                            remainingSeconds: s.remainingSeconds,
-                          ),
-                        ),
-
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                          child: _BottomButtons(
-                            onNext: () =>
-                                context.read<TimerBloc>().add(TimerNextPhase()),
-                            onStop: () => context.read<TimerBloc>().add(
-                              TimerStopRequestedEvent(),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
+          child: const _RunningTimerBody(),
         ),
       ),
     );
   }
 }
 
-// ====================== PERFORMANCE ISOLATED WIDGETS ======================
+class _RunningTimerBody extends StatelessWidget {
+  const _RunningTimerBody();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<TimerBloc, TimerState>(
+      buildWhen: (previous, current) {
+        return current is TimerRunning || current is TimerInitial;
+      },
+      builder: (context, state) {
+        if (state is! TimerRunning) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final currentPhase = state.sequence[state.currentIndex];
+        final phaseColor = currentPhase.color;
+
+        return Stack(
+          children: [
+            Positioned(
+              top: -80,
+              left: -60,
+              child: RepaintBoundary(
+                child: _AmbientGlow(
+                  color: phaseColor.withOpacity(0.12),
+                  size: 240,
+                ),
+              ),
+            ),
+
+            Positioned(
+              bottom: -60,
+              right: -40,
+              child: RepaintBoundary(
+                child: _AmbientGlow(
+                  color: phaseColor.withOpacity(0.08),
+                  size: 180,
+                ),
+              ),
+            ),
+
+            SafeArea(
+              child: Column(
+                children: [
+                  BlocSelector<TimerBloc, TimerState, _TopBarData>(
+                    selector: (state) {
+                      if (state is! TimerRunning) {
+                        return const _TopBarData.empty();
+                      }
+
+                      return _TopBarData(
+                        currentSet: state.currentSet,
+                        totalSets: state.totalSets,
+                        isPaused: state.isPaused,
+                        color: state.sequence[state.currentIndex].color,
+                      );
+                    },
+                    builder: (_, data) {
+                      return _TopBar(
+                        currentSet: data.currentSet,
+                        totalSets: data.totalSets,
+                        isPaused: data.isPaused,
+                        phaseColor: data.color,
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  BlocSelector<TimerBloc, TimerState, WorkoutPhase?>(
+                    selector: (state) {
+                      if (state is! TimerRunning) return null;
+                      return state.sequence[state.currentIndex];
+                    },
+                    builder: (_, phase) {
+                      if (phase == null) {
+                        return const SizedBox.shrink();
+                      }
+
+                      return RepaintBoundary(
+                        child: _PhaseBadge(
+                          key: ValueKey(phase.name),
+                          label: phase.name.toUpperCase(),
+                          color: phase.color,
+                        ),
+                      );
+                    },
+                  ),
+
+                  Expanded(
+                    flex: 5,
+                    child: Center(
+                      child:
+                          BlocSelector<TimerBloc, TimerState, _TimerCircleData>(
+                            selector: (state) {
+                              if (state is! TimerRunning) {
+                                return const _TimerCircleData.empty();
+                              }
+
+                              final phase = state.sequence[state.currentIndex];
+
+                              return _TimerCircleData(
+                                remainingSeconds: state.remainingSeconds,
+                                totalDuration: phase.durationSeconds,
+                                phaseColor: phase.color,
+                                isPaused: state.isPaused,
+                              );
+                            },
+                            builder: (_, data) {
+                              return TimerCircle(
+                                remainingSeconds: data.remainingSeconds,
+                                totalDuration: data.totalDuration,
+                                phaseColor: data.phaseColor,
+                                isPaused: data.isPaused,
+                              );
+                            },
+                          ),
+                    ),
+                  ),
+
+                  Expanded(
+                    flex: 4,
+                    child: BlocSelector<TimerBloc, TimerState, _SequenceData>(
+                      selector: (state) {
+                        if (state is! TimerRunning) {
+                          return const _SequenceData.empty();
+                        }
+
+                        return _SequenceData(
+                          sequence: state.sequence,
+                          currentIndex: state.currentIndex,
+                          remainingSeconds: state.remainingSeconds,
+                        );
+                      },
+                      builder: (_, data) {
+                        return _SequenceList(
+                          sequence: data.sequence,
+                          currentIndex: data.currentIndex,
+                          remainingSeconds: data.remainingSeconds,
+                        );
+                      },
+                    ),
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    child: _BottomButtons(
+                      onNext: () {
+                        context.read<TimerBloc>().add(TimerNextPhase());
+                      },
+                      onStop: () {
+                        context.read<TimerBloc>().add(
+                          TimerStopRequestedEvent(),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
 
 class TimerCircle extends StatelessWidget {
-  final int remainingSeconds;
-  final int totalDuration;
-  final Color phaseColor;
-  final bool isPaused;
-  final Animation<double> pulseAnimation;
-
   const TimerCircle({
     super.key,
     required this.remainingSeconds,
     required this.totalDuration,
     required this.phaseColor,
     required this.isPaused,
-    required this.pulseAnimation,
   });
+
+  final int remainingSeconds;
+  final int totalDuration;
+  final Color phaseColor;
+  final bool isPaused;
 
   @override
   Widget build(BuildContext context) {
-    final min = (remainingSeconds ~/ 60).toString().padLeft(2, '0');
-    final sec = (remainingSeconds % 60).toString().padLeft(2, '0');
-    final progress = totalDuration > 0 ? remainingSeconds / totalDuration : 0.0;
+    final minutes = (remainingSeconds ~/ 60).toString().padLeft(2, '0');
 
-    return ScaleTransition(
-      scale: isPaused ? const AlwaysStoppedAnimation(1.0) : pulseAnimation,
+    final seconds = (remainingSeconds % 60).toString().padLeft(2, '0');
+
+    final progress = totalDuration <= 0
+        ? 0.0
+        : remainingSeconds / totalDuration;
+
+    return RepaintBoundary(
       child: SizedBox(
         width: 260,
         height: 260,
@@ -223,58 +297,185 @@ class TimerCircle extends StatelessWidget {
                 painter: _ArcPainter(
                   progress: progress,
                   color: phaseColor,
-                  trackColor: phaseColor.withOpacity(0.12),
-                  strokeWidth: 14,
-                  glowColor: phaseColor,
+                  trackColor: phaseColor.withOpacity(0.10),
+                  strokeWidth: 12,
                 ),
               ),
             ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
-                  transitionBuilder: (child, animation) {
-                    final scale = TweenSequence([
-                      TweenSequenceItem(
-                        tween: Tween(begin: 0.9, end: 1.05),
-                        weight: 60,
-                      ),
-                      TweenSequenceItem(
-                        tween: Tween(begin: 1.05, end: 1.0),
-                        weight: 40,
-                      ),
-                    ]).animate(animation);
-                    return FadeTransition(
-                      opacity: animation,
-                      child: ScaleTransition(scale: scale, child: child),
-                    );
-                  },
-                  child: Text(
-                    '$min:$sec',
-                    key: ValueKey(remainingSeconds),
+
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.98, end: 1.0),
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOut,
+              builder: (_, scale, child) {
+                return Transform.scale(scale: scale, child: child);
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '$minutes:$seconds',
                     style: AppTextStyles.timerDisplay.copyWith(
+                      color: Colors.white,
+
                       shadows: [
                         Shadow(
-                          color: phaseColor.withOpacity(0.7),
-                          blurRadius: 30,
+                          color: phaseColor.withOpacity(0.25),
+                          blurRadius: 8,
                         ),
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${totalDuration}s total',
-                  style: Theme.of(context).textTheme.labelSmall,
-                ),
-              ],
+
+                  const SizedBox(height: 6),
+
+                  AnimatedOpacity(
+                    opacity: isPaused ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Text(
+                      'PAUSED',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: phaseColor,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
     );
   }
+}
+
+class _ArcPainter extends CustomPainter {
+  _ArcPainter({
+    required this.progress,
+    required this.color,
+    required this.trackColor,
+    required this.strokeWidth,
+  });
+
+  final double progress;
+  final Color color;
+  final Color trackColor;
+  final double strokeWidth;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+
+    final radius = (size.width - strokeWidth) / 2;
+
+    final rect = Rect.fromCircle(center: center, radius: radius);
+
+    final trackPaint = Paint()
+      ..color = trackColor
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = strokeWidth;
+
+    final progressPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = strokeWidth;
+
+    canvas.drawArc(rect, -math.pi / 2, math.pi * 2, false, trackPaint);
+
+    canvas.drawArc(
+      rect,
+      -math.pi / 2,
+      math.pi * 2 * progress,
+      false,
+      progressPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _ArcPainter oldDelegate) {
+    return oldDelegate.progress != progress || oldDelegate.color != color;
+  }
+}
+
+class _AmbientGlow extends StatelessWidget {
+  const _AmbientGlow({required this.color, required this.size});
+
+  final Color color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(colors: [color, Colors.transparent]),
+        ),
+      ),
+    );
+  }
+}
+
+class _TopBarData {
+  final int currentSet;
+  final int totalSets;
+  final bool isPaused;
+  final Color color;
+
+  const _TopBarData({
+    required this.currentSet,
+    required this.totalSets,
+    required this.isPaused,
+    required this.color,
+  });
+
+  const _TopBarData.empty()
+    : currentSet = 0,
+      totalSets = 0,
+      isPaused = false,
+      color = Colors.white;
+}
+
+class _TimerCircleData {
+  final int remainingSeconds;
+  final int totalDuration;
+  final Color phaseColor;
+  final bool isPaused;
+
+  const _TimerCircleData({
+    required this.remainingSeconds,
+    required this.totalDuration,
+    required this.phaseColor,
+    required this.isPaused,
+  });
+
+  const _TimerCircleData.empty()
+    : remainingSeconds = 0,
+      totalDuration = 0,
+      phaseColor = Colors.white,
+      isPaused = false;
+}
+
+class _SequenceData {
+  final List<WorkoutPhase> sequence;
+  final int currentIndex;
+  final int remainingSeconds;
+
+  const _SequenceData({
+    required this.sequence,
+    required this.currentIndex,
+    required this.remainingSeconds,
+  });
+
+  const _SequenceData.empty()
+    : sequence = const [],
+      currentIndex = 0,
+      remainingSeconds = 0;
 }
 
 class _TopBar extends StatelessWidget {
@@ -533,27 +734,6 @@ class _BottomButtons extends StatelessWidget {
   }
 }
 
-// Existing helper widgets (unchanged)
-class _AmbientGlow extends StatelessWidget {
-  final Color color;
-  final double size;
-  const _AmbientGlow({super.key, required this.color, required this.size});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [color.withOpacity(0.18), Colors.transparent],
-        ),
-      ),
-    );
-  }
-}
-
 class _PhaseBadge extends StatelessWidget {
   final String label;
   final Color color;
@@ -616,70 +796,4 @@ class _GlassIconButton extends StatelessWidget {
       ),
     );
   }
-}
-
-class _ArcPainter extends CustomPainter {
-  final double progress;
-  final Color color;
-  final Color trackColor;
-  final double strokeWidth;
-  final Color glowColor;
-
-  const _ArcPainter({
-    required this.progress,
-    required this.color,
-    required this.trackColor,
-    required this.strokeWidth,
-    required this.glowColor,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2;
-    const startAngle = -math.pi / 2;
-
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()
-        ..color = trackColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.round,
-    );
-
-    if (progress <= 0) return;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      startAngle,
-      2 * math.pi * progress,
-      false,
-      Paint()
-        ..color = glowColor.withOpacity(0.35)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth + 8
-        ..strokeCap = StrokeCap.round
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
-    );
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      startAngle,
-      2 * math.pi * progress,
-      false,
-      Paint()
-        ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.round,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_ArcPainter old) =>
-      old.progress != progress ||
-      old.color != color ||
-      old.trackColor != trackColor;
 }
