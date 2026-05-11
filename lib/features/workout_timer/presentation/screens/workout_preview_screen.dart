@@ -20,11 +20,13 @@ class WorkoutPreviewScreen extends StatefulWidget {
 
 class _WorkoutPreviewScreenState extends State<WorkoutPreviewScreen> {
   late final ScrollController _scrollController;
-  double _scrollProgress = 0.0;
+  late final List<WorkoutPhase> sequence;
+  final ValueNotifier<double> _scrollProgress = ValueNotifier(0);
 
   @override
   void initState() {
     super.initState();
+    sequence = generateWorkoutSequence(widget.config);
     _scrollController = ScrollController();
     _scrollController.addListener(_updateScrollProgress);
   }
@@ -33,27 +35,30 @@ class _WorkoutPreviewScreenState extends State<WorkoutPreviewScreen> {
   void dispose() {
     _scrollController.removeListener(_updateScrollProgress);
     _scrollController.dispose();
+    _scrollProgress.dispose();
     super.dispose();
   }
 
   void _updateScrollProgress() {
-    if (!mounted) return;
+    if (!_scrollController.hasClients) return;
 
     final maxScroll = _scrollController.position.maxScrollExtent;
-    final currentScroll = _scrollController.position.pixels;
 
     if (maxScroll <= 0) {
-      setState(() => _scrollProgress = 1.0);
+      _scrollProgress.value = 1.0;
       return;
     }
 
-    final progress = (currentScroll / maxScroll).clamp(0.0, 1.0);
-    setState(() => _scrollProgress = progress);
+    final progress = (_scrollController.offset / maxScroll).clamp(0.0, 1.0);
+
+    // Only update if changed enough
+    if ((progress - _scrollProgress.value).abs() > 0.01) {
+      _scrollProgress.value = progress;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final sequence = generateWorkoutSequence(widget.config);
     final totalTimeStr = _formatTotalTime(sequence, widget.config);
 
     final theme = Theme.of(context);
@@ -63,11 +68,18 @@ class _WorkoutPreviewScreenState extends State<WorkoutPreviewScreen> {
         centerTitle: true,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4),
-          child: LinearProgressIndicator(
-            value: _scrollProgress,
-            backgroundColor: Colors.grey.shade200,
-            valueColor: const AlwaysStoppedAnimation<Color>(Colors.teal),
-            minHeight: 4,
+          child: ValueListenableBuilder<double>(
+            valueListenable: _scrollProgress,
+            builder: (context, value, child) {
+              return RepaintBoundary(
+                child: LinearProgressIndicator(
+                  value: value,
+                  backgroundColor: Colors.grey.shade200,
+                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.teal),
+                  minHeight: 4,
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -112,88 +124,90 @@ class _WorkoutPreviewScreenState extends State<WorkoutPreviewScreen> {
                 final phase = sequence[index];
                 final isLast = index == sequence.length - 1;
 
-                return TimelineTile(
-                  alignment: TimelineAlign.manual,
-                  lineXY: 0.18,
-                  isFirst: index == 0,
-                  isLast: isLast,
-                  indicatorStyle: IndicatorStyle(
-                    width: 34,
-                    color: _getPhaseColor(phase.type),
-                    iconStyle: IconStyle(
-                      iconData: _getPhaseIcon(phase.type),
-                      color: AppColors.white,
-                    ),
-                  ),
-                  beforeLineStyle: const LineStyle(
-                    color: AppColors.grey,
-                    thickness: 3,
-                  ),
-                  afterLineStyle: LineStyle(
-                    color: isLast ? Colors.transparent : AppColors.grey,
-                    thickness: 3,
-                  ),
-                  startChild: Padding(
-                    padding: const EdgeInsets.only(right: 16, top: 10),
-                    child: Text(
-                      _formatDuration(phase.durationSeconds),
-                      style: theme.textTheme.titleMedium!.copyWith(
-                        fontWeight: FontWeight.bold,
+                return RepaintBoundary(
+                  child: TimelineTile(
+                    alignment: TimelineAlign.manual,
+                    lineXY: 0.18,
+                    isFirst: index == 0,
+                    isLast: isLast,
+                    indicatorStyle: IndicatorStyle(
+                      width: 34,
+                      color: _getPhaseColor(phase.type),
+                      iconStyle: IconStyle(
+                        iconData: _getPhaseIcon(phase.type),
+                        color: AppColors.white,
                       ),
                     ),
-                  ),
-                  endChild: Padding(
-                    padding: const EdgeInsets.only(
-                      left: 16,
-                      top: 8,
-                      bottom: 24,
+                    beforeLineStyle: const LineStyle(
+                      color: AppColors.grey,
+                      thickness: 3,
                     ),
-                    child: Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                    afterLineStyle: LineStyle(
+                      color: isLast ? Colors.transparent : AppColors.grey,
+                      thickness: 3,
+                    ),
+                    startChild: Padding(
+                      padding: const EdgeInsets.only(right: 16, top: 10),
+                      child: Text(
+                        _formatDuration(phase.durationSeconds),
+                        style: theme.textTheme.titleMedium!.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  _getPhaseIcon(phase.type),
-                                  color: _getPhaseColor(phase.type),
-                                  size: 26,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    phase.name,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
+                    ),
+                    endChild: Padding(
+                      padding: const EdgeInsets.only(
+                        left: 16,
+                        top: 8,
+                        bottom: 24,
+                      ),
+                      child: Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    _getPhaseIcon(phase.type),
+                                    color: _getPhaseColor(phase.type),
+                                    size: 26,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      phase.name,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              'Set ${phase.currentSet} of ${phase.totalSets}',
-                              style: TextStyle(
-                                color: Colors.grey.shade700,
-                                fontSize: 14,
+                                ],
                               ),
-                            ),
-                            if (phase.currentCycle != null)
+                              const SizedBox(height: 10),
                               Text(
-                                'Cycle ${phase.currentCycle} of ${phase.totalCycles}',
+                                'Set ${phase.currentSet} of ${phase.totalSets}',
                                 style: TextStyle(
                                   color: Colors.grey.shade700,
                                   fontSize: 14,
                                 ),
                               ),
-                          ],
+                              if (phase.currentCycle != null)
+                                Text(
+                                  'Cycle ${phase.currentCycle} of ${phase.totalCycles}',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade700,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
