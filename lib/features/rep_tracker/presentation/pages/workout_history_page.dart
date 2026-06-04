@@ -152,33 +152,35 @@ class _HistoryTabState extends State<_HistoryTab> {
             initialItemCount: sessions.length,
             itemBuilder: (context, index, animation) {
               final session = sessions[index];
-              return AnimationConfiguration.staggeredList(
-                position: index,
-                duration: const Duration(milliseconds: 450),
-                child: SlideAnimation(
-                  verticalOffset: 50.0,
-                  child: FadeInAnimation(
-                    child: SizeTransition(
-                      sizeFactor: animation,
-                      child: SlideTransition(
-                        position: animation.drive(
-                          Tween(
-                            begin: const Offset(0, 0.2),
-                            end: Offset.zero,
-                          ).chain(CurveTween(curve: Curves.easeOutCubic)),
-                        ),
-                        child: ScaleTransition(
-                          scale: animation.drive(
+              return RepaintBoundary(
+                child: AnimationConfiguration.staggeredList(
+                  position: index,
+                  duration: const Duration(milliseconds: 450),
+                  child: SlideAnimation(
+                    verticalOffset: 50.0,
+                    child: FadeInAnimation(
+                      child: SizeTransition(
+                        sizeFactor: animation,
+                        child: SlideTransition(
+                          position: animation.drive(
                             Tween(
-                              begin: 0.92,
-                              end: 1.0,
-                            ).chain(CurveTween(curve: Curves.easeOutBack)),
+                              begin: const Offset(0, 0.2),
+                              end: Offset.zero,
+                            ).chain(CurveTween(curve: Curves.easeOutCubic)),
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: SessionCard(
-                              session: session,
-                              onDelete: () => _removeItem(index, session),
+                          child: ScaleTransition(
+                            scale: animation.drive(
+                              Tween(
+                                begin: 0.92,
+                                end: 1.0,
+                              ).chain(CurveTween(curve: Curves.easeOutBack)),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: SessionCard(
+                                session: session,
+                                onDelete: () => _removeItem(index, session),
+                              ),
                             ),
                           ),
                         ),
@@ -305,13 +307,15 @@ class _PersonalRecordsTab extends StatelessWidget {
               itemCount: records.length,
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
-                return AnimationConfiguration.staggeredList(
-                  position: index,
-                  duration: const Duration(milliseconds: 450),
-                  child: SlideAnimation(
-                    verticalOffset: 40.0,
-                    child: FadeInAnimation(
-                      child: PersonalRecordCard(pr: records[index]),
+                return RepaintBoundary(
+                  child: AnimationConfiguration.staggeredList(
+                    position: index,
+                    duration: const Duration(milliseconds: 450),
+                    child: SlideAnimation(
+                      verticalOffset: 40.0,
+                      child: FadeInAnimation(
+                        child: PersonalRecordCard(pr: records[index]),
+                      ),
                     ),
                   ),
                 );
