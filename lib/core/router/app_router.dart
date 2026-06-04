@@ -55,8 +55,8 @@ GoRouter createRouter() {
           GoRoute(
             path: 'preview',
             pageBuilder: (context, state) {
-              final params = state.uri.queryParameters;
-              final config = WorkoutConfig.fromQuery(params);
+              final config =
+                  state.extra as WorkoutConfig? ?? const WorkoutConfig();
               return _buildPage(
                 state: state,
                 child: WorkoutPreviewScreen(config: config),

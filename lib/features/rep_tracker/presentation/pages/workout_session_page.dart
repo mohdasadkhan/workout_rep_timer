@@ -78,7 +78,6 @@ class WorkoutSessionPage extends StatelessWidget {
               ),
             ),
           );
-          context.read<WorkoutSessionBloc>().add(const StartWorkoutSession());
         }
         if (state is WorkoutSessionError) {
           ScaffoldMessenger.of(context).showSnackBar(
