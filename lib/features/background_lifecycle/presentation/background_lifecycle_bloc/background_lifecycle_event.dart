@@ -1,7 +1,9 @@
-part of 'background_lifecycle_bloc.dart';
 
 //sealed means no new events can be added outside this file
-sealed class TimerEvent extends Equatable {
+
+import 'package:equatable/equatable.dart';
+
+class TimerEvent extends Equatable {
   const TimerEvent();
 
   @override

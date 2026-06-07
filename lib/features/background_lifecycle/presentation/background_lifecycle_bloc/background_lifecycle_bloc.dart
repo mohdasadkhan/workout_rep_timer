@@ -3,11 +3,10 @@ import 'dart:developer';
 
 import 'package:app_lifecycle/features/background_lifecycle/domain/entities/timer_session.dart';
 import 'package:app_lifecycle/features/background_lifecycle/domain/repositories/timer_repository.dart';
+import 'package:app_lifecycle/features/background_lifecycle/presentation/background_lifecycle_bloc/background_lifecycle_event.dart';
+import 'package:app_lifecycle/features/background_lifecycle/presentation/background_lifecycle_bloc/background_lifecycle_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:equatable/equatable.dart';
 
-part 'background_lifecycle_event.dart';
-part 'background_lifecycle_state.dart';
 
 class BackgroundLifecycleBloc extends Bloc<TimerEvent, TimerState> {
   final TimerRepository _timerRepository;
@@ -101,6 +100,6 @@ BackgroundLifecycleBloc({required TimerRepository timerRepository})
   }
 }
 
-class _TickEvent extends TimerEvent {
+final class _TickEvent extends TimerEvent {
   const _TickEvent();
 }

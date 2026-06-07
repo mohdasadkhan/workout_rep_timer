@@ -2,7 +2,6 @@ import 'package:app_lifecycle/core/router/app_router.dart';
 import 'package:app_lifecycle/features/background_lifecycle/data/local/timer_preferences.dart';
 import 'package:app_lifecycle/features/background_lifecycle/data/repositories/timer_repository_impl.dart';
 import 'package:app_lifecycle/features/background_lifecycle/domain/repositories/timer_repository.dart';
-import 'package:app_lifecycle/features/background_lifecycle/presentation/background_lifecycle_bloc/background_lifecycle_bloc.dart';
 import 'package:app_lifecycle/features/notification/data/datasources/fcm_remote_datasource.dart';
 import 'package:app_lifecycle/features/notification/data/datasources/local_notification_datasource.dart';
 import 'package:app_lifecycle/features/notification/data/repository/notification_repository_impl.dart';
@@ -11,6 +10,14 @@ import 'package:app_lifecycle/features/notification/domain/usecases/handle_notif
 import 'package:app_lifecycle/features/notification/domain/usecases/listen_foreground_notifications.dart';
 import 'package:app_lifecycle/features/notification/domain/usecases/subscribe_to_topic.dart';
 import 'package:app_lifecycle/features/notification/presentation/bloc/notification_bloc.dart';
+import 'package:app_lifecycle/features/reminder/data/datasources/reminder_local_datasource.dart';
+import 'package:app_lifecycle/features/reminder/data/repositories/reminder_notification_service_impl.dart';
+import 'package:app_lifecycle/features/reminder/data/repositories/reminder_repository_impl.dart';
+import 'package:app_lifecycle/features/reminder/domain/repositories/reminder_notification_service.dart';
+import 'package:app_lifecycle/features/reminder/domain/repositories/reminder_repository.dart';
+import 'package:app_lifecycle/features/reminder/domain/usecases/load_reminder_settings_usecases.dart';
+import 'package:app_lifecycle/features/reminder/domain/usecases/save_reminder_settings_usecase.dart';
+import 'package:app_lifecycle/features/reminder/presentation/bloc/reminder_bloc.dart';
 import 'package:app_lifecycle/features/rep_tracker/data/datasources/workout_local_datasource.dart';
 import 'package:app_lifecycle/features/rep_tracker/data/repositories/workout_repository_impl.dart';
 import 'package:app_lifecycle/features/rep_tracker/domain/repositories/workout_repository.dart';
@@ -37,10 +44,6 @@ Future<void> registerAppBackgroundFeature() async {
   );
   getIt.registerSingleton<TimerRepository>(
     TimerRepositoryImpl(timerPreferences: getIt<TimerPreferences>()),
-  );
-
-  getIt.registerFactory<BackgroundLifecycleBloc>(
-    () => BackgroundLifecycleBloc(timerRepository: getIt<TimerRepository>()),
   );
 }
 
@@ -133,4 +136,36 @@ Future<void> setupInjection() async {
   await registerNotificationFeature();
   await registerRepTrackerFeature();
   await registerWorkoutTimerFeature();
+  await _registerReminderFeature();
+}
+
+Future<void> _registerReminderFeature() async {
+  getIt.registerLazySingleton<ReminderLocalDatasource>(
+    () => ReminderLocalDatasource(getIt<SharedPreferences>()),
+  );
+
+  getIt.registerLazySingleton<ReminderRepository>(
+    () => ReminderRepositoryImpl(getIt<ReminderLocalDatasource>()),
+  );
+
+  getIt.registerLazySingleton<ReminderNotificationService>(
+    () => const ReminderNotificationServiceImpl(),
+  );
+
+  getIt.registerLazySingleton(
+    () => LoadReminderSettingsUseCase(getIt<ReminderRepository>()),
+  );
+  getIt.registerLazySingleton(
+    () => SaveReminderSettingsUseCase(
+      repository: getIt<ReminderRepository>(),
+      notificationService: getIt<ReminderNotificationService>(),
+    ),
+  );
+
+  getIt.registerFactory(
+    () => ReminderBloc(
+      loadSettings: getIt<LoadReminderSettingsUseCase>(),
+      saveSettings: getIt<SaveReminderSettingsUseCase>(),
+    ),
+  );
 }

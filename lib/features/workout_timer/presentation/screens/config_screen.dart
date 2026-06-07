@@ -1,8 +1,10 @@
 import 'dart:developer';
 
 import 'package:app_lifecycle/core/theme/app_colors.dart';
+import 'package:app_lifecycle/core/theme/app_text_styles.dart';
 import 'package:app_lifecycle/core/widgets/feature_dropdown/extension_on_appfeature.dart';
 import 'package:app_lifecycle/core/widgets/feature_dropdown/feature_dropdown.dart';
+import 'package:app_lifecycle/core/widgets/settings_menu_button.dart';
 import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_config.dart';
 import 'package:app_lifecycle/features/workout_timer/domain/usecases/generate_workout_usecase.dart';
 import 'package:flutter/material.dart';
@@ -50,24 +52,27 @@ class _ConfigScreenState extends State<ConfigScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            FeatureDropdownTitle(current: AppFeature.tabataTimer),
-            TextButton.icon(
-              onPressed: () => context.push('/tabata/preview', extra: _config),
-              icon: const Icon(Icons.visibility_outlined),
-              label: const Text('PREVIEW'),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                textStyle: theme.textTheme.titleMedium,
-              ),
-            ),
-          ],
-        ),
+        title: const FeatureDropdownTitle(current: AppFeature.tabataTimer),
         centerTitle: false,
         automaticallyImplyLeading: false,
+        actions: [
+          TextButton.icon(
+            onPressed: () => context.push('/tabata/preview', extra: _config),
+            icon: const Icon(Icons.visibility_outlined, size: 18),
+            label: const Text('PREVIEW'),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              textStyle: AppTextStyles.bodyMedium.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+
+          SettingsMenuButton(),
+        ],
       ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(

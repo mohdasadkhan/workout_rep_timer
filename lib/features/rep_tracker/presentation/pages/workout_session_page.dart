@@ -4,6 +4,7 @@ import 'package:app_lifecycle/core/theme/app_colors.dart';
 import 'package:app_lifecycle/core/widgets/dialogs/exit_dialog.dart';
 import 'package:app_lifecycle/core/widgets/feature_dropdown/extension_on_appfeature.dart';
 import 'package:app_lifecycle/core/widgets/feature_dropdown/feature_dropdown.dart';
+import 'package:app_lifecycle/core/widgets/settings_menu_button.dart';
 import 'package:app_lifecycle/features/rep_tracker/presentation/widgets/session_widgets/add_exercise_bottom_sheet.dart';
 import 'package:app_lifecycle/features/rep_tracker/presentation/widgets/session_widgets/workout_session_widgets.dart';
 import 'package:flutter/material.dart';
@@ -101,10 +102,12 @@ class WorkoutSessionPage extends StatelessWidget {
           },
           child: Scaffold(
             appBar: AppBar(
-              title: FeatureDropdownTitle(current: AppFeature.repTracker),
+              title: const FeatureDropdownTitle(current: AppFeature.repTracker),
               centerTitle: false,
               automaticallyImplyLeading: false,
               actions: [
+                if (state is WorkoutSessionActive && state.exercises.isNotEmpty)
+                  FinishButton(onTap: () => _confirmFinish(context)),
                 Container(
                   width: 36,
                   height: 36,
@@ -126,8 +129,7 @@ class WorkoutSessionPage extends StatelessWidget {
                   ),
                 ),
 
-                if (state is WorkoutSessionActive && state.exercises.isNotEmpty)
-                  FinishButton(onTap: () => _confirmFinish(context)),
+                SettingsMenuButton(),
               ],
             ),
 

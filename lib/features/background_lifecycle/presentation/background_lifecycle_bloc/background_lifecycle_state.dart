@@ -1,4 +1,6 @@
-part of 'background_lifecycle_bloc.dart';
+
+import 'package:app_lifecycle/features/background_lifecycle/domain/entities/timer_session.dart';
+import 'package:equatable/equatable.dart';
 
 sealed class TimerState extends Equatable {
   const TimerState();
