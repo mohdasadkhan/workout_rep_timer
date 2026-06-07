@@ -30,7 +30,22 @@ List<WorkoutPhase> generateWorkoutSequence(WorkoutConfig config) {
         ),
       );
 
-      if (cycle < config.cyclesPerSet && config.restSeconds > 0) {
+      final bool isLastCycleOfSet = cycle == config.cyclesPerSet;
+      final bool isLastSet = set == config.numberOfSets;
+
+      // Intra-cycle rest: between cycles within a set
+      final bool addIntraCycleRest = config.restSeconds > 0 &&
+          (
+            // Multiple cycles: add rest between them (not after the last one)
+            !isLastCycleOfSet ||
+            // Single cycle per set: treat intra-cycle rest as the gap between sets
+            // but only when restBetweenSets is 0, and it's not the last set
+            (config.cyclesPerSet == 1 &&
+                config.restBetweenSetsSeconds == 0 &&
+                !isLastSet)
+          );
+
+      if (addIntraCycleRest) {
         sequence.add(
           WorkoutPhase(
             name: 'Rest',
@@ -38,11 +53,14 @@ List<WorkoutPhase> generateWorkoutSequence(WorkoutConfig config) {
             durationSeconds: config.restSeconds,
             currentSet: set,
             totalSets: config.numberOfSets,
+            currentCycle: cycle,
+            totalCycles: config.cyclesPerSet,
           ),
         );
       }
     }
 
+    // Rest between sets (only if restBetweenSets is configured and not the last set)
     if (set < config.numberOfSets && config.restBetweenSetsSeconds > 0) {
       sequence.add(
         WorkoutPhase(
