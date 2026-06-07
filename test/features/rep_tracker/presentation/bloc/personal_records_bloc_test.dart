@@ -4,7 +4,6 @@ import 'package:app_lifecycle/features/rep_tracker/domain/entities/workout_sessi
 import 'package:app_lifecycle/features/rep_tracker/domain/repositories/workout_repository.dart';
 import 'package:app_lifecycle/features/rep_tracker/domain/usecases/get_personal_records.dart';
 import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/personal_records_bloc/personal_records_bloc.dart';
-import 'package:bloc_test/bloc_test.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 

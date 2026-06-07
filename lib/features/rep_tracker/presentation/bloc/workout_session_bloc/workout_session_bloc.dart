@@ -28,8 +28,8 @@ class WorkoutSessionBloc
     on<RemoveSet>(_onRemoveSet);
     on<RemoveExercise>(_onRemoveExercise);
     on<FinishWorkoutSession>(_onFinishSession);
-    on<LoadActiveSession>(_onLoadActiveSession); // ← new
-    on<DiscardSession>(_onDiscardSession); // ← new
+    on<LoadActiveSession>(_onLoadActiveSession);
+    on<DiscardSession>(_onDiscardSession);
   }
 
   Future<void> _onStartSession(
@@ -149,14 +149,19 @@ class WorkoutSessionBloc
       SaveWorkoutParams(session: session),
     );
 
-    result.fold(
-      (failure) => emit(WorkoutSessionError(message: failure.message)),
-      (_) => emit(const WorkoutSessionSaved()),
+    final failureMessage = result.fold(
+      (failure) => failure.message,
+      (_) => null,
     );
-    await _persistActiveSession();
+
+    if (failureMessage != null) {
+      emit(WorkoutSessionError(message: failureMessage));
+    } else {
+      await workoutRepository.clearActiveSession();
+      emit(const WorkoutSessionSaved());
+    }
   }
 
-  // NEW: Hydration on app start / navigation return
   Future<void> _onLoadActiveSession(
     LoadActiveSession event,
     Emitter<WorkoutSessionState> emit,
@@ -183,7 +188,6 @@ class WorkoutSessionBloc
     emit(const WorkoutInitial());
   }
 
-  // Helper — called after every mutation
   Future<void> _persistActiveSession() async {
     final current = state;
     if (current is! WorkoutSessionActive) return;

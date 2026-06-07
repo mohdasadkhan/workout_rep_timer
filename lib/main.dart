@@ -1,6 +1,7 @@
 import 'package:app_lifecycle/core/const/firebase_const.dart';
 import 'package:app_lifecycle/core/di/injection.dart';
 import 'package:app_lifecycle/core/router/app_router.dart';
+import 'package:app_lifecycle/core/services/notification_reminder_service.dart';
 import 'package:app_lifecycle/core/theme/app_theme.dart';
 import 'package:app_lifecycle/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
@@ -10,6 +11,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,7 +44,9 @@ Future<void> main() async {
       eventAction: ForegroundTaskEventAction.nothing(),
     ),
   );
+  await NotificationReminderService.init();
 
+  tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
   runApp(const MyApp());
 }
 

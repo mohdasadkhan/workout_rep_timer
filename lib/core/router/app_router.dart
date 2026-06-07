@@ -1,7 +1,11 @@
 import 'package:app_lifecycle/core/constants/pref_keys.dart';
 import 'package:app_lifecycle/core/di/injection.dart';
+import 'package:app_lifecycle/features/reminder/presentation/bloc/reminder_bloc.dart';
+import 'package:app_lifecycle/features/reminder/presentation/bloc/reminder_event.dart';
+import 'package:app_lifecycle/features/reminder/presentation/screens/reminder_settings_screen.dart';
 import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/personal_records_bloc/personal_records_bloc.dart';
 import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_bloc.dart';
+import 'package:app_lifecycle/features/settings/presentation/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -75,7 +79,6 @@ GoRouter createRouter() {
         path: '/rep-tracker',
         pageBuilder: (context, state) =>
             _buildPage(state: state, child: const WorkoutSessionPage()),
-
         routes: [
           GoRoute(
             path: 'history',
@@ -91,6 +94,26 @@ GoRouter createRouter() {
             ),
           ),
         ],
+      ),
+
+      GoRoute(
+        path: '/settings',
+        name: 'settings',
+        pageBuilder: (context, state) =>
+            _buildPage(state: state, child: const SettingsScreen()),
+      ),
+
+      GoRoute(
+        path: '/reminder-settings',
+        name: 'reminder-settings',
+        pageBuilder: (context, state) => _buildPage(
+          state: state,
+          child: BlocProvider(
+            create: (context) =>
+                getIt<ReminderBloc>()..add(ReminderLoadSettings()),
+            child: const ReminderSettingsScreen(),
+          ),
+        ),
       ),
     ],
   );
