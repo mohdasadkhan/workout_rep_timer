@@ -1,21 +1,22 @@
-import 'package:app_lifecycle/core/constants/pref_keys.dart';
-import 'package:app_lifecycle/core/di/injection.dart';
-import 'package:app_lifecycle/features/reminder/presentation/bloc/reminder_bloc.dart';
-import 'package:app_lifecycle/features/reminder/presentation/bloc/reminder_event.dart';
-import 'package:app_lifecycle/features/reminder/presentation/screens/reminder_settings_screen.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/personal_records_bloc/personal_records_bloc.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_bloc.dart';
-import 'package:app_lifecycle/features/settings/presentation/screens/settings_screen.dart';
+
+import 'package:fitflow/core/constants/pref_keys.dart';
+import 'package:fitflow/core/di/injection.dart';
+import 'package:fitflow/features/reminder/presentation/bloc/reminder_bloc.dart';
+import 'package:fitflow/features/reminder/presentation/bloc/reminder_event.dart';
+import 'package:fitflow/features/reminder/presentation/screens/reminder_settings_screen.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/personal_records_bloc/personal_records_bloc.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_bloc.dart';
+import 'package:fitflow/features/settings/presentation/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:app_lifecycle/features/rep_tracker/presentation/pages/workout_history_page.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/pages/workout_session_page.dart';
-import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_config.dart';
-import 'package:app_lifecycle/features/workout_timer/presentation/screens/config_screen.dart';
-import 'package:app_lifecycle/features/workout_timer/presentation/screens/running_timer_screen.dart';
-import 'package:app_lifecycle/features/workout_timer/presentation/screens/workout_preview_screen.dart';
+import 'package:fitflow/features/rep_tracker/presentation/pages/workout_history_page.dart';
+import 'package:fitflow/features/rep_tracker/presentation/pages/workout_session_page.dart';
+import 'package:fitflow/features/workout_timer/domain/entity/workout_config.dart';
+import 'package:fitflow/features/workout_timer/presentation/screens/config_screen.dart';
+import 'package:fitflow/features/workout_timer/presentation/screens/running_timer_screen.dart';
+import 'package:fitflow/features/workout_timer/presentation/screens/workout_preview_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();

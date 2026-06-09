@@ -1,4 +1,4 @@
-import 'package:app_lifecycle/features/notification/domain/entities/notification_entity.dart';
+import 'package:fitflow/features/notification/domain/entities/notification_entity.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 abstract interface class LocalNotificationDatasource {

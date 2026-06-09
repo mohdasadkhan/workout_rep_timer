@@ -1,5 +1,5 @@
 
-import 'package:app_lifecycle/features/background_lifecycle/domain/entities/timer_session.dart';
+import 'package:fitflow/features/background_lifecycle/domain/entities/timer_session.dart';
 import 'package:equatable/equatable.dart';
 
 sealed class TimerState extends Equatable {

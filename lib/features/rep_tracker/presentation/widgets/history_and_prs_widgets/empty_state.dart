@@ -1,5 +1,5 @@
-import 'package:app_lifecycle/core/theme/app_colors.dart';
-import 'package:app_lifecycle/core/theme/app_text_styles.dart';
+import 'package:fitflow/core/theme/app_colors.dart';
+import 'package:fitflow/core/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 
 class EmptyState extends StatelessWidget {

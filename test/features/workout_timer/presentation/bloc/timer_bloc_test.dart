@@ -1,5 +1,5 @@
-import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_config.dart';
-import 'package:app_lifecycle/features/workout_timer/presentation/bloc/timer_bloc.dart';
+import 'package:fitflow/features/workout_timer/domain/entity/workout_config.dart';
+import 'package:fitflow/features/workout_timer/presentation/bloc/timer_bloc.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';

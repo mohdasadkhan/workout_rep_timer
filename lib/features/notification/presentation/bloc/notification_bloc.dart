@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:app_lifecycle/features/notification/domain/entities/notification_entity.dart';
-import 'package:app_lifecycle/features/notification/domain/repositories/notification_repository.dart';
-import 'package:app_lifecycle/features/notification/domain/usecases/handle_notification_tap.dart';
-import 'package:app_lifecycle/features/notification/domain/usecases/listen_foreground_notifications.dart';
-import 'package:app_lifecycle/features/notification/domain/usecases/subscribe_to_topic.dart';
+import 'package:fitflow/features/notification/domain/entities/notification_entity.dart';
+import 'package:fitflow/features/notification/domain/repositories/notification_repository.dart';
+import 'package:fitflow/features/notification/domain/usecases/handle_notification_tap.dart';
+import 'package:fitflow/features/notification/domain/usecases/listen_foreground_notifications.dart';
+import 'package:fitflow/features/notification/domain/usecases/subscribe_to_topic.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 

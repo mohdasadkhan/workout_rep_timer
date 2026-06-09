@@ -1,4 +1,4 @@
-import 'package:app_lifecycle/core/failure/failure.dart';
+import 'package:fitflow/core/failure/failure.dart';
 import 'package:dartz/dartz.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/workout_session.dart';

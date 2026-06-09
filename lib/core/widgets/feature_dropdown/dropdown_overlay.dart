@@ -1,6 +1,6 @@
+import 'package:fitflow/core/theme/app_colors.dart';
+import 'package:fitflow/core/widgets/feature_dropdown/extension_on_appfeature.dart';
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
-import 'extension_on_appfeature.dart';
 
 class DropdownOverlay extends StatelessWidget {
   final Offset anchorOffset;
@@ -20,6 +20,9 @@ class DropdownOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return GestureDetector(
       onTap: onDismiss,
       child: Material(
@@ -31,8 +34,8 @@ class DropdownOverlay extends StatelessWidget {
               top: anchorOffset.dy + anchorSize.height + 8,
               child: Material(
                 elevation: 12,
-                shadowColor: Colors.grey[900],
-                color: Color(0xFF242424),
+                shadowColor: colorScheme.shadow,
+                color: theme.cardTheme.color ?? colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
                 child: IntrinsicWidth(
                   child: Column(
@@ -53,7 +56,7 @@ class DropdownOverlay extends StatelessWidget {
                                 feature.icon,
                                 color: isSelected
                                     ? AppColors.primary
-                                    : AppColors.textPrimary,
+                                    : colorScheme.onSurface,
                                 size: 22,
                               ),
                               const SizedBox(width: 16),
@@ -66,7 +69,7 @@ class DropdownOverlay extends StatelessWidget {
                                       : FontWeight.w500,
                                   color: isSelected
                                       ? AppColors.primary
-                                      : AppColors.textPrimary,
+                                      : colorScheme.onSurface,
                                 ),
                               ),
                             ],

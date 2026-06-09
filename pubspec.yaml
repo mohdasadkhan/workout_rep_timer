@@ -1,5 +1,5 @@
-name: app_lifecycle
-description: "A new Flutter project."
+name: fitflow
+description: "FitFlow helps you crush fitness goals with an intuitive Tabata timer, complete rep tracking, workout history, personal records, and customizable reminders."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

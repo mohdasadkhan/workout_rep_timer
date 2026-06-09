@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:app_lifecycle/features/background_lifecycle/domain/entities/timer_session.dart';
-import 'package:app_lifecycle/features/background_lifecycle/domain/repositories/timer_repository.dart';
-import 'package:app_lifecycle/features/background_lifecycle/presentation/background_lifecycle_bloc/background_lifecycle_event.dart';
-import 'package:app_lifecycle/features/background_lifecycle/presentation/background_lifecycle_bloc/background_lifecycle_state.dart';
+import 'package:fitflow/features/background_lifecycle/domain/entities/timer_session.dart';
+import 'package:fitflow/features/background_lifecycle/domain/repositories/timer_repository.dart';
+import 'package:fitflow/features/background_lifecycle/presentation/background_lifecycle_bloc/background_lifecycle_event.dart';
+import 'package:fitflow/features/background_lifecycle/presentation/background_lifecycle_bloc/background_lifecycle_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 

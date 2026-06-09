@@ -1,12 +1,12 @@
-import 'package:app_lifecycle/core/constants/pref_keys.dart';
-import 'package:app_lifecycle/core/di/injection.dart';
-import 'package:app_lifecycle/core/theme/app_colors.dart';
-import 'package:app_lifecycle/core/widgets/dialogs/exit_dialog.dart';
-import 'package:app_lifecycle/core/widgets/feature_dropdown/extension_on_appfeature.dart';
-import 'package:app_lifecycle/core/widgets/feature_dropdown/feature_dropdown.dart';
-import 'package:app_lifecycle/core/widgets/settings_menu_button.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/widgets/session_widgets/add_exercise_bottom_sheet.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/widgets/session_widgets/workout_session_widgets.dart';
+import 'package:fitflow/core/constants/pref_keys.dart';
+import 'package:fitflow/core/di/injection.dart';
+import 'package:fitflow/core/theme/app_colors.dart';
+import 'package:fitflow/core/widgets/dialogs/exit_dialog.dart';
+import 'package:fitflow/core/widgets/feature_dropdown/extension_on_appfeature.dart';
+import 'package:fitflow/core/widgets/feature_dropdown/feature_dropdown.dart';
+import 'package:fitflow/core/widgets/settings_menu_button.dart';
+import 'package:fitflow/features/rep_tracker/presentation/widgets/session_widgets/add_exercise_bottom_sheet.dart';
+import 'package:fitflow/features/rep_tracker/presentation/widgets/session_widgets/workout_session_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -113,7 +113,7 @@ class WorkoutSessionPage extends StatelessWidget {
                   height: 36,
                   margin: const EdgeInsets.only(right: 6),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    // color: AppColors.surface,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.white.withOpacity(0.07)),
                   ),

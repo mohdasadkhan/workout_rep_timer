@@ -1,8 +1,8 @@
-import 'package:app_lifecycle/core/failure/cache_exceptions.dart';
-import 'package:app_lifecycle/features/rep_tracker/data/datasources/workout_local_datasource.dart';
-import 'package:app_lifecycle/features/rep_tracker/data/models/workout_session_model.dart';
-import 'package:app_lifecycle/features/rep_tracker/data/repositories/workout_repository_impl.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/entities/workout_session.dart';
+import 'package:fitflow/core/failure/cache_exceptions.dart';
+import 'package:fitflow/features/rep_tracker/data/datasources/workout_local_datasource.dart';
+import 'package:fitflow/features/rep_tracker/data/models/workout_session_model.dart';
+import 'package:fitflow/features/rep_tracker/data/repositories/workout_repository_impl.dart';
+import 'package:fitflow/features/rep_tracker/domain/entities/workout_session.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -36,7 +36,11 @@ class FakeWorkoutLocalDatasource implements WorkoutLocalDatasource {
 void main() {
   late FakeWorkoutLocalDatasource datasource;
   late WorkoutRepositoryImpl repository;
-  final session = WorkoutSession(id: 'id-1', date: DateTime(2026), exercises: const []);
+  final session = WorkoutSession(
+    id: 'id-1',
+    date: DateTime(2026),
+    exercises: const [],
+  );
 
   setUp(() {
     datasource = FakeWorkoutLocalDatasource();

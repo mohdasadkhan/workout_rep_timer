@@ -1,5 +1,5 @@
-import 'package:app_lifecycle/core/constants/pref_keys.dart';
-import 'package:app_lifecycle/features/background_lifecycle/domain/entities/timer_session.dart';
+import 'package:fitflow/core/constants/pref_keys.dart';
+import 'package:fitflow/features/background_lifecycle/domain/entities/timer_session.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TimerPreferences {

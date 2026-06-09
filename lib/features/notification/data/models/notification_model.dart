@@ -1,4 +1,4 @@
-import 'package:app_lifecycle/features/notification/domain/entities/notification_entity.dart';
+import 'package:fitflow/features/notification/domain/entities/notification_entity.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 class NotificationModel extends NotificationEntity {

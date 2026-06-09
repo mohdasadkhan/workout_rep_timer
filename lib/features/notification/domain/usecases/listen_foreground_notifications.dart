@@ -1,5 +1,5 @@
-import 'package:app_lifecycle/features/notification/domain/entities/notification_entity.dart';
-import 'package:app_lifecycle/features/notification/domain/repositories/notification_repository.dart';
+import 'package:fitflow/features/notification/domain/entities/notification_entity.dart';
+import 'package:fitflow/features/notification/domain/repositories/notification_repository.dart';
 
 class ListenForegroundNotifications {
   final NotificationRepository _repository;

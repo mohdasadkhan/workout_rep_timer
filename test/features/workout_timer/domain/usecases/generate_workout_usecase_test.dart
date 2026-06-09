@@ -1,6 +1,6 @@
-import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_config.dart';
-import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_phase.dart';
-import 'package:app_lifecycle/features/workout_timer/domain/usecases/generate_workout_usecase.dart';
+import 'package:fitflow/features/workout_timer/domain/entity/workout_config.dart';
+import 'package:fitflow/features/workout_timer/domain/entity/workout_phase.dart';
+import 'package:fitflow/features/workout_timer/domain/usecases/generate_workout_usecase.dart';
 import 'package:test/test.dart';
 
 void main() {

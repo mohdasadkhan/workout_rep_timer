@@ -1,6 +1,6 @@
-import 'package:app_lifecycle/core/theme/app_colors.dart';
-import 'package:app_lifecycle/core/theme/app_text_styles.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/entities/personal_record.dart';
+import 'package:fitflow/core/theme/app_colors.dart';
+import 'package:fitflow/core/theme/app_text_styles.dart';
+import 'package:fitflow/features/rep_tracker/domain/entities/personal_record.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -17,18 +17,18 @@ class PersonalRecordCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final dateStr = DateFormat('d MMM yyyy').format(pr.achievedAt);
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: Theme.of(context).cardTheme.color ?? colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: colorScheme.onSurface.withOpacity(0.08)),
       ),
       child: Row(
         children: [
-          // Trophy icon — tinted primary square
           Container(
             width: 46,
             height: 46,
@@ -44,8 +44,6 @@ class PersonalRecordCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 14),
-
-          // Exercise name + date
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,7 +58,7 @@ class PersonalRecordCard extends StatelessWidget {
                 Text(
                   dateStr,
                   style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textTertiary,
+                    color: colorScheme.onSurfaceVariant,
                     fontSize: 12,
                   ),
                 ),
@@ -68,8 +66,6 @@ class PersonalRecordCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-
-          // Best weight + reps — right-aligned
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -85,7 +81,7 @@ class PersonalRecordCard extends StatelessWidget {
               Text(
                 '× ${pr.repsAtBestWeight} reps',
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textTertiary,
+                  color: colorScheme.onSurfaceVariant,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),

@@ -1,6 +1,6 @@
-import 'package:app_lifecycle/core/theme/app_colors.dart';
-import 'package:app_lifecycle/core/theme/app_text_styles.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/entities/workout_session.dart';
+import 'package:fitflow/core/theme/app_colors.dart';
+import 'package:fitflow/core/theme/app_text_styles.dart';
+import 'package:fitflow/features/rep_tracker/domain/entities/workout_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -40,6 +40,7 @@ class _WorkoutHistoryPageState extends State<WorkoutHistoryPage>
 
   @override
   Widget build(BuildContext context) {
+    final colorSheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: const Text('History & PRs'),
@@ -49,9 +50,10 @@ class _WorkoutHistoryPageState extends State<WorkoutHistoryPage>
             margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.surface,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.06)),
+              border: Border.all(
+                color: colorSheme.onSurfaceVariant.withOpacity(0.06),
+              ),
             ),
             child: TabBar(
               controller: _tabController,
@@ -237,7 +239,7 @@ class _HistoryTabState extends State<_HistoryTab> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         duration: const Duration(seconds: 5),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        backgroundColor: const Color(0xFF1E1E1E),
+        // backgroundColor: const Color(0xFF1E1E1E),
         content: Row(
           children: [
             Icon(

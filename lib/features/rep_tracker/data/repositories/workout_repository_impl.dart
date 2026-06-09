@@ -1,5 +1,5 @@
-import 'package:app_lifecycle/core/failure/cache_exceptions.dart';
-import 'package:app_lifecycle/core/failure/failure.dart';
+import 'package:fitflow/core/failure/cache_exceptions.dart';
+import 'package:fitflow/core/failure/failure.dart';
 import 'package:dartz/dartz.dart';
 import '../../domain/entities/personal_record.dart';
 import '../../domain/entities/workout_session.dart';

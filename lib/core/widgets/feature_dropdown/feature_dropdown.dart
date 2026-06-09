@@ -1,7 +1,7 @@
-import 'package:app_lifecycle/core/constants/pref_keys.dart';
-import 'package:app_lifecycle/core/di/injection.dart'; // for getIt
-import 'package:app_lifecycle/core/theme/app_text_styles.dart';
-import 'package:app_lifecycle/core/widgets/feature_dropdown/dropdown_overlay.dart';
+import 'package:fitflow/core/constants/pref_keys.dart';
+import 'package:fitflow/core/di/injection.dart'; // for getIt
+import 'package:fitflow/core/theme/app_text_styles.dart';
+import 'package:fitflow/core/widgets/feature_dropdown/dropdown_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -83,6 +83,7 @@ class _FeatureDropdownTitleState extends State<FeatureDropdownTitle>
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: () => _toggleDropdown(context),
       borderRadius: BorderRadius.circular(12),
@@ -97,7 +98,7 @@ class _FeatureDropdownTitleState extends State<FeatureDropdownTitle>
               widget.current.label,
               style: AppTextStyles.titleLarge.copyWith(
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(width: 6),
