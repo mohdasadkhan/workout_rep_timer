@@ -56,7 +56,11 @@ Future<void> main() async {
     ),
   );
 
-  await NotificationReminderService.init();
+  try {
+    await NotificationReminderService.init();
+  } catch (e) {
+    debugPrint('⚠️ Reminder service init failed: $e');
+  }
   tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
 
   runApp(MyApp(initialThemeMode: initialThemeMode));

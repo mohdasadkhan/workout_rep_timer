@@ -52,6 +52,8 @@ dependencies:
   timeline_tile: ^2.0.0
   flutter_staggered_animations: ^1.1.1
   timezone: ^0.10.1
+  flutter_native_splash: ^2.4.7
+  flutter_dynamic_icon_plus: ^1.4.1
 
 dev_dependencies:
   flutter_test:
@@ -109,3 +111,16 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+flutter_native_splash:
+  color: "#FFFFFF"           # light mode background
+  image: assets/splash_light.png
+
+  # Dark mode splash
+  color_dark: "#121212"      # dark mode background  
+  image_dark: assets/splash_dark.png
+
+  android_12:
+    color: "#FFFFFF"
+    image: assets/splash_light.png
+    color_dark: "#121212"
+    image_dark: assets/splash_dark.png

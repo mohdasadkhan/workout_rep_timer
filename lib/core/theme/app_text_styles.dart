@@ -48,7 +48,6 @@ class AppTextStyles {
   );
 
   static const TextStyle bodyMedium = TextStyle(
-    inherit: true,
     fontSize: 14,
     fontWeight: FontWeight.w400,
     // no color
@@ -56,7 +55,6 @@ class AppTextStyles {
 
   // Labels & Small
   static const TextStyle labelLarge = TextStyle(
-    inherit: true,
     fontSize: 13,
     fontWeight: FontWeight.w700,
     letterSpacing: 1.5,
@@ -64,7 +62,6 @@ class AppTextStyles {
   );
 
   static const TextStyle labelSmall = TextStyle(
-    inherit: true,
     fontSize: 11,
     fontWeight: FontWeight.w700,
     letterSpacing: 2.5,
@@ -73,7 +70,6 @@ class AppTextStyles {
 
   // Timer Specific
   static const TextStyle timerDisplay = TextStyle(
-    inherit: true,
     fontSize: 72,
     fontWeight: FontWeight.w900,
     letterSpacing: -2,
@@ -81,8 +77,6 @@ class AppTextStyles {
   );
 
   static const TextStyle phaseBadge = TextStyle(
-    inherit: true,
-
     fontSize: 13,
     fontWeight: FontWeight.w800,
     letterSpacing: 2.5,
@@ -90,7 +84,6 @@ class AppTextStyles {
   );
 
   static const TextStyle sequenceItem = TextStyle(
-    inherit: true,
     fontSize: 14,
     fontWeight: FontWeight.w400,
     // no color

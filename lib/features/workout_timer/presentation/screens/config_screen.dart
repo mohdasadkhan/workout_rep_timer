@@ -193,10 +193,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
               icon: const Icon(Icons.play_arrow, size: 32),
               label: Text(
                 'START WORKOUT',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  letterSpacing: 1.2,
-                  color: Theme.of(context).colorScheme.surface,
-                ),
+                style: theme.textTheme.titleLarge?.copyWith(letterSpacing: 1.2),
               ),
             ),
           ),
