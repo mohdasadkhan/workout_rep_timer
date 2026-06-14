@@ -1,13 +1,13 @@
-import 'package:app_lifecycle/core/failure/failure.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/entities/personal_record.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/entities/workout_session.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/repositories/workout_repository.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/usecases/delete_workout_session.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/usecases/get_workout_history.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/usecases/save_workout_session.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_bloc.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_event.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_state.dart';
+import 'package:fitflow/core/failure/failure.dart';
+import 'package:fitflow/features/rep_tracker/domain/entities/personal_record.dart';
+import 'package:fitflow/features/rep_tracker/domain/entities/workout_session.dart';
+import 'package:fitflow/features/rep_tracker/domain/repositories/workout_repository.dart';
+import 'package:fitflow/features/rep_tracker/domain/usecases/delete_workout_session.dart';
+import 'package:fitflow/features/rep_tracker/domain/usecases/get_workout_history.dart';
+import 'package:fitflow/features/rep_tracker/domain/usecases/save_workout_session.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_bloc.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_event.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_state.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,19 +15,26 @@ import 'package:flutter_test/flutter_test.dart';
 class FakeWorkoutRepository implements WorkoutRepository {
   Either<Failure, List<WorkoutSession>> historyResult = const Right([]);
   @override
-  Future<Either<Failure, List<WorkoutSession>>> getWorkoutHistory() async => historyResult;
+  Future<Either<Failure, List<WorkoutSession>>> getWorkoutHistory() async =>
+      historyResult;
   @override
-  Future<Either<Failure, Unit>> deleteWorkoutSession(String sessionId) async => const Right(unit);
+  Future<Either<Failure, Unit>> deleteWorkoutSession(String sessionId) async =>
+      const Right(unit);
   @override
-  Future<Either<Failure, Unit>> saveWorkoutSession(WorkoutSession session) async => const Right(unit);
+  Future<Either<Failure, Unit>> saveWorkoutSession(
+    WorkoutSession session,
+  ) async => const Right(unit);
   @override
   Future<Either<Failure, Unit>> clearActiveSession() async => const Right(unit);
   @override
-  Future<Either<Failure, List<PersonalRecord>>> getPersonalRecords() async => const Right([]);
+  Future<Either<Failure, List<PersonalRecord>>> getPersonalRecords() async =>
+      const Right([]);
   @override
   Future<Option<WorkoutSession>> loadActiveSession() async => none();
   @override
-  Future<Either<Failure, Unit>> saveActiveSession(WorkoutSession session) async => const Right(unit);
+  Future<Either<Failure, Unit>> saveActiveSession(
+    WorkoutSession session,
+  ) async => const Right(unit);
 }
 
 void main() {

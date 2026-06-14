@@ -1,10 +1,10 @@
 import 'dart:convert';
 
-import 'package:app_lifecycle/core/failure/cache_exceptions.dart';
-import 'package:app_lifecycle/features/rep_tracker/data/datasources/workout_local_datasource.dart';
-import 'package:app_lifecycle/features/rep_tracker/data/models/exercise_model.dart';
-import 'package:app_lifecycle/features/rep_tracker/data/models/set_model.dart';
-import 'package:app_lifecycle/features/rep_tracker/data/models/workout_session_model.dart';
+import 'package:fitflow/core/failure/cache_exceptions.dart';
+import 'package:fitflow/features/rep_tracker/data/datasources/workout_local_datasource.dart';
+import 'package:fitflow/features/rep_tracker/data/models/exercise_model.dart';
+import 'package:fitflow/features/rep_tracker/data/models/set_model.dart';
+import 'package:fitflow/features/rep_tracker/data/models/workout_session_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:mockito/annotations.dart';

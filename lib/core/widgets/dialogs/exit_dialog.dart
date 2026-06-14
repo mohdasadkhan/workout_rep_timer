@@ -7,7 +7,7 @@ Future<bool?> showExitDialog(BuildContext context) {
     context: context,
     barrierDismissible: true,
     barrierLabel: 'Dismiss',
-    barrierColor: Colors.black87,
+    barrierColor: Theme.of(context).colorScheme.surface.withOpacity(0.95),
     transitionDuration: const Duration(milliseconds: 400),
     pageBuilder: (_, __, ___) => const _ExitDialog(),
     transitionBuilder: (ctx, animation, _, child) {
@@ -26,9 +26,14 @@ Future<bool?> showExitDialog(BuildContext context) {
 class _ExitDialog extends StatelessWidget {
   const _ExitDialog();
 
+  String _getRandomQuote() {
+    return _quitQuotes[Random().nextInt(_quitQuotes.length)];
+  }
+
   @override
   Widget build(BuildContext context) {
-    final quote = _quitQuotes[Random().nextInt(_quitQuotes.length)];
+    final colorScheme = Theme.of(context).colorScheme;
+    final quote = _getRandomQuote();
 
     return Material(
       color: Colors.transparent,
@@ -37,19 +42,26 @@ class _ExitDialog extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 48),
           padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
           decoration: BoxDecoration(
-            color: const Color(0xFF111111),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            color: colorScheme.surface,
+            border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
             borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
+              Text(
                 'Quit Workout?',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
-                  color: Colors.white,
+                  color: colorScheme.onSurface,
                   decoration: TextDecoration.none,
                 ),
               ),
@@ -59,7 +71,7 @@ class _ExitDialog extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13,
-                  color: Colors.white.withOpacity(0.45),
+                  color: colorScheme.onSurface.withOpacity(0.6),
                   fontStyle: FontStyle.italic,
                   decoration: TextDecoration.none,
                 ),
@@ -73,19 +85,20 @@ class _ExitDialog extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 13),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.07),
+                          color: colorScheme.surfaceContainerHighest
+                              .withOpacity(0.5),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.12),
+                            color: colorScheme.outline.withOpacity(0.2),
                           ),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Keep Going 🔥',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: colorScheme.onSurface,
                             decoration: TextDecoration.none,
                           ),
                         ),
@@ -99,19 +112,19 @@ class _ExitDialog extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 13),
                         decoration: BoxDecoration(
-                          color: Colors.redAccent.withOpacity(0.15),
+                          color: colorScheme.error.withOpacity(0.15),
                           border: Border.all(
-                            color: Colors.redAccent.withOpacity(0.4),
+                            color: colorScheme.error.withOpacity(0.4),
                           ),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Quit',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: Colors.redAccent,
+                            color: colorScheme.error,
                             decoration: TextDecoration.none,
                           ),
                         ),
@@ -138,4 +151,3 @@ const List<String> _quitQuotes = [
   "Your future self is watching.",
   "Make it count.",
 ];
-

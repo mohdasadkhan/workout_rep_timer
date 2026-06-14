@@ -6,13 +6,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:app_lifecycle/core/theme/app_colors.dart';
-import 'package:app_lifecycle/core/theme/app_text_styles.dart';
-import 'package:app_lifecycle/core/widgets/dialogs/exit_dialog.dart';
-import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_phase.dart';
-import 'package:app_lifecycle/features/workout_timer/presentation/bloc/timer_bloc.dart';
-import 'package:app_lifecycle/features/workout_timer/presentation/bloc/timer_effect.dart';
-import 'package:app_lifecycle/features/workout_timer/presentation/widgets/finish_overlay.dart';
+import 'package:fitflow/core/theme/app_colors.dart';
+import 'package:fitflow/core/theme/app_text_styles.dart';
+import 'package:fitflow/core/widgets/dialogs/exit_dialog.dart';
+import 'package:fitflow/features/workout_timer/domain/entity/workout_phase.dart';
+import 'package:fitflow/features/workout_timer/presentation/bloc/timer_bloc.dart';
+import 'package:fitflow/features/workout_timer/presentation/bloc/timer_effect.dart';
+import 'package:fitflow/features/workout_timer/presentation/widgets/finish_overlay.dart';
 
 class RunningTimerScreen extends StatefulWidget {
   const RunningTimerScreen({super.key});
@@ -71,7 +71,7 @@ class _RunningTimerScreenState extends State<RunningTimerScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         body: BlocListener<TimerBloc, TimerState>(
           listener: (context, state) {
             if (state is TimerFinished && context.mounted) {
@@ -316,8 +316,7 @@ class TimerCircle extends StatelessWidget {
                   Text(
                     '$minutes:$seconds',
                     style: AppTextStyles.timerDisplay.copyWith(
-                      color: Colors.white,
-
+                      color: Theme.of(context).colorScheme.onSurface,
                       shadows: [
                         Shadow(
                           color: phaseColor.withOpacity(0.25),
@@ -438,7 +437,7 @@ class _TopBarData {
     : currentSet = 0,
       totalSets = 0,
       isPaused = false,
-      color = Colors.white;
+      color = Colors.grey;
 }
 
 class _TimerCircleData {
@@ -457,7 +456,7 @@ class _TimerCircleData {
   const _TimerCircleData.empty()
     : remainingSeconds = 0,
       totalDuration = 0,
-      phaseColor = Colors.white,
+      phaseColor = Colors.grey,
       isPaused = false;
 }
 
@@ -518,7 +517,9 @@ class _TopBar extends StatelessWidget {
                       ? phaseColor.withOpacity(0.5)
                       : isCurrent
                       ? phaseColor
-                      : Colors.white12,
+                      : Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(5),
                 ),
               );
@@ -620,7 +621,7 @@ class _SequenceItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: isCurrent
               ? phase.color.withOpacity(0.15)
-              : Colors.white.withOpacity(0.04),
+              : Theme.of(context).colorScheme.onSurface.withOpacity(0.04),
           borderRadius: BorderRadius.circular(14),
           border: isCurrent
               ? Border.all(color: phase.color.withOpacity(0.5), width: 1)
@@ -643,7 +644,9 @@ class _SequenceItem extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                         color: isCurrent
                             ? phase.color
-                            : Colors.white.withOpacity(0.25),
+                            : Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withOpacity(0.25),
                       ),
                     ),
             ),
@@ -654,10 +657,14 @@ class _SequenceItem extends StatelessWidget {
                 style: AppTextStyles.sequenceItem.copyWith(
                   fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w400,
                   color: isCurrent
-                      ? AppColors.textPrimary
+                      ? Theme.of(context).colorScheme.onSurface
                       : (isPast
-                            ? AppColors.textTertiary
-                            : AppColors.textSecondary),
+                            ? Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withOpacity(0.35)
+                            : Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withOpacity(0.65)),
                 ),
               ),
             ),
@@ -669,7 +676,9 @@ class _SequenceItem extends StatelessWidget {
                     width: 48,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.white12,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(2),
                     ),
                     child: FractionallySizedBox(
@@ -690,7 +699,9 @@ class _SequenceItem extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: isCurrent
                         ? phase.color
-                        : Colors.white.withOpacity(0.3),
+                        : Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.30),
                   ),
                 ),
               ],
@@ -750,10 +761,10 @@ class _PhaseBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w800,
-          color: Colors.white,
+          color: color,
           letterSpacing: 2.5,
         ),
       ),
@@ -784,14 +795,20 @@ class _GlassIconButton extends StatelessWidget {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.07),
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.07),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: Colors.white.withOpacity(0.1),
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.10),
               width: 0.5,
             ),
           ),
-          child: Icon(icon, color: color ?? Colors.white70, size: 22),
+          child: Icon(
+            icon,
+            color:
+                color ??
+                Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            size: 22,
+          ),
         ),
       ),
     );

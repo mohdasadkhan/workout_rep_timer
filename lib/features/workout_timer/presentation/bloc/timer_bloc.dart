@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'package:app_lifecycle/core/utils/foreground_task_handler.dart';
-import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_config.dart';
-import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_phase.dart';
-import 'package:app_lifecycle/features/workout_timer/domain/usecases/generate_workout_usecase.dart';
-import 'package:app_lifecycle/features/workout_timer/presentation/bloc/timer_effect.dart';
+import 'package:fitflow/core/utils/foreground_task_handler.dart';
+import 'package:fitflow/features/workout_timer/domain/entity/workout_config.dart';
+import 'package:fitflow/features/workout_timer/domain/entity/workout_phase.dart';
+import 'package:fitflow/features/workout_timer/domain/usecases/generate_workout_usecase.dart';
+import 'package:fitflow/features/workout_timer/presentation/bloc/timer_effect.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';

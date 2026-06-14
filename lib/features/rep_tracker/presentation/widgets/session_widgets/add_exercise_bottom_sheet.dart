@@ -1,9 +1,9 @@
-import 'package:app_lifecycle/core/constants/pref_keys.dart';
-import 'package:app_lifecycle/core/di/injection.dart';
-import 'package:app_lifecycle/core/theme/app_colors.dart';
-import 'package:app_lifecycle/core/theme/app_text_styles.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_event.dart';
+import 'package:fitflow/core/constants/pref_keys.dart';
+import 'package:fitflow/core/di/injection.dart';
+import 'package:fitflow/core/theme/app_colors.dart';
+import 'package:fitflow/core/theme/app_text_styles.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,7 +18,6 @@ class AddExerciseBottomSheet extends StatelessWidget {
     BuildContext context, {
     String initialCategory = 'All',
   }) {
-    // Spring-style entry: slides up 12% + fades in, settles with elasticOut
     final controller = AnimationController(
       vsync: Navigator.of(context),
       duration: const Duration(milliseconds: 420),
@@ -27,7 +26,7 @@ class AddExerciseBottomSheet extends StatelessWidget {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
+      // No explicit backgroundColor — sheet inherits from BottomSheetTheme → colorScheme.surface
       transitionAnimationController: controller,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
@@ -47,8 +46,6 @@ class AddExerciseBottomSheet extends StatelessWidget {
 }
 
 // ─── Spring animation wrapper ─────────────────────────────────────────────────
-// SlideTransition: starts 12% below final position, elasticOut → natural settle.
-// FadeTransition: completes in first 35% of the animation so content appears sharp.
 
 class _SpringWrapper extends StatelessWidget {
   final AnimationController controller;
@@ -180,6 +177,9 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     final filtered = _exercisePresets.entries
         .where((e) => _selectedCategory == 'All' || e.key == _selectedCategory)
         .expand((e) => e.value)
@@ -204,13 +204,14 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
               height: 4,
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
-                color: Colors.white24,
+                // theme-aware handle: dark in light mode, light in dark mode
+                color: colorScheme.onSurface.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
           ),
 
-          Text('Add Exercise', style: AppTextStyles.titleLarge),
+          Text('Add Exercise', style: textTheme.titleLarge),
           const SizedBox(height: 20),
 
           // Search field
@@ -218,15 +219,16 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
             controller: _controller,
             autofocus: true,
             textInputAction: TextInputAction.done,
-            style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
+            // text color from theme — no hardcode
+            style: textTheme.bodyLarge,
             decoration: InputDecoration(
               hintText: 'Search or type new exercise',
-              hintStyle: const TextStyle(
-                color: AppColors.textTertiary,
+              hintStyle: TextStyle(
+                color: colorScheme.onSurface.withOpacity(0.4),
                 fontSize: 16,
               ),
               filled: true,
-              fillColor: AppColors.card,
+              fillColor: colorScheme.surfaceContainerHighest,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide.none,
@@ -238,9 +240,9 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
                   width: 1.8,
                 ),
               ),
-              prefixIcon: const Icon(
+              prefixIcon: Icon(
                 Icons.search,
-                color: AppColors.textTertiary,
+                color: colorScheme.onSurface.withOpacity(0.4),
               ),
               suffixIcon: _controller.text.isNotEmpty
                   ? IconButton(
@@ -278,7 +280,7 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
                             : FontWeight.w500,
                         color: selected
                             ? AppColors.primary
-                            : AppColors.textPrimary,
+                            : colorScheme.onSurface,
                       ),
                     ),
                     selected: selected,
@@ -290,12 +292,13 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
                         _scrollToSelected();
                       }
                     },
-                    backgroundColor: AppColors.card,
+                    // chip background: elevated surface for unselected, tinted for selected
+                    backgroundColor: colorScheme.surfaceContainerHighest,
                     selectedColor: AppColors.primary.withOpacity(0.15),
                     side: BorderSide(
                       color: selected
                           ? AppColors.primary.withOpacity(0.6)
-                          : Colors.white.withOpacity(0.1),
+                          : colorScheme.outline.withOpacity(0.25),
                     ),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 14,
@@ -309,19 +312,23 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
           ),
 
           const SizedBox(height: 28),
-          Text('QUICK PICK', style: AppTextStyles.labelSmall),
+          Text(
+            'QUICK PICK',
+            style: AppTextStyles.labelSmall.copyWith(
+              color: colorScheme.onSurface.withOpacity(0.45),
+            ),
+          ),
           const SizedBox(height: 12),
 
           filtered.isEmpty && _searchQuery.isNotEmpty
-              ? const Center(
+              ? Center(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 40),
+                    padding: const EdgeInsets.symmetric(vertical: 40),
                     child: Text(
                       'No matching exercises\nType and tap Done to add custom',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppColors.textTertiary,
-                        fontSize: 14,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurface.withOpacity(0.4),
                       ),
                     ),
                   ),
@@ -329,7 +336,9 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
               : Wrap(
                   spacing: 10,
                   runSpacing: 10,
-                  children: filtered.map(_buildChip).toList(),
+                  children: filtered
+                      .map((name) => _buildChip(context, name))
+                      .toList(),
                 ),
 
           const SizedBox(height: 20),
@@ -338,9 +347,13 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
     );
   }
 
-  Widget _buildChip(String name) {
+  Widget _buildChip(BuildContext context, String name) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Material(
-      color: AppColors.card,
+      // Material color must match the container so InkWell ripple renders correctly
+      color: colorScheme.surfaceContainerHighest,
       borderRadius: BorderRadius.circular(22),
       child: InkWell(
         borderRadius: BorderRadius.circular(22),
@@ -351,15 +364,11 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: Colors.white.withOpacity(0.08)),
+            border: Border.all(color: colorScheme.outline.withOpacity(0.15)),
           ),
           child: Text(
             name,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
+            style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
           ),
         ),
       ),

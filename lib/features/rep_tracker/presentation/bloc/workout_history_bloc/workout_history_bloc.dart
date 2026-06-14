@@ -1,7 +1,7 @@
-import 'package:app_lifecycle/core/usecases/usecase.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/usecases/delete_workout_session.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/usecases/get_workout_history.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/usecases/save_workout_session.dart';
+import 'package:fitflow/core/usecases/usecase.dart';
+import 'package:fitflow/features/rep_tracker/domain/usecases/delete_workout_session.dart';
+import 'package:fitflow/features/rep_tracker/domain/usecases/get_workout_history.dart';
+import 'package:fitflow/features/rep_tracker/domain/usecases/save_workout_session.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'workout_history_event.dart';
 import 'workout_history_state.dart';

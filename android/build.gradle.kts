@@ -1,3 +1,14 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.6.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.0")
+        classpath("com.google.gms:google-services:4.4.4")
+    }
+}
 
 allprojects {
     repositories {
@@ -5,11 +16,6 @@ allprojects {
         mavenCentral()
     }
 }
-// ✅ 2. plugins block comes AFTER buiinldscript
-plugins {
-    id("com.google.gms.google-services") version "4.4.4" apply false
-}
-
 
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory

@@ -1,28 +1,36 @@
-import 'package:app_lifecycle/core/failure/failure.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/entities/personal_record.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/entities/workout_session.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/repositories/workout_repository.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/usecases/get_personal_records.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/personal_records_bloc/personal_records_bloc.dart';
+import 'package:fitflow/core/failure/failure.dart';
+import 'package:fitflow/features/rep_tracker/domain/entities/personal_record.dart';
+import 'package:fitflow/features/rep_tracker/domain/entities/workout_session.dart';
+import 'package:fitflow/features/rep_tracker/domain/repositories/workout_repository.dart';
+import 'package:fitflow/features/rep_tracker/domain/usecases/get_personal_records.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/personal_records_bloc/personal_records_bloc.dart';
+import 'package:bloc_test/bloc_test.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class FakeWorkoutRepository implements WorkoutRepository {
   Either<Failure, List<PersonalRecord>> prsResult = const Right([]);
   @override
-  Future<Either<Failure, List<PersonalRecord>>> getPersonalRecords() async => prsResult;
+  Future<Either<Failure, List<PersonalRecord>>> getPersonalRecords() async =>
+      prsResult;
   @override
   Future<Either<Failure, Unit>> clearActiveSession() async => const Right(unit);
   @override
-  Future<Either<Failure, Unit>> deleteWorkoutSession(String sessionId) async => const Right(unit);
+  Future<Either<Failure, Unit>> deleteWorkoutSession(String sessionId) async =>
+      const Right(unit);
   @override
-  Future<Either<Failure, List<WorkoutSession>>> getWorkoutHistory() async => const Right([]);
+  Future<Either<Failure, List<WorkoutSession>>> getWorkoutHistory() async =>
+      const Right([]);
   @override
   Future<Option<WorkoutSession>> loadActiveSession() async => none();
   @override
-  Future<Either<Failure, Unit>> saveActiveSession(WorkoutSession session) async => const Right(unit);
+  Future<Either<Failure, Unit>> saveActiveSession(
+    WorkoutSession session,
+  ) async => const Right(unit);
   @override
-  Future<Either<Failure, Unit>> saveWorkoutSession(WorkoutSession session) async => const Right(unit);
+  Future<Either<Failure, Unit>> saveWorkoutSession(
+    WorkoutSession session,
+  ) async => const Right(unit);
 }
 
 void main() {
@@ -58,10 +66,10 @@ void main() {
     ],
   );
 }
-// import 'package:app_lifecycle/core/failure/failure.dart';
-// import 'package:app_lifecycle/features/rep_tracker/domain/entities/personal_record.dart';
-// import 'package:app_lifecycle/features/rep_tracker/domain/usecases/get_personal_records.dart';
-// import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/personal_records_bloc/personal_records_bloc.dart';
+// import 'package:fitflow/core/failure/failure.dart';
+// import 'package:fitflow/features/rep_tracker/domain/entities/personal_record.dart';
+// import 'package:fitflow/features/rep_tracker/domain/usecases/get_personal_records.dart';
+// import 'package:fitflow/features/rep_tracker/presentation/bloc/personal_records_bloc/personal_records_bloc.dart';
 // import 'package:bloc_test/bloc_test.dart';
 // import 'package:dartz/dartz.dart';
 // import 'package:flutter_test/flutter_test.dart';

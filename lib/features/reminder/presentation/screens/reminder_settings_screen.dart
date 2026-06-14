@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:app_lifecycle/core/theme/app_colors.dart';
-import 'package:app_lifecycle/core/theme/app_text_styles.dart';
+import 'package:fitflow/core/theme/app_colors.dart';
+import 'package:fitflow/core/theme/app_text_styles.dart';
 import '../bloc/reminder_bloc.dart';
 import '../bloc/reminder_event.dart';
 import '../bloc/reminder_state.dart';
@@ -23,7 +23,6 @@ class ReminderSettingsScreen extends StatelessWidget {
                     : '🔕 Reminders turned off',
                 style: TextStyle(color: Colors.white),
               ),
-              backgroundColor: AppColors.card,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -43,9 +42,9 @@ class ReminderSettingsScreen extends StatelessWidget {
       },
       builder: (context, state) {
         return Scaffold(
-          backgroundColor: AppColors.background,
+          // backgroundColor: AppColors.background,
           appBar: AppBar(
-            backgroundColor: AppColors.background,
+            // backgroundColor: AppColors.background,
             elevation: 0,
             centerTitle: true,
             title: Text('Workout Reminders', style: AppTextStyles.titleLarge),
@@ -171,15 +170,19 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        // color: AppColors.surface,
+        // borderRadius: BorderRadius.circular(16),
 
-        border: isEnabled
-            ? Border.all(color: AppColors.primary.withOpacity(0.18))
-            : Border.all(color: Colors.white.withOpacity(0.05)),
+        // border: isEnabled
+        //     ? Border.all(color: AppColors.primary.withOpacity(0.18))
+        //     : Border.all(color: Colors.white.withOpacity(0.05)),
+        color: theme.cardTheme.color ?? colorScheme.surface,
+        border: Border.all(color: colorScheme.onSurface.withOpacity(0.08)),
       ),
       child: Row(
         children: [
@@ -245,6 +248,7 @@ class _WeekStrip extends StatelessWidget {
     final now = DateTime.now();
 
     final weekStart = now.subtract(Duration(days: now.weekday % 7));
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Row(
       children: List.generate(schedules.length, (i) {
@@ -269,7 +273,7 @@ class _WeekStrip extends StatelessWidget {
               margin: EdgeInsets.only(right: i < schedules.length - 1 ? 5 : 0),
               padding: const EdgeInsets.symmetric(vertical: 9),
               decoration: BoxDecoration(
-                color: isOn ? AppColors.primary : AppColors.surface,
+                color: isOn ? AppColors.primary : colorScheme.onPrimary,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -282,7 +286,7 @@ class _WeekStrip extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.3,
                       color: isOn
-                          ? Colors.black.withOpacity(0.65)
+                          ? colorScheme.onSurface.withOpacity(0.65)
                           : AppColors.textTertiary,
                     ),
                   ),
@@ -296,7 +300,7 @@ class _WeekStrip extends StatelessWidget {
                           ? Colors.white
                           : isToday
                           ? AppColors.primary
-                          : const Color(0xFF333333),
+                          : colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -318,12 +322,16 @@ class _SaveButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = context.watch<ReminderBloc>().state;
     final isSaving = state is ReminderLoaded && state.isSaving;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 28),
       decoration: BoxDecoration(
-        color: AppColors.background,
-        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.06))),
+        border: Border(
+          top: BorderSide(
+            color: colorScheme.onSurfaceVariant.withOpacity(0.06),
+          ),
+        ),
       ),
       child: FilledButton.icon(
         onPressed: isSaving

@@ -1,6 +1,6 @@
-import 'package:app_lifecycle/features/background_lifecycle/data/local/timer_preferences.dart';
-import 'package:app_lifecycle/features/background_lifecycle/domain/entities/timer_session.dart';
-import 'package:app_lifecycle/features/background_lifecycle/domain/repositories/timer_repository.dart';
+import 'package:fitflow/features/background_lifecycle/data/local/timer_preferences.dart';
+import 'package:fitflow/features/background_lifecycle/domain/entities/timer_session.dart';
+import 'package:fitflow/features/background_lifecycle/domain/repositories/timer_repository.dart';
 
 class TimerRepositoryImpl implements TimerRepository {
   final TimerPreferences _timerPreferences;

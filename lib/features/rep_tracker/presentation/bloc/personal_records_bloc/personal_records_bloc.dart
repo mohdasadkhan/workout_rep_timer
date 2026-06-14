@@ -1,6 +1,6 @@
-import 'package:app_lifecycle/core/usecases/usecase.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/entities/personal_record.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/usecases/get_personal_records.dart';
+import 'package:fitflow/core/usecases/usecase.dart';
+import 'package:fitflow/features/rep_tracker/domain/entities/personal_record.dart';
+import 'package:fitflow/features/rep_tracker/domain/usecases/get_personal_records.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 

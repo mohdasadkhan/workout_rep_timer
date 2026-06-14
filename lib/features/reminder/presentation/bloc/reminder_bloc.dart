@@ -1,4 +1,4 @@
-import 'package:app_lifecycle/features/reminder/domain/usecases/load_reminder_settings_usecases.dart';
+import 'package:fitflow/features/reminder/domain/usecases/load_reminder_settings_usecases.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/usecases/save_reminder_settings_usecase.dart';

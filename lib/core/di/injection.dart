@@ -1,34 +1,40 @@
-import 'package:app_lifecycle/core/router/app_router.dart';
-import 'package:app_lifecycle/features/background_lifecycle/data/local/timer_preferences.dart';
-import 'package:app_lifecycle/features/background_lifecycle/data/repositories/timer_repository_impl.dart';
-import 'package:app_lifecycle/features/background_lifecycle/domain/repositories/timer_repository.dart';
-import 'package:app_lifecycle/features/notification/data/datasources/fcm_remote_datasource.dart';
-import 'package:app_lifecycle/features/notification/data/datasources/local_notification_datasource.dart';
-import 'package:app_lifecycle/features/notification/data/repository/notification_repository_impl.dart';
-import 'package:app_lifecycle/features/notification/domain/repositories/notification_repository.dart';
-import 'package:app_lifecycle/features/notification/domain/usecases/handle_notification_tap.dart';
-import 'package:app_lifecycle/features/notification/domain/usecases/listen_foreground_notifications.dart';
-import 'package:app_lifecycle/features/notification/domain/usecases/subscribe_to_topic.dart';
-import 'package:app_lifecycle/features/notification/presentation/bloc/notification_bloc.dart';
-import 'package:app_lifecycle/features/reminder/data/datasources/reminder_local_datasource.dart';
-import 'package:app_lifecycle/features/reminder/data/repositories/reminder_notification_service_impl.dart';
-import 'package:app_lifecycle/features/reminder/data/repositories/reminder_repository_impl.dart';
-import 'package:app_lifecycle/features/reminder/domain/repositories/reminder_notification_service.dart';
-import 'package:app_lifecycle/features/reminder/domain/repositories/reminder_repository.dart';
-import 'package:app_lifecycle/features/reminder/domain/usecases/load_reminder_settings_usecases.dart';
-import 'package:app_lifecycle/features/reminder/domain/usecases/save_reminder_settings_usecase.dart';
-import 'package:app_lifecycle/features/reminder/presentation/bloc/reminder_bloc.dart';
-import 'package:app_lifecycle/features/rep_tracker/data/datasources/workout_local_datasource.dart';
-import 'package:app_lifecycle/features/rep_tracker/data/repositories/workout_repository_impl.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/repositories/workout_repository.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/usecases/delete_workout_session.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/usecases/get_personal_records.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/usecases/get_workout_history.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/usecases/save_workout_session.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/personal_records_bloc/personal_records_bloc.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_bloc.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
-import 'package:app_lifecycle/features/workout_timer/presentation/bloc/timer_bloc.dart';
+import 'package:fitflow/core/router/app_router.dart';
+import 'package:fitflow/features/background_lifecycle/data/local/timer_preferences.dart';
+import 'package:fitflow/features/background_lifecycle/data/repositories/timer_repository_impl.dart';
+import 'package:fitflow/features/background_lifecycle/domain/repositories/timer_repository.dart';
+import 'package:fitflow/features/notification/data/datasources/fcm_remote_datasource.dart';
+import 'package:fitflow/features/notification/data/datasources/local_notification_datasource.dart';
+import 'package:fitflow/features/notification/data/repository/notification_repository_impl.dart';
+import 'package:fitflow/features/notification/domain/repositories/notification_repository.dart';
+import 'package:fitflow/features/notification/domain/usecases/handle_notification_tap.dart';
+import 'package:fitflow/features/notification/domain/usecases/listen_foreground_notifications.dart';
+import 'package:fitflow/features/notification/domain/usecases/subscribe_to_topic.dart';
+import 'package:fitflow/features/notification/presentation/bloc/notification_bloc.dart';
+import 'package:fitflow/features/reminder/data/datasources/reminder_local_datasource.dart';
+import 'package:fitflow/features/reminder/data/repositories/reminder_notification_service_impl.dart';
+import 'package:fitflow/features/reminder/data/repositories/reminder_repository_impl.dart';
+import 'package:fitflow/features/reminder/domain/repositories/reminder_notification_service.dart';
+import 'package:fitflow/features/reminder/domain/repositories/reminder_repository.dart';
+import 'package:fitflow/features/reminder/domain/usecases/load_reminder_settings_usecases.dart';
+import 'package:fitflow/features/reminder/domain/usecases/save_reminder_settings_usecase.dart';
+import 'package:fitflow/features/reminder/presentation/bloc/reminder_bloc.dart';
+import 'package:fitflow/features/rep_tracker/data/datasources/workout_local_datasource.dart';
+import 'package:fitflow/features/rep_tracker/data/repositories/workout_repository_impl.dart';
+import 'package:fitflow/features/rep_tracker/domain/repositories/workout_repository.dart';
+import 'package:fitflow/features/rep_tracker/domain/usecases/delete_workout_session.dart';
+import 'package:fitflow/features/rep_tracker/domain/usecases/get_personal_records.dart';
+import 'package:fitflow/features/rep_tracker/domain/usecases/get_workout_history.dart';
+import 'package:fitflow/features/rep_tracker/domain/usecases/save_workout_session.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/personal_records_bloc/personal_records_bloc.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_bloc.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
+import 'package:fitflow/features/settings/data/datasources/theme_local_datasource.dart';
+import 'package:fitflow/features/settings/data/repositories/theme_repository_impl.dart';
+import 'package:fitflow/features/settings/domain/repositories/theme_repository.dart';
+import 'package:fitflow/features/settings/domain/usecases/get_theme_mode.dart';
+import 'package:fitflow/features/settings/domain/usecases/save_theme_mode.dart';
+import 'package:fitflow/features/settings/presentation/bloc/theme_bloc.dart';
+import 'package:fitflow/features/workout_timer/presentation/bloc/timer_bloc.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_it/get_it.dart';
@@ -137,6 +143,7 @@ Future<void> setupInjection() async {
   await registerRepTrackerFeature();
   await registerWorkoutTimerFeature();
   await _registerReminderFeature();
+  await _registerThemeFeature();
 }
 
 Future<void> _registerReminderFeature() async {
@@ -167,5 +174,20 @@ Future<void> _registerReminderFeature() async {
       loadSettings: getIt<LoadReminderSettingsUseCase>(),
       saveSettings: getIt<SaveReminderSettingsUseCase>(),
     ),
+  );
+}
+
+Future<void> _registerThemeFeature() async {
+  // Theme
+  getIt.registerLazySingleton<ThemeLocalDatasource>(
+    () => ThemeLocalDatasourceImpl(sharedPreferences: getIt()),
+  );
+  getIt.registerLazySingleton<ThemeRepository>(
+    () => ThemeRepositoryImpl(localDatasource: getIt()),
+  );
+  getIt.registerFactory<GetThemeMode>(() => GetThemeMode(getIt()));
+  getIt.registerFactory<SaveThemeMode>(() => SaveThemeMode(getIt()));
+  getIt.registerFactory<ThemeBloc>(
+    () => ThemeBloc(getThemeMode: getIt(), saveThemeMode: getIt()),
   );
 }

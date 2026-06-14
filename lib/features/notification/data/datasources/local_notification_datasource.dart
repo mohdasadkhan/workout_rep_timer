@@ -1,4 +1,5 @@
-import 'package:app_lifecycle/features/notification/domain/entities/notification_entity.dart';
+import 'package:fitflow/features/notification/domain/entities/notification_entity.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 abstract interface class LocalNotificationDatasource {
@@ -18,22 +19,28 @@ class LocalNotificationDataSourceImpl extends LocalNotificationDatasource {
 
   @override
   Future<void> initialize() async {
-    const androidChannel = AndroidNotificationChannel(
-      _channelId,
-      _channelName,
-      importance: Importance.high,
-    );
-    await _plugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.createNotificationChannel(androidChannel);
-    await _plugin.initialize(
-      settings: const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-        iOS: DarwinInitializationSettings(),
-      ),
-    );
+    try {
+      const androidChannel = AndroidNotificationChannel(
+        _channelId,
+        _channelName,
+        importance: Importance.high,
+      );
+      await _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.createNotificationChannel(androidChannel);
+      await _plugin.initialize(
+        settings: const InitializationSettings(
+          android: AndroidInitializationSettings('@mipmap/ic_launcher_light'),
+          iOS: DarwinInitializationSettings(),
+        ),
+      );
+    } catch (e, stack) {
+      // Non-critical — app should still work without notifications
+      debugPrint('⚠️ Notification init failed: $e');
+      debugPrint('$stack');
+    }
   }
 
   @override

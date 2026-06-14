@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:app_lifecycle/features/rep_tracker/domain/repositories/workout_repository.dart';
+import 'package:fitflow/features/rep_tracker/domain/repositories/workout_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import '../../../domain/entities/exercise.dart';

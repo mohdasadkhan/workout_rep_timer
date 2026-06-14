@@ -1,4 +1,4 @@
-import 'package:app_lifecycle/features/rep_tracker/domain/entities/workout_session.dart';
+import 'package:fitflow/features/rep_tracker/domain/entities/workout_session.dart';
 import 'package:equatable/equatable.dart';
 
 sealed class WorkoutHistoryEvent extends Equatable {

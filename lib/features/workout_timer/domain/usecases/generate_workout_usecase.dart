@@ -1,5 +1,5 @@
-import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_config.dart';
-import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_phase.dart';
+import 'package:fitflow/features/workout_timer/domain/entity/workout_config.dart';
+import 'package:fitflow/features/workout_timer/domain/entity/workout_phase.dart';
 
 List<WorkoutPhase> generateWorkoutSequence(WorkoutConfig config) {
   final List<WorkoutPhase> sequence = [];

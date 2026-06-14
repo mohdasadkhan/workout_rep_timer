@@ -1,6 +1,6 @@
-import 'package:app_lifecycle/core/failure/failure.dart';
-import 'package:app_lifecycle/core/usecases/usecase.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/repositories/workout_repository.dart';
+import 'package:fitflow/core/failure/failure.dart';
+import 'package:fitflow/core/usecases/usecase.dart';
+import 'package:fitflow/features/rep_tracker/domain/repositories/workout_repository.dart';
 import 'package:dartz/dartz.dart';
 
 class DeleteWorkoutSessionUsecase implements UseCase<Unit, String> {

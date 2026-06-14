@@ -1,14 +1,16 @@
-import 'package:app_lifecycle/core/theme/app_colors.dart';
-import 'package:app_lifecycle/core/theme/app_text_styles.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/entities/exercise.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/entities/exercise_set.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_event.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_state.dart';
+import 'package:fitflow/core/theme/app_colors.dart';
+import 'package:fitflow/core/theme/app_text_styles.dart';
+import 'package:fitflow/features/rep_tracker/domain/entities/exercise.dart';
+import 'package:fitflow/features/rep_tracker/domain/entities/exercise_set.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_event.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 String _muscleCategory(String name) {
   final n = name.toLowerCase();
@@ -49,6 +51,8 @@ String _muscleCategory(String name) {
   return '';
 }
 
+// ─── FinishButton ─────────────────────────────────────────────────────────────
+
 class FinishButton extends StatelessWidget {
   final VoidCallback onTap;
   const FinishButton({super.key, required this.onTap});
@@ -80,6 +84,8 @@ class FinishButton extends StatelessWidget {
   }
 }
 
+// ─── AppDialog ────────────────────────────────────────────────────────────────
+
 class AppDialog extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -98,8 +104,11 @@ class AppDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Dialog(
-      backgroundColor: AppColors.surface,
+      // Let Dialog use colorScheme.surface automatically (no explicit color needed)
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
@@ -118,12 +127,13 @@ class AppDialog extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               title,
-              style: AppTextStyles.titleLarge,
+              // titleLarge from theme inherits colorScheme.onSurface
+              style: textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
             DefaultTextStyle(
-              style: AppTextStyles.bodyMedium,
+              style: textTheme.bodyMedium!,
               textAlign: TextAlign.center,
               child: content,
             ),
@@ -144,6 +154,8 @@ class AppDialog extends StatelessWidget {
   }
 }
 
+// ─── DialogButton ─────────────────────────────────────────────────────────────
+
 class DialogButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
@@ -154,6 +166,7 @@ class DialogButton extends StatelessWidget {
     required this.label,
     required this.onTap,
   }) : filled = true;
+
   const DialogButton.outlined({
     super.key,
     required this.label,
@@ -162,6 +175,8 @@ class DialogButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     if (filled) {
       return FilledButton(
         onPressed: onTap,
@@ -178,7 +193,8 @@ class DialogButton extends StatelessWidget {
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
         minimumSize: const Size(double.infinity, 48),
-        side: const BorderSide(color: Colors.white24),
+        // theme-aware border: visible in both light & dark
+        side: BorderSide(color: colorScheme.outline),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       child: Text(label),
@@ -186,12 +202,16 @@ class DialogButton extends StatelessWidget {
   }
 }
 
+// ─── StartPrompt ──────────────────────────────────────────────────────────────
+
 class StartPrompt extends StatelessWidget {
   final VoidCallback onStart;
   const StartPrompt({super.key, required this.onStart});
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -221,13 +241,13 @@ class StartPrompt extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               'Ready to train?',
-              style: AppTextStyles.headlineMedium,
+              style: textTheme.headlineMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               'Start a session to log your sets\nand track your progress.',
-              style: AppTextStyles.bodyMedium,
+              style: textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -236,7 +256,12 @@ class StartPrompt extends StatelessWidget {
               icon: const Icon(Icons.play_arrow_rounded, size: 24),
               label: Text(
                 'START SESSION',
-                style: AppTextStyles.titleMedium.copyWith(letterSpacing: 1.1),
+                style: textTheme.titleMedium?.copyWith(
+                  letterSpacing: 1.1,
+
+                  // FilledButton foreground color comes from colorScheme.onPrimary automatically
+                  color: Theme.of(context).colorScheme.surface,
+                ),
               ),
               style: FilledButton.styleFrom(
                 minimumSize: const Size(double.infinity, 56),
@@ -252,34 +277,37 @@ class StartPrompt extends StatelessWidget {
   }
 }
 
+// ─── ActiveSession ────────────────────────────────────────────────────────────
+
 class ActiveSession extends StatelessWidget {
   final WorkoutSessionActive state;
   const ActiveSession({super.key, required this.state});
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     if (state.exercises.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.add_box_outlined,
               size: 52,
-              color: AppColors.textTertiary,
+              // theme-aware muted icon
+              color: colorScheme.onSurface.withOpacity(0.35),
             ),
             const SizedBox(height: 16),
             Text(
               'No exercises yet',
-              style: AppTextStyles.titleMedium.copyWith(
-                color: AppColors.textTertiary,
+              style: textTheme.titleMedium?.copyWith(
+                color: colorScheme.onSurface.withOpacity(0.45),
               ),
             ),
             const SizedBox(height: 6),
-            Text(
-              'Tap "+ Add Exercise" to begin.',
-              style: AppTextStyles.bodyMedium,
-            ),
+            Text('Tap "+ Add Exercise" to begin.', style: textTheme.bodyMedium),
           ],
         ),
       );
@@ -300,19 +328,24 @@ class ActiveSession extends StatelessWidget {
   }
 }
 
+// ─── SessionStatsBar ──────────────────────────────────────────────────────────
+
 class SessionStatsBar extends StatelessWidget {
   final WorkoutSessionActive state;
   const SessionStatsBar({super.key, required this.state});
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        // surfaceContainerHighest is slightly elevated over surface — good for cards/bars
+        color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.15)),
       ),
       child: Row(
         children: [
@@ -347,6 +380,8 @@ class _StatItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Expanded(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -361,17 +396,17 @@ class _StatItem extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                     color: accentValue
                         ? AppColors.primary
-                        : AppColors.textPrimary,
+                        : colorScheme.onSurface,
                     letterSpacing: -0.5,
                   ),
                 ),
                 if (unit != null)
                   TextSpan(
                     text: ' $unit',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.textTertiary,
+                      color: colorScheme.onSurface.withOpacity(0.45),
                     ),
                   ),
               ],
@@ -383,6 +418,7 @@ class _StatItem extends StatelessWidget {
             style: AppTextStyles.labelSmall.copyWith(
               fontSize: 9,
               letterSpacing: 1.2,
+              color: colorScheme.onSurface.withOpacity(0.45),
             ),
           ),
         ],
@@ -393,9 +429,18 @@ class _StatItem extends StatelessWidget {
 
 class _StatDivider extends StatelessWidget {
   @override
-  Widget build(BuildContext context) =>
-      Container(width: 1, height: 28, color: Colors.white.withOpacity(0.05));
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: 1,
+      height: 28,
+      // onSurface.withOpacity replaces Colors.white.withOpacity — adapts to both themes
+      color: colorScheme.onSurface.withOpacity(0.08),
+    );
+  }
 }
+
+// ─── ExerciseCard ─────────────────────────────────────────────────────────────
 
 class ExerciseCard extends StatelessWidget {
   final Exercise exercise;
@@ -403,6 +448,9 @@ class ExerciseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     final category = _muscleCategory(exercise.name);
     final setCount = exercise.sets.length;
     final totalReps = exercise.sets.fold<int>(0, (sum, s) => sum + s.reps);
@@ -410,7 +458,6 @@ class ExerciseCard extends StatelessWidget {
       0.0,
       (sum, s) => sum + (s.weightKg * s.reps),
     );
-
     final maxSetVolume = exercise.sets.isEmpty
         ? 1.0
         : exercise.sets
@@ -420,13 +467,14 @@ class ExerciseCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        // surfaceContainerHighest gives us a card-like elevation feel in both themes
+        color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.06)),
-
+        border: Border.all(color: colorScheme.outline.withOpacity(0.12)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.25),
+            // In light mode black shadow still works; in dark it's subtle
+            color: colorScheme.shadow.withOpacity(0.15),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -445,7 +493,7 @@ class ExerciseCard extends StatelessWidget {
                     children: [
                       Text(
                         exercise.name,
-                        style: AppTextStyles.titleMedium,
+                        style: textTheme.titleMedium,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -475,7 +523,6 @@ class ExerciseCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-
                 GestureDetector(
                   onTap: () => _confirmDeleteExercise(context, exercise.id),
                   child: Container(
@@ -483,12 +530,12 @@ class ExerciseCard extends StatelessWidget {
                     height: 30,
                     margin: const EdgeInsets.only(top: 1),
                     decoration: BoxDecoration(
-                      color: AppColors.error.withOpacity(0.08),
+                      color: colorScheme.error.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(9),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.delete_outline_rounded,
-                      color: AppColors.error,
+                      color: colorScheme.error,
                       size: 15,
                     ),
                   ),
@@ -602,6 +649,8 @@ class ExerciseCard extends StatelessWidget {
   }
 }
 
+// ─── _StatChip ────────────────────────────────────────────────────────────────
+
 class _StatChip extends StatelessWidget {
   final String value;
   final String label;
@@ -615,17 +664,19 @@ class _StatChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: highlight
             ? AppColors.primary.withOpacity(0.1)
-            : Colors.white.withOpacity(0.04),
+            : colorScheme.onSurface.withOpacity(0.06),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: highlight
               ? AppColors.primary.withOpacity(0.2)
-              : Colors.white.withOpacity(0.06),
+              : colorScheme.outline.withOpacity(0.15),
         ),
       ),
       child: Row(
@@ -636,7 +687,7 @@ class _StatChip extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: highlight ? AppColors.primary : AppColors.textPrimary,
+              color: highlight ? AppColors.primary : colorScheme.onSurface,
               letterSpacing: -0.2,
               height: 1.1,
             ),
@@ -647,7 +698,9 @@ class _StatChip extends StatelessWidget {
             style: AppTextStyles.labelSmall.copyWith(
               fontSize: 9,
               letterSpacing: 0.4,
-              color: highlight ? AppColors.primary : AppColors.textTertiary,
+              color: highlight
+                  ? AppColors.primary
+                  : colorScheme.onSurface.withOpacity(0.45),
             ),
           ),
         ],
@@ -656,13 +709,16 @@ class _StatChip extends StatelessWidget {
   }
 }
 
+// ─── _SetColumnHeader ─────────────────────────────────────────────────────────
+
 class _SetColumnHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final style = AppTextStyles.labelSmall.copyWith(
       fontSize: 9,
       letterSpacing: 0.8,
-      color: AppColors.textTertiary,
+      color: colorScheme.onSurface.withOpacity(0.45),
     );
     return Column(
       children: [
@@ -673,7 +729,6 @@ class _SetColumnHeader extends StatelessWidget {
               SizedBox(width: 32, child: Text('SET', style: style)),
               Expanded(child: Text('WEIGHT', style: style)),
               Expanded(child: Text('REPS', style: style)),
-
               SizedBox(
                 width: 44,
                 child: Text('VOL', style: style, textAlign: TextAlign.right),
@@ -682,12 +737,14 @@ class _SetColumnHeader extends StatelessWidget {
             ],
           ),
         ),
-        Container(height: 0.5, color: Colors.white.withOpacity(0.06)),
+        Container(height: 0.5, color: colorScheme.onSurface.withOpacity(0.08)),
         const SizedBox(height: 2),
       ],
     );
   }
 }
+
+// ─── SetRow ───────────────────────────────────────────────────────────────────
 
 class SetRow extends StatelessWidget {
   final int index;
@@ -711,6 +768,7 @@ class SetRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final setVolume = set.weightKg * set.reps;
     final volumeRatio = maxSetVolume > 0 ? (setVolume / maxSetVolume) : 0.0;
 
@@ -734,7 +792,7 @@ class SetRow extends StatelessWidget {
             decoration: BoxDecoration(
               color: isLatest
                   ? AppColors.primary.withOpacity(0.06)
-                  : Colors.white.withOpacity(0.025),
+                  : colorScheme.onSurface.withOpacity(0.03),
               borderRadius: BorderRadius.circular(10),
               border: Border(
                 left: BorderSide(
@@ -745,13 +803,14 @@ class SetRow extends StatelessWidget {
             ),
             child: Row(
               children: [
+                // Set number badge
                 Container(
                   width: 26,
                   height: 26,
                   decoration: BoxDecoration(
                     color: isLatest
                         ? AppColors.primary.withOpacity(0.18)
-                        : Colors.white.withOpacity(0.05),
+                        : colorScheme.onSurface.withOpacity(0.07),
                     borderRadius: BorderRadius.circular(7),
                   ),
                   child: Center(
@@ -762,39 +821,42 @@ class SetRow extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                         color: isLatest
                             ? AppColors.primary
-                            : AppColors.textTertiary,
+                            : colorScheme.onSurface.withOpacity(0.45),
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 6),
 
+                // Weight
                 Expanded(
                   child: Text(
                     _formatWeight(set.weightKg),
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: isLatest
-                          ? AppColors.textPrimary
-                          : AppColors.textSecondary,
-                      fontWeight: isLatest ? FontWeight.w600 : FontWeight.w400,
+                    style: TextStyle(
                       fontSize: 13,
+                      fontWeight: isLatest ? FontWeight.w600 : FontWeight.w400,
+                      color: isLatest
+                          ? colorScheme.onSurface
+                          : colorScheme.onSurface.withOpacity(0.65),
                     ),
                   ),
                 ),
 
+                // Reps
                 Expanded(
                   child: Text(
                     '${set.reps} reps',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: isLatest
-                          ? AppColors.textPrimary
-                          : AppColors.textSecondary,
-                      fontWeight: isLatest ? FontWeight.w600 : FontWeight.w400,
+                    style: TextStyle(
                       fontSize: 13,
+                      fontWeight: isLatest ? FontWeight.w600 : FontWeight.w400,
+                      color: isLatest
+                          ? colorScheme.onSurface
+                          : colorScheme.onSurface.withOpacity(0.65),
                     ),
                   ),
                 ),
 
+                // Volume bar
                 SizedBox(
                   width: 44,
                   child: Column(
@@ -806,7 +868,7 @@ class SetRow extends StatelessWidget {
                           fontSize: 9,
                           color: isLatest
                               ? AppColors.primary
-                              : AppColors.textTertiary,
+                              : colorScheme.onSurface.withOpacity(0.45),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -816,7 +878,9 @@ class SetRow extends StatelessWidget {
                         child: LinearProgressIndicator(
                           value: volumeRatio.clamp(0.0, 1.0),
                           minHeight: 3,
-                          backgroundColor: Colors.white.withOpacity(0.06),
+                          backgroundColor: colorScheme.onSurface.withOpacity(
+                            0.08,
+                          ),
                           valueColor: AlwaysStoppedAnimation<Color>(
                             isLatest
                                 ? AppColors.primary
@@ -829,6 +893,7 @@ class SetRow extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
 
+                // Delete set
                 GestureDetector(
                   onTap: () {
                     HapticFeedback.lightImpact();
@@ -840,13 +905,13 @@ class SetRow extends StatelessWidget {
                     width: 26,
                     height: 26,
                     decoration: BoxDecoration(
-                      color: AppColors.error.withOpacity(0.08),
+                      color: colorScheme.error.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(7),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.close_rounded,
                       size: 12,
-                      color: AppColors.error,
+                      color: colorScheme.error,
                     ),
                   ),
                 ),
@@ -866,12 +931,16 @@ class SetRow extends StatelessWidget {
   }
 }
 
+// ─── _AddSetButton ────────────────────────────────────────────────────────────
+
 class _AddSetButton extends StatelessWidget {
   final VoidCallback onTap;
   const _AddSetButton({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -882,17 +951,21 @@ class _AddSetButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.white.withOpacity(0.08)),
+          border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_rounded, size: 13, color: AppColors.textTertiary),
+            Icon(
+              Icons.add_rounded,
+              size: 13,
+              color: colorScheme.onSurface.withOpacity(0.45),
+            ),
             const SizedBox(width: 5),
             Text(
               'Add set',
               style: AppTextStyles.labelSmall.copyWith(
-                color: AppColors.textTertiary,
+                color: colorScheme.onSurface.withOpacity(0.45),
                 fontSize: 11,
                 letterSpacing: 0.4,
                 fontWeight: FontWeight.w600,
@@ -905,6 +978,8 @@ class _AddSetButton extends StatelessWidget {
   }
 }
 
+// ─── showEditSetSheet ─────────────────────────────────────────────────────────
+
 void showEditSetSheet({
   required BuildContext context,
   required ExerciseSet set,
@@ -916,7 +991,7 @@ void showEditSetSheet({
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.surface,
+    // Let the theme's BottomSheetTheme handle color — don't hardcode AppColors.surface
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
@@ -930,6 +1005,8 @@ void showEditSetSheet({
     ),
   );
 }
+
+// ─── _EditSetSheetContent ─────────────────────────────────────────────────────
 
 class _EditSetSheetContent extends StatefulWidget {
   final ExerciseSet set;
@@ -995,7 +1072,6 @@ class _EditSetSheetContentState extends State<_EditSetSheetContent> {
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
-
     final newWeight = double.parse(_weightCtrl.text);
     final newReps = int.parse(_repsCtrl.text);
     final bloc = context.read<WorkoutSessionBloc>();
@@ -1030,6 +1106,9 @@ class _EditSetSheetContentState extends State<_EditSetSheetContent> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Padding(
       padding: EdgeInsets.fromLTRB(
         20,
@@ -1043,13 +1122,14 @@ class _EditSetSheetContentState extends State<_EditSetSheetContent> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Drag handle
             Center(
               child: Container(
                 width: 40,
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: colorScheme.onSurface.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1062,12 +1142,12 @@ class _EditSetSheetContentState extends State<_EditSetSheetContent> {
                   size: 20,
                 ),
                 const SizedBox(width: 8),
-                Text('Edit Set', style: AppTextStyles.titleLarge),
+                Text('Edit Set', style: textTheme.titleLarge),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     '· ${widget.exerciseName}',
-                    style: AppTextStyles.bodyMedium,
+                    style: textTheme.bodyMedium,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -1116,7 +1196,7 @@ class _EditSetSheetContentState extends State<_EditSetSheetContent> {
               ),
               child: Text(
                 'SAVE SET',
-                style: AppTextStyles.titleMedium.copyWith(letterSpacing: 0.8),
+                style: textTheme.titleMedium?.copyWith(letterSpacing: 0.8),
               ),
             ),
           ],
@@ -1125,6 +1205,8 @@ class _EditSetSheetContentState extends State<_EditSetSheetContent> {
     );
   }
 }
+
+// ─── _SheetField ──────────────────────────────────────────────────────────────
 
 class _SheetField extends StatelessWidget {
   final TextEditingController controller;
@@ -1147,6 +1229,9 @@ class _SheetField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return TextFormField(
       controller: controller,
       focusNode: focusNode,
@@ -1157,25 +1242,26 @@ class _SheetField extends StatelessWidget {
         baseOffset: 0,
         extentOffset: controller.text.length,
       ),
-      style: AppTextStyles.headlineMedium.copyWith(fontSize: 24),
+      // headlineMedium from theme → reads colorScheme.onSurface automatically
+      style: textTheme.headlineMedium?.copyWith(fontSize: 24),
       textAlign: TextAlign.center,
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: AppColors.textTertiary),
+        labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.5)),
         filled: true,
-        fillColor: AppColors.card,
+        fillColor: colorScheme.surfaceContainerHighest,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.error),
+          borderSide: BorderSide(color: colorScheme.error),
         ),
       ),
       validator: validator,

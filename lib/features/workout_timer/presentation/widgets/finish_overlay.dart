@@ -8,7 +8,7 @@ void showFinishOverlay(BuildContext context) {
   showGeneralDialog(
     context: context,
     barrierDismissible: false,
-    barrierColor: Colors.black87,
+    barrierColor: Theme.of(context).colorScheme.surface.withOpacity(0.95),
     transitionDuration: const Duration(milliseconds: 500),
     pageBuilder: (_, __, ___) => const _FinishOverlay(),
     transitionBuilder: (ctx, animation, _, child) {
@@ -50,6 +50,7 @@ class _FinishOverlayState extends State<_FinishOverlay>
     "Discipline beats motivation every time. ⚔️",
     "Beast mode: activated. ✅",
   ];
+  
   @override
   void initState() {
     super.initState();
@@ -91,6 +92,8 @@ class _FinishOverlayState extends State<_FinishOverlay>
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
     return Material(
       color: Colors.transparent,
       child: Stack(
@@ -119,29 +122,29 @@ class _FinishOverlayState extends State<_FinishOverlay>
                       ),
                     ),
                     const SizedBox(height: 20),
-
-                    const Text(
+                    
+                    Text(
                       'Workout Complete!',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 34,
                         fontWeight: FontWeight.w900,
-                        color: Colors.white,
+                        color: colorScheme.onSurface,
                         letterSpacing: -0.5,
                         decoration: TextDecoration.none,
                       ),
                     ),
                     const SizedBox(height: 20),
-
+                    
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 20,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.07),
+                        color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.12),
+                          color: colorScheme.outline.withOpacity(0.2),
                         ),
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -152,7 +155,7 @@ class _FinishOverlayState extends State<_FinishOverlay>
                             style: TextStyle(
                               fontSize: 40,
                               height: 0.5,
-                              color: Colors.white.withOpacity(0.2),
+                              color: colorScheme.onSurface.withOpacity(0.3),
                               decoration: TextDecoration.none,
                             ),
                           ),
@@ -160,10 +163,10 @@ class _FinishOverlayState extends State<_FinishOverlay>
                           Text(
                             _quote,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w500,
-                              color: Colors.white,
+                              color: colorScheme.onSurface,
                               height: 1.5,
                               decoration: TextDecoration.none,
                             ),
@@ -251,17 +254,8 @@ class _ConfettiLayer extends StatefulWidget {
 class _ConfettiLayerState extends State<_ConfettiLayer>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  final List<_Particle> _particles = [];
+  List<_Particle> _particles = [];
   final Random _rng = Random();
-
-  final List<Color> _colors = const [
-    Color(0xFF1DB954),
-    Colors.white,
-    Color(0xFFFFD700),
-    Color(0xFFFF6B6B),
-    Color(0xFF4FC3F7),
-    Color(0xFFCE93D8),
-  ];
 
   @override
   void initState() {
@@ -271,22 +265,61 @@ class _ConfettiLayerState extends State<_ConfettiLayer>
       duration: const Duration(seconds: 4),
     )..forward();
 
+    _controller.addListener(() => setState(() {}));
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Generate particles here instead of initState
+    _generateParticles();
+  }
+
+  void _generateParticles() {
+    final newParticles = <_Particle>[];
+    
+    // Get theme-aware colors - now safe to access Theme.of(context)
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    final List<Color> themeColors = [
+      colorScheme.primary,
+      colorScheme.secondary,
+      colorScheme.tertiary,
+      colorScheme.primaryContainer,
+      colorScheme.secondaryContainer,
+      colorScheme.tertiaryContainer,
+    ];
+    
+    // Add some vibrant accent colors that work in both themes
+    final List<Color> vibrantColors = [
+      const Color(0xFF4CAF50), // Green
+      const Color(0xFFFFC107), // Amber
+      const Color(0xFFFF5722), // Deep Orange
+      const Color(0xFF2196F3), // Blue
+      const Color(0xFF9C27B0), // Purple
+    ];
+    
+    // Combine theme colors with vibrant accents for visual interest
+    final allColors = [...themeColors, ...vibrantColors];
+
     for (int i = 0; i < 80; i++) {
-      _particles.add(
+      newParticles.add(
         _Particle(
           x: 0.5 + (_rng.nextDouble() - 0.5) * 0.4,
           y: 0.35,
           vx: (_rng.nextDouble() - 0.5) * 0.015,
           vy: -_rng.nextDouble() * 0.025 - 0.005,
           size: _rng.nextDouble() * 6 + 3,
-          color: _colors[_rng.nextInt(_colors.length)],
+          color: allColors[_rng.nextInt(allColors.length)],
           isRect: _rng.nextBool(),
           delay: _rng.nextDouble() * 0.3,
         ),
       );
     }
-
-    _controller.addListener(() => setState(() {}));
+    
+    setState(() {
+      _particles = newParticles;
+    });
   }
 
   @override
@@ -297,6 +330,10 @@ class _ConfettiLayerState extends State<_ConfettiLayer>
 
   @override
   Widget build(BuildContext context) {
+    if (_particles.isEmpty) {
+      return const SizedBox.shrink(); // Return empty widget while generating
+    }
+    
     return CustomPaint(
       painter: _ConfettiPainter(
         particles: _particles,

@@ -1,12 +1,12 @@
 import 'dart:developer';
 
-import 'package:app_lifecycle/core/theme/app_colors.dart';
-import 'package:app_lifecycle/core/theme/app_text_styles.dart';
-import 'package:app_lifecycle/core/widgets/feature_dropdown/extension_on_appfeature.dart';
-import 'package:app_lifecycle/core/widgets/feature_dropdown/feature_dropdown.dart';
-import 'package:app_lifecycle/core/widgets/settings_menu_button.dart';
-import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_config.dart';
-import 'package:app_lifecycle/features/workout_timer/domain/usecases/generate_workout_usecase.dart';
+import 'package:fitflow/core/theme/app_colors.dart';
+import 'package:fitflow/core/theme/app_text_styles.dart';
+import 'package:fitflow/core/widgets/feature_dropdown/extension_on_appfeature.dart';
+import 'package:fitflow/core/widgets/feature_dropdown/feature_dropdown.dart';
+import 'package:fitflow/core/widgets/settings_menu_button.dart';
+import 'package:fitflow/features/workout_timer/domain/entity/workout_config.dart';
+import 'package:fitflow/features/workout_timer/domain/usecases/generate_workout_usecase.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';

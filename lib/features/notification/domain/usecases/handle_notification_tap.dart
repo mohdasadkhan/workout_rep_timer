@@ -1,6 +1,6 @@
-import 'package:app_lifecycle/core/failure/failure.dart';
-import 'package:app_lifecycle/features/notification/domain/entities/notification_entity.dart';
-import 'package:app_lifecycle/features/notification/domain/repositories/notification_repository.dart';
+import 'package:fitflow/core/failure/failure.dart';
+import 'package:fitflow/features/notification/domain/entities/notification_entity.dart';
+import 'package:fitflow/features/notification/domain/repositories/notification_repository.dart';
 import 'package:dartz/dartz.dart';
 
 class HandleNotificationTap {

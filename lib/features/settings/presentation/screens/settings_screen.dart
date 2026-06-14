@@ -1,23 +1,32 @@
+import 'package:fitflow/features/settings/presentation/bloc/theme_bloc.dart';
+import 'package:fitflow/features/settings/presentation/widgets/theme_selector_bottom_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:app_lifecycle/core/theme/app_colors.dart';
-import 'package:app_lifecycle/core/theme/app_text_styles.dart';
+import 'package:fitflow/core/theme/app_colors.dart';
+import 'package:fitflow/core/theme/app_text_styles.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
         centerTitle: true,
         title: Text('Settings', style: AppTextStyles.titleLarge),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(0.5),
-          child: Container(height: 0.5, color: Colors.white.withOpacity(0.08)),
+          child: Container(
+            height: 0.5,
+            color: colorScheme.onSurface.withOpacity(0.08),
+          ),
         ),
       ),
       body: ListView(
@@ -30,7 +39,8 @@ class SettingsScreen extends StatelessWidget {
             title: 'Theme',
             subtitle: 'Light, Dark, or System',
             showChevron: true,
-            badge: const _SoonBadge(),
+            activeBorder: true,
+            onTap: () => ThemeSelectorBottomSheet.show(context),
           ),
 
           _SectionLabel('Notifications'),
@@ -51,8 +61,8 @@ class SettingsScreen extends StatelessWidget {
               value: false,
               onChanged: null,
               activeThumbColor: AppColors.primary,
-              inactiveThumbColor: AppColors.textTertiary,
-              inactiveTrackColor: Colors.white.withOpacity(0.08),
+              inactiveThumbColor: colorScheme.onSurfaceVariant,
+              inactiveTrackColor: colorScheme.onSurface.withOpacity(0.08),
             ),
           ),
           _SettingsTile(
@@ -64,8 +74,8 @@ class SettingsScreen extends StatelessWidget {
               value: false,
               onChanged: null,
               activeThumbColor: AppColors.primary,
-              inactiveThumbColor: AppColors.textTertiary,
-              inactiveTrackColor: Colors.white.withOpacity(0.08),
+              inactiveThumbColor: colorScheme.onSurfaceVariant,
+              inactiveTrackColor: colorScheme.onSurface.withOpacity(0.08),
             ),
           ),
 
@@ -122,10 +132,12 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showClearDataDialog(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor:
+            Theme.of(context).cardTheme.color ?? colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('Clear All Data', style: AppTextStyles.titleMedium),
         content: Text(
@@ -135,17 +147,10 @@ class SettingsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
+            child: Text('Cancel', style: AppTextStyles.bodyMedium),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
+            onPressed: () => Navigator.pop(context),
             child: Text(
               'Clear',
               style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error),
@@ -175,6 +180,7 @@ class _SoonBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -221,18 +227,19 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Opacity(
         opacity: disabled ? 0.38 : 1.0,
         child: Material(
-          color: AppColors.surface,
+          color: theme.cardTheme.color ?? colorScheme.surface,
           borderRadius: BorderRadius.circular(14),
           child: InkWell(
             onTap: disabled ? null : onTap,
             borderRadius: BorderRadius.circular(14),
-            splashColor: AppColors.primary.withOpacity(0.06),
-            highlightColor: Colors.white.withOpacity(0.03),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
@@ -240,7 +247,7 @@ class _SettingsTile extends StatelessWidget {
                 border: Border.all(
                   color: activeBorder
                       ? AppColors.primary
-                      : Colors.white.withOpacity(0.06),
+                      : colorScheme.onSurface.withOpacity(0.08),
                   width: activeBorder ? 1.5 : 1,
                 ),
               ),
@@ -253,7 +260,7 @@ class _SettingsTile extends StatelessWidget {
                         ? AppColors.error
                         : activeBorder
                         ? AppColors.primary
-                        : AppColors.textTertiary,
+                        : colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -265,23 +272,19 @@ class _SettingsTile extends StatelessWidget {
                           style: AppTextStyles.bodyMedium.copyWith(
                             color: warning
                                 ? AppColors.error
-                                : AppColors.textPrimary,
+                                : colorScheme.onSurface,
                             fontWeight: FontWeight.w500,
                             fontSize: 14,
                           ),
                         ),
-                        if (subtitle != null) ...[
-                          const SizedBox(height: 3),
+                        if (subtitle != null)
                           Text(
                             subtitle!,
                             style: AppTextStyles.bodyMedium.copyWith(
                               fontSize: 12,
-                              color: warning
-                                  ? AppColors.error.withOpacity(0.55)
-                                  : AppColors.textTertiary,
+                              color: colorScheme.onSurfaceVariant,
                             ),
                           ),
-                        ],
                       ],
                     ),
                   ),
@@ -289,14 +292,13 @@ class _SettingsTile extends StatelessWidget {
                   if (trailing != null) ...[
                     const SizedBox(width: 6),
                     trailing!,
-                  ] else if (showChevron) ...[
-                    const SizedBox(width: 6),
+                  ],
+                  if (showChevron)
                     Icon(
                       Icons.chevron_right,
-                      color: AppColors.textTertiary.withOpacity(0.6),
+                      color: colorScheme.onSurfaceVariant.withOpacity(0.7),
                       size: 18,
                     ),
-                  ],
                 ],
               ),
             ),

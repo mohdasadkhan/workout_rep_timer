@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../domain/repositories/reminder_notification_service.dart';
 
-import 'package:app_lifecycle/core/services/notification_reminder_service.dart';
+import 'package:fitflow/core/services/notification_reminder_service.dart';
 
 class ReminderNotificationServiceImpl implements ReminderNotificationService {
   const ReminderNotificationServiceImpl();

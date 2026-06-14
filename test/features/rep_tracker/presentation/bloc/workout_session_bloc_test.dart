@@ -1,14 +1,15 @@
-import 'package:app_lifecycle/core/failure/failure.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/entities/personal_record.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/entities/workout_session.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/repositories/workout_repository.dart';
-import 'package:app_lifecycle/features/rep_tracker/domain/usecases/save_workout_session.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_event.dart';
-import 'package:app_lifecycle/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_state.dart';
+import 'package:fitflow/core/failure/failure.dart';
+import 'package:fitflow/features/rep_tracker/domain/entities/personal_record.dart';
+import 'package:fitflow/features/rep_tracker/domain/entities/workout_session.dart';
+import 'package:fitflow/features/rep_tracker/domain/repositories/workout_repository.dart';
+import 'package:fitflow/features/rep_tracker/domain/usecases/save_workout_session.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_event.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_state.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 class FakeWorkoutRepository implements WorkoutRepository {
   bool saveShouldFail = false;
   WorkoutSession? active;
@@ -38,13 +39,17 @@ class FakeWorkoutRepository implements WorkoutRepository {
   Future<Option<WorkoutSession>> loadActiveSession() async => optionOf(active);
 
   @override
-  Future<Either<Failure, Unit>> saveActiveSession(WorkoutSession session) async {
+  Future<Either<Failure, Unit>> saveActiveSession(
+    WorkoutSession session,
+  ) async {
     active = session;
     return const Right(unit);
   }
 
   @override
-  Future<Either<Failure, Unit>> saveWorkoutSession(WorkoutSession session) async {
+  Future<Either<Failure, Unit>> saveWorkoutSession(
+    WorkoutSession session,
+  ) async {
     if (saveShouldFail) {
       return const Left(Failure(message: 'save failed'));
     }

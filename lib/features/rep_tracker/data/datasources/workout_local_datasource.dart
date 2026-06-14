@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:app_lifecycle/core/failure/cache_exceptions.dart';
+import 'package:fitflow/core/failure/cache_exceptions.dart';
 import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

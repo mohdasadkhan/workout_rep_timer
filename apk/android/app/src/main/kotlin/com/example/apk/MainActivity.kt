@@ -1,4 +1,4 @@
-package com.spacecode.reddity
+package com.example.apk
 
 import io.flutter.embedding.android.FlutterActivity
 

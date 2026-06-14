@@ -1,5 +1,5 @@
-import 'package:app_lifecycle/core/theme/app_colors.dart';
-import 'package:app_lifecycle/features/workout_timer/domain/entity/workout_config.dart';
+import 'package:fitflow/core/theme/app_colors.dart';
+import 'package:fitflow/features/workout_timer/domain/entity/workout_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -230,7 +230,10 @@ class _WorkoutPreviewScreenState extends State<WorkoutPreviewScreen> {
             label: Text(
               'START WORKOUT',
 
-              style: theme.textTheme.titleLarge?.copyWith(letterSpacing: 1.2),
+              style: theme.textTheme.titleLarge?.copyWith(
+                letterSpacing: 1.2,
+                color: Theme.of(context).colorScheme.surface,
+              ),
             ),
           ),
         ),

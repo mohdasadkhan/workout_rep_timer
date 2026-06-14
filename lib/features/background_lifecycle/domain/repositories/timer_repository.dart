@@ -1,4 +1,4 @@
-import 'package:app_lifecycle/features/background_lifecycle/domain/entities/timer_session.dart';
+import 'package:fitflow/features/background_lifecycle/domain/entities/timer_session.dart';
 
 abstract interface class TimerRepository {
   Future<void> saveSession(TimerSession timerSession);
