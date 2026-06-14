@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.asadcoder.fitflow"
+    namespace = "com.asadcoder.fitness.fitflow"
     compileSdk = 36  // Use specific version instead of flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.asadcoder.fitflow"
+        applicationId = "com.asadcoder.fitness.fitflow"
         minSdk = flutter.minSdkVersion  // Use specific version
         targetSdk = 34  // Use specific version
         versionCode = flutter.versionCode

@@ -1,4 +1,4 @@
-package com.asadcoder.fitflow
+package com.asadcoder.fitness.fitflow
 
 import io.flutter.embedding.android.FlutterActivity
 

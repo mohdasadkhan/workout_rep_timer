@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.asadcoder.fitflow">
+    package="com.asadcoder.fitness.fitflow">
     
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -20,7 +20,7 @@
 
         <!-- MainActivity -->
         <activity
-            android:name="com.asadcoder.fitflow.MainActivity"
+            android:name="com.asadcoder.fitness.fitflow.MainActivity"
             android:exported="true"
             android:enabled="true"
             android:launchMode="singleTop"
@@ -41,7 +41,7 @@
             android:roundIcon="@mipmap/ic_launcher_light"
             android:exported="true"
             android:enabled="true"
-            android:targetActivity="com.asadcoder.fitflow.MainActivity">
+            android:targetActivity="com.asadcoder.fitness.fitflow.MainActivity">
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
@@ -59,7 +59,7 @@
             android:roundIcon="@mipmap/ic_launcher_dark"
             android:exported="true"
             android:enabled="false"
-            android:targetActivity="com.asadcoder.fitflow.MainActivity">
+            android:targetActivity="com.asadcoder.fitness.fitflow.MainActivity">
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />

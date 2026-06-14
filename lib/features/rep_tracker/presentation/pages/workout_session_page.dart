@@ -128,7 +128,6 @@ class WorkoutSessionPage extends StatelessWidget {
                     onPressed: () => context.push('/rep-tracker/history'),
                   ),
                 ),
-
                 SettingsMenuButton(),
               ],
             ),

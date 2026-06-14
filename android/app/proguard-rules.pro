@@ -11,7 +11,7 @@
 -dontwarn com.google.firebase.**
 
 # Keep your app specific classes
--keep class com.asadcoder.fitflow.** { *; }
+-keep class com.asadcoder.fitness.fitflow.** { *; }
 
 # Flutter Play Store split/deferred component stubs
 -dontwarn com.google.android.play.core.splitcompat.SplitCompatApplication
