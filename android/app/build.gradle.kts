@@ -5,6 +5,13 @@ plugins {
     id("com.google.gms.google-services")
 }
 
+// 👇 ADD THIS BLOCK TO LOAD KEY.PROPERTIES
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace = "com.asadcoder.fitness.fitflow"
     compileSdk = 36  // Use specific version instead of flutter.compileSdkVersion
@@ -29,9 +36,20 @@ android {
         multiDexEnabled = true
     }
 
+    // 👇 ADD THIS SIGNING CONFIGURATION
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties["keyAlias"] as String?
+            keyPassword = keystoreProperties["keyPassword"] as String?
+            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
+            storePassword = keystoreProperties["storePassword"] as String?
+        }
+    }
+
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("debug")
+            // 👇 CHANGE THIS LINE - Use release signing config instead of debug
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
