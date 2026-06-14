@@ -5,16 +5,19 @@ plugins {
     id("com.google.gms.google-services")
 }
 
-// 👇 ADD THIS BLOCK TO LOAD KEY.PROPERTIES
-def keystoreProperties = new Properties()
-def keystorePropertiesFile = rootProject.file("key.properties")
+// 👇 KOTLIN DSL SYNTAX - Load key.properties
+import java.io.FileInputStream
+import java.util.Properties
+
+val keystorePropertiesFile = rootProject.file("key.properties")
+val keystoreProperties = Properties()
 if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
     namespace = "com.asadcoder.fitness.fitflow"
-    compileSdk = 36  // Use specific version instead of flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -29,26 +32,25 @@ android {
 
     defaultConfig {
         applicationId = "com.asadcoder.fitness.fitflow"
-        minSdk = flutter.minSdkVersion  // Use specific version
-        targetSdk = 34  // Use specific version
+        minSdk = flutter.minSdkVersion
+        targetSdk = 34
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         multiDexEnabled = true
     }
 
-    // 👇 ADD THIS SIGNING CONFIGURATION
+    // 👇 KOTLIN DSL SYNTAX for signingConfigs
     signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String?
-            keyPassword = keystoreProperties["keyPassword"] as String?
-            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
-            storePassword = keystoreProperties["storePassword"] as String?
+            keyAlias = keystoreProperties.getProperty("keyAlias")
+            keyPassword = keystoreProperties.getProperty("keyPassword")
+            storeFile = keystoreProperties.getProperty("storeFile")?.let { file(it) }
+            storePassword = keystoreProperties.getProperty("storePassword")
         }
     }
 
     buildTypes {
         release {
-            // 👇 CHANGE THIS LINE - Use release signing config instead of debug
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
