@@ -1,0 +1,9 @@
+Bug Fixes & Improvements
+
+- Fixed text and icons becoming invisible in light mode due to 
+  hardcoded colors throughout the app
+- Fixed app crash when switching between light and dark themes
+- Removed dynamic app icon switching that was causing crashes 
+  on multiple devices
+- App now maintains proper contrast and visibility in both 
+  light and dark modes
