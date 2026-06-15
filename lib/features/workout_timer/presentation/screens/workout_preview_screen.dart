@@ -1,4 +1,5 @@
 import 'package:fitflow/core/theme/app_colors.dart';
+import 'package:fitflow/core/theme/theme_extensions.dart';
 import 'package:fitflow/features/workout_timer/domain/entity/workout_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -61,7 +62,10 @@ class _WorkoutPreviewScreenState extends State<WorkoutPreviewScreen> {
   Widget build(BuildContext context) {
     final totalTimeStr = _formatTotalTime(sequence, widget.config);
 
-    final theme = Theme.of(context);
+    final textTheme = Theme.of(context).textTheme;
+
+    final colorScheme = Theme.of(context).colorScheme;
+    // final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Workout Preview'),
@@ -95,16 +99,19 @@ class _WorkoutPreviewScreenState extends State<WorkoutPreviewScreen> {
                   children: [
                     Text(
                       'YOUR WORKOUT FLOW',
-                      style: theme.textTheme.titleLarge?.copyWith(
+                      style: textTheme.titleSmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        letterSpacing: 1.5,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 6),
                     Text(
                       totalTimeStr,
-                      style: theme.textTheme.headlineMedium?.copyWith(
+                      style: textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.w600,
+                        color:
+                            colorScheme.primary, // Fix: uses theme-aware color
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -123,7 +130,8 @@ class _WorkoutPreviewScreenState extends State<WorkoutPreviewScreen> {
               itemBuilder: (context, index) {
                 final phase = sequence[index];
                 final isLast = index == sequence.length - 1;
-
+                final colorScheme = Theme.of(context).colorScheme;
+                final textTheme = Theme.of(context).textTheme;
                 return RepaintBoundary(
                   child: TimelineTile(
                     alignment: TimelineAlign.manual,
@@ -132,7 +140,7 @@ class _WorkoutPreviewScreenState extends State<WorkoutPreviewScreen> {
                     isLast: isLast,
                     indicatorStyle: IndicatorStyle(
                       width: 34,
-                      color: _getPhaseColor(phase.type),
+                      color: _getPhaseColor(context, phase.type),
                       iconStyle: IconStyle(
                         iconData: _getPhaseIcon(phase.type),
                         color: AppColors.white,
@@ -150,8 +158,10 @@ class _WorkoutPreviewScreenState extends State<WorkoutPreviewScreen> {
                       padding: const EdgeInsets.only(right: 16, top: 10),
                       child: Text(
                         _formatDuration(phase.durationSeconds),
-                        style: theme.textTheme.titleMedium!.copyWith(
+                        style: textTheme.titleMedium!.copyWith(
                           fontWeight: FontWeight.bold,
+                          color: colorScheme
+                              .onSurfaceVariant, // Fix: uses theme-aware color
                         ),
                       ),
                     ),
@@ -175,16 +185,16 @@ class _WorkoutPreviewScreenState extends State<WorkoutPreviewScreen> {
                                 children: [
                                   Icon(
                                     _getPhaseIcon(phase.type),
-                                    color: _getPhaseColor(phase.type),
+                                    color: _getPhaseColor(context, phase.type),
                                     size: 26,
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
                                       phase.name,
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w600,
+                                      style: textTheme.titleMedium?.copyWith(
+                                        color: colorScheme
+                                            .onSurface, // Fix: uses theme-aware color
                                       ),
                                     ),
                                   ),
@@ -193,16 +203,18 @@ class _WorkoutPreviewScreenState extends State<WorkoutPreviewScreen> {
                               const SizedBox(height: 10),
                               Text(
                                 'Set ${phase.currentSet} of ${phase.totalSets}',
-                                style: TextStyle(
-                                  color: Colors.grey.shade700,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme
+                                      .onSurfaceVariant, // Fix: uses theme-aware color
                                   fontSize: 14,
                                 ),
                               ),
                               if (phase.currentCycle != null)
                                 Text(
                                   'Cycle ${phase.currentCycle} of ${phase.totalCycles}',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade700,
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: colorScheme
+                                        .onSurfaceVariant, // Fix: uses theme-aware color
                                     fontSize: 14,
                                   ),
                                 ),
@@ -218,6 +230,7 @@ class _WorkoutPreviewScreenState extends State<WorkoutPreviewScreen> {
           ),
         ],
       ),
+
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -230,7 +243,7 @@ class _WorkoutPreviewScreenState extends State<WorkoutPreviewScreen> {
             label: Text(
               'START WORKOUT',
 
-              style: theme.textTheme.titleLarge?.copyWith(
+              style: textTheme.titleLarge?.copyWith(
                 letterSpacing: 1.2,
                 color: Theme.of(context).colorScheme.surface,
               ),
@@ -248,18 +261,19 @@ class _WorkoutPreviewScreenState extends State<WorkoutPreviewScreen> {
     return min > 0 ? '$min:${sec.toString().padLeft(2, '0')}' : '$sec s';
   }
 
-  Color _getPhaseColor(PhaseType type) {
+  Color _getPhaseColor(BuildContext context, PhaseType type) {
+    final appColors = Theme.of(context).extension<AppColorsExtension>()!;
     switch (type) {
-      case PhaseType.prepare:
-        return Colors.blue;
       case PhaseType.work:
-        return Colors.teal;
+        return appColors.phaseWork;
       case PhaseType.rest:
-        return Colors.orange;
-      case PhaseType.restBetweenSets:
-        return Colors.deepPurple;
+        return appColors.phaseRest;
+      case PhaseType.prepare:
+        return appColors.phasePrepare;
       case PhaseType.coolDown:
-        return Colors.grey.shade600;
+        return appColors.phaseCoolDown;
+      case PhaseType.restBetweenSets:
+        return appColors.phaseRestBetweenSets;
     }
   }
 

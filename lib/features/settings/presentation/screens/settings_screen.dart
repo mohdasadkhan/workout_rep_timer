@@ -139,10 +139,15 @@ class SettingsScreen extends StatelessWidget {
         backgroundColor:
             Theme.of(context).cardTheme.color ?? colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Clear All Data', style: AppTextStyles.titleMedium),
+        title: Text(
+          'Clear All Data',
+          style: AppTextStyles.titleMedium.copyWith(color: AppColors.error),
+        ),
         content: Text(
           'This will permanently delete all your workouts, history, and personal records. This action cannot be undone.',
-          style: AppTextStyles.bodyMedium,
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
         ),
         actions: [
           TextButton(
@@ -170,7 +175,12 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, top: 20, bottom: 8),
-      child: Text(text.toUpperCase(), style: AppTextStyles.labelSmall),
+      child: Text(
+        text.toUpperCase(),
+        style: AppTextStyles.labelSmall.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
     );
   }
 }

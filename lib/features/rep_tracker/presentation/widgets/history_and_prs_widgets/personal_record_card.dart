@@ -50,7 +50,9 @@ class PersonalRecordCard extends StatelessWidget {
               children: [
                 Text(
                   pr.exerciseName,
-                  style: AppTextStyles.titleMedium,
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),

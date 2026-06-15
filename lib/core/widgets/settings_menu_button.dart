@@ -1,4 +1,3 @@
-// lib/core/widgets/settings_menu_button.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,7 +8,7 @@ class SettingsMenuButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.more_vert),
-      color: Theme.of(context).cardColor,
+
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: (value) {

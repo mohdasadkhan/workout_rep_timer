@@ -47,13 +47,17 @@ class SessionCard extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 'Delete Session?',
-                style: AppTextStyles.titleLarge,
+                style: AppTextStyles.titleLarge.copyWith(
+                  color: colorScheme.onSurface,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 10),
               Text(
                 'This workout will be permanently removed from your history.',
-                style: AppTextStyles.bodyMedium,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: colorScheme.onSurface,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -203,6 +207,7 @@ class SessionCard extends StatelessWidget {
                                 exercise.name,
                                 style: AppTextStyles.titleMedium.copyWith(
                                   fontSize: 14,
+                                  color: colorScheme.onSurface,
                                 ),
                               ),
                             ),

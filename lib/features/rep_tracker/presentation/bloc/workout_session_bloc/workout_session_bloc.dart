@@ -167,7 +167,6 @@ class WorkoutSessionBloc
     Emitter<WorkoutSessionState> emit,
   ) async {
     final active = await workoutRepository.loadActiveSession();
-    log('inside load Active session active data >> $active');
     active.fold(
       () => emit(WorkoutInitial()),
       (session) => emit(

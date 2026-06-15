@@ -35,10 +35,6 @@
             </intent-filter>
         </activity>
 
-        <!-- Services -->
-        <service
-            android:name="com.solusibejo.flutter_dynamic_icon_plus.FlutterDynamicIconPlusService"
-            android:stopWithTask="false"/>
 
         <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" android:exported="false"/>
         <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver" android:exported="false">

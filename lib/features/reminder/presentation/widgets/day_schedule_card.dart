@@ -164,6 +164,9 @@ class DayScheduleCard extends StatelessWidget {
                                 'Change',
                                 style: theme.textTheme.labelSmall?.copyWith(
                                   fontWeight: FontWeight.w700,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ],
