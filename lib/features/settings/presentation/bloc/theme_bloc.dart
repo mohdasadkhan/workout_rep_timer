@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'dart:ui';
-import 'package:fitflow/core/services/app_icon_service.dart';
 import 'package:fitflow/core/usecases/usecase.dart';
 import 'package:fitflow/features/settings/domain/entities/app_theme_mode.dart';
 import 'package:fitflow/features/settings/domain/usecases/get_theme_mode.dart';
@@ -29,7 +28,6 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
       mode,
     ) {
       emit(ThemeLoaded(mode: mode));
-      AppIconService.applyIcon(isDark: _resolveIsDark(mode)); // ← add this
     });
   }
 
@@ -38,25 +36,9 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
     Emitter<ThemeState> emit,
   ) async {
     final result = await saveThemeMode(event.mode);
-    log('-----------------here inside _onChangeTheme func');
     result.fold((failure) => emit(ThemeError(message: failure.message)), (_) {
       emit(ThemeLoaded(mode: event.mode));
-      AppIconService.applyIcon(
-        isDark: _resolveIsDark(event.mode),
-      ); // ← add this
     });
   }
 
-  bool _resolveIsDark(AppThemeMode mode) {
-    switch (mode) {
-      case AppThemeMode.dark:
-        return true;
-      case AppThemeMode.light:
-        return false;
-      case AppThemeMode.system:
-        final brightness =
-            SchedulerBinding.instance.platformDispatcher.platformBrightness;
-        return brightness == Brightness.dark;
-    }
-  }
 }

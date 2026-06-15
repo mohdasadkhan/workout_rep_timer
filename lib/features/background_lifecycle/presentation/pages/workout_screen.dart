@@ -43,7 +43,6 @@ class _WorkoutScreenState extends State<WorkoutScreen>
         _timerBloc.add(const PauseTimerEvent());
       case AppLifecycleState.resumed:
         final currentState = _timerBloc.state;
-        log('inside resumed current state >> $currentState');
         if (currentState is TimerLoaded && currentState.isRunning) {
           _timerBloc.add(const StartTimerEvent());
         }

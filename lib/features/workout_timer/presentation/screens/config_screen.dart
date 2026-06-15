@@ -165,11 +165,9 @@ class _ConfigScreenState extends State<ConfigScreen> {
               onPressed: () async {
                 var permission =
                     await FlutterForegroundTask.checkNotificationPermission();
-                log('check notification permission >> $permission');
                 if (permission != NotificationPermission.granted) {
                   permission =
                       await FlutterForegroundTask.requestNotificationPermission();
-                  log('request notification permission >> $permission');
                   if (permission != NotificationPermission.granted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(

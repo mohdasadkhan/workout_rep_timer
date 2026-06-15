@@ -40,7 +40,6 @@ BackgroundLifecycleBloc({required TimerRepository timerRepository})
   }
 
   void _startTimerEvent(StartTimerEvent event, Emitter<TimerState> emit) {
-    log('inside start timer event');
     _ticker?.cancel();
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       _elapsedSeconds++;
