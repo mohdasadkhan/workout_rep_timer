@@ -155,12 +155,6 @@ class AppTheme {
             borderRadius: BorderRadius.circular(14),
           ),
           minimumSize: const Size(double.infinity, 60),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          textStyle: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
