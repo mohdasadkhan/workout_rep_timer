@@ -2,6 +2,7 @@ import 'package:fitflow/core/constants/pref_keys.dart';
 import 'package:fitflow/core/di/injection.dart';
 import 'package:fitflow/core/theme/app_colors.dart';
 import 'package:fitflow/core/theme/app_text_styles.dart';
+import 'package:fitflow/core/theme/theme_extensions.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_event.dart';
 import 'package:flutter/material.dart';
@@ -351,15 +352,17 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    final appColors = Theme.of(context).extension<AppColorsExtension>()!;
     return Material(
-      // Material color must match the container so InkWell ripple renders correctly
-      color: colorScheme.surfaceContainerHighest,
+      color: appColors.chipBackground, // Fix: uses theme-aware color
       borderRadius: BorderRadius.circular(22),
       child: InkWell(
         borderRadius: BorderRadius.circular(22),
         onTap: () => _addExercise(name),
-        splashColor: AppColors.primary.withOpacity(0.22),
-        highlightColor: AppColors.primary.withOpacity(0.1),
+        splashColor: colorScheme.primary.withOpacity(
+          0.22,
+        ), // Fix: uses theme-aware
+        highlightColor: colorScheme.primary.withOpacity(0.1),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
@@ -368,7 +371,10 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
           ),
           child: Text(
             name,
-            style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+            style: textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+              color: appColors.chipText, // Fix: uses theme-aware color
+            ),
           ),
         ),
       ),

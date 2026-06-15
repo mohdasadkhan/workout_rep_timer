@@ -19,6 +19,30 @@ class WorkoutConfig extends Equatable {
     this.coolDownSeconds = 0,
   });
 
+  // Add toJson method
+  Map<String, dynamic> toJson() => {
+    'prepareSeconds': prepareSeconds,
+    'workSeconds': workSeconds,
+    'restSeconds': restSeconds,
+    'cyclesPerSet': cyclesPerSet,
+    'numberOfSets': numberOfSets,
+    'restBetweenSetsSeconds': restBetweenSetsSeconds,
+    'coolDownSeconds': coolDownSeconds,
+  };
+
+  // Add fromJson factory
+  factory WorkoutConfig.fromJson(Map<String, dynamic> json) {
+    return WorkoutConfig(
+      prepareSeconds: json['prepareSeconds'] ?? 30,
+      workSeconds: json['workSeconds'] ?? 60,
+      restSeconds: json['restSeconds'] ?? 0,
+      cyclesPerSet: json['cyclesPerSet'] ?? 1,
+      numberOfSets: json['numberOfSets'] ?? 3,
+      restBetweenSetsSeconds: json['restBetweenSetsSeconds'] ?? 90,
+      coolDownSeconds: json['coolDownSeconds'] ?? 0,
+    );
+  }
+
   WorkoutConfig copyWith({
     int? prepareSeconds,
     int? workSeconds,
@@ -57,6 +81,7 @@ class WorkoutConfig extends Equatable {
       coolDownSeconds: parse('cooldown', 0),
     );
   }
+  
   @override
   List<Object?> get props => [
     prepareSeconds,

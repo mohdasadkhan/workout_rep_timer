@@ -32,7 +32,7 @@ class WorkoutSessionPage extends StatelessWidget {
         title: 'Finish Workout?',
         icon: Icons.check_circle_outline,
         iconColor: AppColors.primary,
-        content: const Text(
+        content: Text(
           'This will save your session to history.',
           textAlign: TextAlign.center,
         ),

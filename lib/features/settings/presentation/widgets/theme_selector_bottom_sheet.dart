@@ -37,7 +37,9 @@ class ThemeSelectorBottomSheet extends StatelessWidget {
             children: [
               Text(
                 'Appearance',
-                style: Theme.of(context).textTheme.headlineSmall,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
               const SizedBox(height: 24),
               _ThemeOption(

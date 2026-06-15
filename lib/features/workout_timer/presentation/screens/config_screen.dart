@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:fitflow/core/theme/app_colors.dart';
 import 'package:fitflow/core/theme/app_text_styles.dart';
@@ -49,7 +50,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: const FeatureDropdownTitle(current: AppFeature.tabataTimer),
@@ -84,14 +86,22 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      Text('TOTAL TIME', style: theme.textTheme.titleMedium),
-                      const SizedBox(height: 8),
+                      Text(
+                        'TOTAL TIME',
+                        style: textTheme.titleSmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          letterSpacing: 1.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
                       Text(
                         _formatTotalTime(),
-                        style: theme.textTheme.headlineMedium?.copyWith(
+                        style: textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          color: colorScheme.primary,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
@@ -193,7 +203,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
               icon: const Icon(Icons.play_arrow, size: 32),
               label: Text(
                 'START WORKOUT',
-                style: theme.textTheme.titleLarge?.copyWith(letterSpacing: 1.2),
+                style: textTheme.titleLarge?.copyWith(letterSpacing: 1.2),
               ),
             ),
           ),

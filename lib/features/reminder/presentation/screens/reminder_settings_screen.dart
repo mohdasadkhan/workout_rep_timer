@@ -21,12 +21,20 @@ class ReminderSettingsScreen extends StatelessWidget {
                 state.isEnabled
                     ? '✅ Reminders scheduled!'
                     : '🔕 Reminders turned off',
-                style: TextStyle(color: Colors.white),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
+              backgroundColor:
+                  Colors.green.shade700, // Distinct green for success
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -192,12 +200,18 @@ class _SummaryCard extends StatelessWidget {
               children: [
                 Text(
                   'ACTIVE REMINDERS',
-                  style: AppTextStyles.labelSmall.copyWith(fontSize: 10),
+                  style: AppTextStyles.labelSmall.copyWith(
+                    fontSize: 10,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 5),
                 Text(
                   isEnabled ? '$activeCount of $total days' : 'Disabled',
-                  style: AppTextStyles.headlineMedium.copyWith(fontSize: 22),
+                  style: AppTextStyles.headlineMedium.copyWith(
+                    fontSize: 22,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -205,7 +219,7 @@ class _SummaryCard extends StatelessWidget {
                   style: AppTextStyles.bodyMedium.copyWith(
                     fontSize: 12,
                     color: isEnabled
-                        ? AppColors.primary
+                        ? colorScheme.primary
                         : AppColors.textTertiary,
                   ),
                 ),
@@ -223,7 +237,7 @@ class _SummaryCard extends StatelessWidget {
               Switch(
                 value: isEnabled,
                 onChanged: onToggle,
-                activeThumbColor: AppColors.primary,
+                activeThumbColor: colorScheme.primary,
                 inactiveThumbColor: AppColors.textTertiary,
                 inactiveTrackColor: Colors.white.withOpacity(0.08),
               ),
@@ -273,7 +287,7 @@ class _WeekStrip extends StatelessWidget {
               margin: EdgeInsets.only(right: i < schedules.length - 1 ? 5 : 0),
               padding: const EdgeInsets.symmetric(vertical: 9),
               decoration: BoxDecoration(
-                color: isOn ? AppColors.primary : colorScheme.onPrimary,
+                color: isOn ? colorScheme.primary : colorScheme.onPrimary,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -299,7 +313,7 @@ class _WeekStrip extends StatelessWidget {
                       color: isOn
                           ? Colors.white
                           : isToday
-                          ? AppColors.primary
+                          ? colorScheme.primary
                           : colorScheme.onSurfaceVariant,
                     ),
                   ),
@@ -356,7 +370,7 @@ class _SaveButton extends StatelessWidget {
           ),
         ),
         style: FilledButton.styleFrom(
-          backgroundColor: AppColors.primary,
+          backgroundColor: colorScheme.primary,
           foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 54),
           shape: RoundedRectangleBorder(

@@ -128,12 +128,14 @@ class AppDialog extends StatelessWidget {
             Text(
               title,
               // titleLarge from theme inherits colorScheme.onSurface
-              style: textTheme.titleLarge,
+              style: textTheme.titleLarge?.copyWith(color: colorScheme.primary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
             DefaultTextStyle(
-              style: textTheme.bodyMedium!,
+              style: textTheme.bodyMedium!.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
               child: content,
             ),
@@ -211,6 +213,7 @@ class StartPrompt extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Center(
       child: Padding(
@@ -241,13 +244,17 @@ class StartPrompt extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               'Ready to train?',
-              style: textTheme.headlineMedium,
+              style: textTheme.headlineMedium?.copyWith(
+                color: colorScheme.onSurface,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               'Start a session to log your sets\nand track your progress.',
-              style: textTheme.bodyMedium,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -260,7 +267,7 @@ class StartPrompt extends StatelessWidget {
                   letterSpacing: 1.1,
 
                   // FilledButton foreground color comes from colorScheme.onPrimary automatically
-                  color: Theme.of(context).colorScheme.surface,
+                  color: colorScheme.onPrimary,
                 ),
               ),
               style: FilledButton.styleFrom(
@@ -493,7 +500,9 @@ class ExerciseCard extends StatelessWidget {
                     children: [
                       Text(
                         exercise.name,
-                        style: textTheme.titleMedium,
+                        style: textTheme.titleMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -951,7 +960,7 @@ class _AddSetButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+          border: Border.all(color: colorScheme.outline),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1243,7 +1252,10 @@ class _SheetField extends StatelessWidget {
         extentOffset: controller.text.length,
       ),
       // headlineMedium from theme → reads colorScheme.onSurface automatically
-      style: textTheme.headlineMedium?.copyWith(fontSize: 24),
+      style: textTheme.headlineMedium?.copyWith(
+        fontSize: 24,
+        color: colorScheme.onSurfaceVariant,
+      ),
       textAlign: TextAlign.center,
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
       decoration: InputDecoration(
