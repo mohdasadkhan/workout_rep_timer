@@ -72,3 +72,4 @@ jobs:
           packageName: com.asadcoder.fitness.fitflow
           releaseFiles: build/app/outputs/bundle/release/*.aab
           track: internal
+          whatsNewDirectory: whatsnew/
