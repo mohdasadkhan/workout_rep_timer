@@ -1,13 +1,12 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
 }
-
-// 👇 KOTLIN DSL SYNTAX - Load key.properties
-import java.io.FileInputStream
-import java.util.Properties
 
 val keystorePropertiesFile = rootProject.file("key.properties")
 val keystoreProperties = Properties()
@@ -33,13 +32,12 @@ android {
     defaultConfig {
         applicationId = "com.asadcoder.fitness.fitflow"
         minSdk = flutter.minSdkVersion
-        targetSdk = 34
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         multiDexEnabled = true
     }
 
-    // 👇 KOTLIN DSL SYNTAX for signingConfigs
     signingConfigs {
         create("release") {
             keyAlias = keystoreProperties.getProperty("keyAlias")
@@ -52,6 +50,7 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -65,15 +64,8 @@ flutter {
 }
 
 dependencies {
-    // Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:34.14.0"))
-    
-    // Firebase Analytics
     implementation("com.google.firebase:firebase-analytics")
-    
-    // Core library desugaring
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
-    
-    // MultiDex support
     implementation("androidx.multidex:multidex:2.0.1")
 }

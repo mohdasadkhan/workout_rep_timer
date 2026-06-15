@@ -1,5 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.asadcoder.fitness.fitflow">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
     
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -18,11 +17,10 @@
         android:icon="@mipmap/ic_launcher_light"
         android:usesCleartextTraffic="true">
 
-        <!-- MainActivity -->
+        <!-- MainActivity with launcher intent-filter -->
         <activity
-            android:name="com.asadcoder.fitness.fitflow.MainActivity"
+            android:name=".MainActivity"
             android:exported="true"
-            android:enabled="true"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
@@ -31,43 +29,11 @@
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
-
-        <!-- LIGHT icon alias -->
-        <activity-alias
-            android:name=".MainActivityLight"
-            android:label="fitflow"
-            android:icon="@mipmap/ic_launcher_light"
-            android:roundIcon="@mipmap/ic_launcher_light"
-            android:exported="true"
-            android:enabled="true"
-            android:targetActivity="com.asadcoder.fitness.fitflow.MainActivity">
-            <meta-data
-                android:name="io.flutter.embedding.android.NormalTheme"
-                android:resource="@style/NormalTheme" />
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity-alias>
-
-        <!-- DARK icon alias -->
-        <activity-alias
-            android:name=".MainActivityDark"
-            android:label="fitflow"
-            android:icon="@mipmap/ic_launcher_dark"
-            android:roundIcon="@mipmap/ic_launcher_dark"
-            android:exported="true"
-            android:enabled="false"
-            android:targetActivity="com.asadcoder.fitness.fitflow.MainActivity">
-            <meta-data
-                android:name="io.flutter.embedding.android.NormalTheme"
-                android:resource="@style/NormalTheme" />
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity-alias>
 
         <!-- Services -->
         <service
