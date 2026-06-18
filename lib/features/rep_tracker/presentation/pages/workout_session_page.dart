@@ -5,6 +5,8 @@ import 'package:fitflow/core/widgets/dialogs/exit_dialog.dart';
 import 'package:fitflow/core/widgets/feature_dropdown/extension_on_appfeature.dart';
 import 'package:fitflow/core/widgets/feature_dropdown/feature_dropdown.dart';
 import 'package:fitflow/core/widgets/settings_menu_button.dart';
+import 'package:fitflow/core/widgets/snackbars/app_snackbar.dart';
+import 'package:fitflow/core/widgets/snackbars/app_snackbar_type.dart';
 import 'package:fitflow/features/rep_tracker/presentation/widgets/session_widgets/add_exercise_bottom_sheet.dart';
 import 'package:fitflow/features/rep_tracker/presentation/widgets/session_widgets/workout_session_widgets.dart';
 import 'package:flutter/material.dart';
@@ -60,36 +62,19 @@ class WorkoutSessionPage extends StatelessWidget {
     return BlocConsumer<WorkoutSessionBloc, WorkoutSessionState>(
       listener: (context, state) {
         if (state is WorkoutSessionSaved) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Row(
-                children: [
-                  Icon(Icons.check_circle_outline, color: AppColors.primary),
-                  SizedBox(width: 12),
-                  Text(
-                    'Workout saved! Great session 💪',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ],
-              ),
-              backgroundColor: AppColors.card,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
+          AppSnackbar.show(
+            context: context,
+            title: 'Workout Saved',
+            message: 'Great session 💪',
+            type: AppSnackbarType.success,
           );
         }
         if (state is WorkoutSessionError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
+          AppSnackbar.show(
+            context: context,
+            title: 'Error',
+            message: state.message,
+            type: AppSnackbarType.error,
           );
         }
       },

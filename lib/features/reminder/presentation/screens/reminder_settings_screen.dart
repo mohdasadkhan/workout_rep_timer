@@ -1,3 +1,5 @@
+import 'package:fitflow/core/widgets/snackbars/app_snackbar.dart';
+import 'package:fitflow/core/widgets/snackbars/app_snackbar_type.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fitflow/core/theme/app_colors.dart';
@@ -15,36 +17,21 @@ class ReminderSettingsScreen extends StatelessWidget {
     return BlocConsumer<ReminderBloc, ReminderState>(
       listener: (context, state) {
         if (state is ReminderSaveSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                state.isEnabled
-                    ? '✅ Reminders scheduled!'
-                    : '🔕 Reminders turned off',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              backgroundColor:
-                  Colors.green.shade700, // Distinct green for success
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              duration: const Duration(seconds: 2),
-            ),
+          AppSnackbar.show(
+            context: context,
+            title: 'Success',
+            message: state.isEnabled
+                ? 'Reminders scheduled!'
+                : 'Reminders turned off',
+            type: AppSnackbarType.success,
           );
         }
         if (state is ReminderError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: ${state.message}'),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ),
+          AppSnackbar.show(
+            context: context,
+            title: 'Error',
+            message: state.message,
+            type: AppSnackbarType.error,
           );
         }
       },

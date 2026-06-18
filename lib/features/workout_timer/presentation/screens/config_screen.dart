@@ -6,6 +6,8 @@ import 'package:fitflow/core/theme/app_text_styles.dart';
 import 'package:fitflow/core/widgets/feature_dropdown/extension_on_appfeature.dart';
 import 'package:fitflow/core/widgets/feature_dropdown/feature_dropdown.dart';
 import 'package:fitflow/core/widgets/settings_menu_button.dart';
+import 'package:fitflow/core/widgets/snackbars/app_snackbar.dart';
+import 'package:fitflow/core/widgets/snackbars/app_snackbar_type.dart';
 import 'package:fitflow/features/workout_timer/domain/entity/workout_config.dart';
 import 'package:fitflow/features/workout_timer/domain/usecases/generate_workout_usecase.dart';
 import 'package:flutter/material.dart';
@@ -169,12 +171,12 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   permission =
                       await FlutterForegroundTask.requestNotificationPermission();
                   if (permission != NotificationPermission.granted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
+                    AppSnackbar.show(
+                      context: context,
+                      title: 'Permission Required',
+                      message:
                           'Notification permission required for background timer',
-                        ),
-                      ),
+                      type: AppSnackbarType.warning,
                     );
                     return;
                   }
@@ -185,12 +187,12 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   final ignored =
                       await FlutterForegroundTask.requestIgnoreBatteryOptimization();
                   if (!ignored) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Please select "No restrictions" for reliable background timer',
-                        ),
-                      ),
+                    AppSnackbar.show(
+                      context: context,
+                      title: 'No Battery Optimization',
+                      message:
+                          'Please allow ignoring battery optimization for reliable background timer',
+                      type: AppSnackbarType.warning,
                     );
                   }
                 }
