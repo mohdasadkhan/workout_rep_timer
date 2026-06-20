@@ -52,24 +52,32 @@ class TimerBloc extends Bloc<TimerEvent, TimerState> {
     }
   }
 
-  Future<void> _onStarted(TimerStarted event, Emitter<TimerState> emit) async {
-    _currentConfig = event.config;
-    _sequence = generateWorkoutSequence(_currentConfig);
-    _currentIndex = 0;
-    _remainingSeconds = _sequence[0].durationSeconds;
+Future<void> _onStarted(TimerStarted event, Emitter<TimerState> emit) async {
+  _currentConfig = event.config;
+  _sequence = generateWorkoutSequence(_currentConfig);
 
-    emit(
-      TimerRunning(
-        config: _currentConfig,
-        sequence: _sequence,
-        currentIndex: _currentIndex,
-        remainingSeconds: _remainingSeconds,
-      ),
-    );
-
-    _startTicker();
-    _startForegroundTask();
+  if (_sequence.isEmpty) {
+    // This should no longer happen thanks to the usecase change, but kept as safety
+    emit(TimerInitial(_currentConfig));
+    _effectController.add(ShowStopDialogEffect()); // or a new "InvalidConfigEffect"
+    return;
   }
+
+  _currentIndex = 0;
+  _remainingSeconds = _sequence[0].durationSeconds;
+
+  emit(
+    TimerRunning(
+      config: _currentConfig,
+      sequence: _sequence,
+      currentIndex: _currentIndex,
+      remainingSeconds: _remainingSeconds,
+    ),
+  );
+
+  _startTicker();
+  _startForegroundTask();
+}
 
   void _onPaused(TimerPaused event, Emitter<TimerState> emit) {
     _ticker?.cancel();
