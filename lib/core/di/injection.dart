@@ -1,4 +1,5 @@
 import 'package:fitflow/core/router/app_router.dart';
+import 'package:fitflow/core/services/app_info_service.dart';
 import 'package:fitflow/core/services/timer_sound_service.dart';
 import 'package:fitflow/features/notification/data/datasources/fcm_remote_datasource.dart';
 import 'package:fitflow/features/notification/data/datasources/local_notification_datasource.dart';
@@ -121,15 +122,17 @@ Future<void> registerWorkoutTimerFeature() async {
   // TimerSoundService is a lazySingleton — one instance shared across the
   // app lifetime. init() is called eagerly in setupInjection so the AudioPool
   // is warm before the first workout starts.
-  getIt.registerLazySingleton<TimerSoundService>(
-    () => TimerSoundService(),
-  );
+  getIt.registerLazySingleton<TimerSoundService>(() => TimerSoundService());
 
   // TimerBloc is a factory so each navigation to the timer screen gets a
   // fresh bloc — but they all share the same TimerSoundService singleton.
   getIt.registerFactory<TimerBloc>(
     () => TimerBloc(soundService: getIt<TimerSoundService>()),
   );
+}
+
+Future<void> registerAppInfoService() async {
+  getIt.registerLazySingleton<AppInfoService>(() => AppInfoServiceImpl());
 }
 
 Future<void> setupInjection() async {
@@ -139,6 +142,7 @@ Future<void> setupInjection() async {
   getIt.registerLazySingleton<GoRouter>(() => createRouter());
   getIt.registerSingleton<SharedPreferences>(sharedPreferences);
   await registerFirebaseFeature();
+  await registerAppInfoService();
   await registerNotificationFeature();
   await registerRepTrackerFeature();
   await _registerThemeFeature();
@@ -200,7 +204,8 @@ Future<void> _registerSoundFeature() async {
   );
   getIt.registerLazySingleton(() => GetSoundSettings(getIt<SoundRepository>()));
   getIt.registerLazySingleton(
-      () => SaveSoundSettings(getIt<SoundRepository>()));
+    () => SaveSoundSettings(getIt<SoundRepository>()),
+  );
 
   // Factory so each settings screen gets a fresh bloc, but usecases are
   // shared singletons (no cost).

@@ -2,6 +2,7 @@ import 'package:fitflow/core/const/firebase_const.dart';
 import 'package:fitflow/core/di/injection.dart';
 import 'package:fitflow/core/router/app_router.dart';
 import 'package:fitflow/core/services/notification_reminder_service.dart';
+import 'package:fitflow/core/services/app_info_service.dart';
 import 'package:fitflow/core/theme/app_theme.dart';
 import 'package:fitflow/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
@@ -56,6 +57,11 @@ Future<void> main() async {
       eventAction: ForegroundTaskEventAction.nothing(),
     ),
   );
+  // Initialize version service
+  // After setupInjection() and before runApp()
+
+  final appInfoService = getIt<AppInfoService>();
+  await appInfoService.init();
 
   try {
     await NotificationReminderService.init();

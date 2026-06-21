@@ -1,3 +1,5 @@
+import 'package:fitflow/core/di/injection.dart';
+import 'package:fitflow/core/services/app_info_service.dart';
 import 'package:fitflow/core/theme/app_colors.dart';
 import 'package:fitflow/core/theme/app_text_styles.dart';
 import 'package:fitflow/features/settings/domain/entities/sound_settings.dart';
@@ -14,7 +16,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
+    final appInfo = getIt<AppInfoService>();
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
@@ -74,7 +76,10 @@ class SettingsScreen extends StatelessWidget {
               builder: (context, state) {
                 final settings = state is SoundSettingsLoaded
                     ? state.settings
-                    : const SoundSettings(); // defaults while loading
+                    : const SoundSettings(
+                        soundEnabled: true,
+                        hapticEnabled: true,
+                      ); // defaults while loading
 
                 return Column(
                   children: [
@@ -89,8 +94,9 @@ class SettingsScreen extends StatelessWidget {
                             .add(ToggleSoundEnabled(value)),
                         activeThumbColor: AppColors.primary,
                         inactiveThumbColor: colorScheme.onSurfaceVariant,
-                        inactiveTrackColor:
-                            colorScheme.onSurface.withOpacity(0.08),
+                        inactiveTrackColor: colorScheme.onSurface.withOpacity(
+                          0.08,
+                        ),
                       ),
                     ),
                     _SettingsTile(
@@ -104,8 +110,9 @@ class SettingsScreen extends StatelessWidget {
                             .add(ToggleHapticEnabled(value)),
                         activeThumbColor: AppColors.primary,
                         inactiveThumbColor: colorScheme.onSurfaceVariant,
-                        inactiveTrackColor:
-                            colorScheme.onSurface.withOpacity(0.08),
+                        inactiveTrackColor: colorScheme.onSurface.withOpacity(
+                          0.08,
+                        ),
                       ),
                     ),
                   ],
@@ -154,9 +161,9 @@ class SettingsScreen extends StatelessWidget {
             _SettingsTile(
               icon: Icons.info_outline,
               title: 'About',
-              subtitle: 'Version 1.0.0',
+              subtitle: appInfo.settingsDisplay,
               showChevron: true,
-              onTap: () {},
+              onTap: () => _showAboutDialog(context, appInfo),
             ),
 
             const SizedBox(height: 32),
@@ -196,6 +203,37 @@ class SettingsScreen extends StatelessWidget {
               'Clear',
               style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Optional: Add an about dialog
+  void _showAboutDialog(BuildContext context, AppInfoService appInfo) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('About FitFlow'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'FitFlow helps you crush fitness goals with an intuitive Tabata timer, rep tracker, and smart reminders.',
+            ),
+            const SizedBox(height: 16),
+            Text('Version: ${appInfo.version}'),
+            Text('Build: ${appInfo.buildNumber}'),
+            Text('Full: ${appInfo.fullVersion}'),
+            const SizedBox(height: 16),
+            const Text('© 2026 FitFlow'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
           ),
         ],
       ),
@@ -289,8 +327,7 @@ class _SettingsTile extends StatelessWidget {
             onTap: disabled ? null : onTap,
             borderRadius: BorderRadius.circular(14),
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
@@ -308,8 +345,8 @@ class _SettingsTile extends StatelessWidget {
                     color: warning
                         ? AppColors.error
                         : activeBorder
-                            ? AppColors.primary
-                            : colorScheme.onSurfaceVariant,
+                        ? AppColors.primary
+                        : colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(width: 14),
                   Expanded(
