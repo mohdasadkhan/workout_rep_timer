@@ -59,7 +59,6 @@ class SettingsScreen extends StatelessWidget {
               title: 'Theme',
               subtitle: 'Light, Dark, or System',
               showChevron: true,
-              activeBorder: true,
               onTap: () => ThemeSelectorBottomSheet.show(context),
             ),
 
@@ -69,7 +68,6 @@ class SettingsScreen extends StatelessWidget {
               title: 'Workout Reminders',
               subtitle: 'Schedule daily workout reminders',
               showChevron: true,
-              activeBorder: true,
               onTap: () => context.push('/reminder-settings'),
             ),
 
@@ -345,7 +343,6 @@ class _SettingsTile extends StatelessWidget {
   final Widget? trailing;
   final Widget? badge;
   final bool showChevron;
-  final bool activeBorder;
   final bool warning;
   final bool disabled;
 
@@ -357,7 +354,6 @@ class _SettingsTile extends StatelessWidget {
     this.trailing,
     this.badge,
     this.showChevron = false,
-    this.activeBorder = false,
     this.warning = false,
     this.disabled = false,
   });
@@ -382,10 +378,8 @@ class _SettingsTile extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: activeBorder
-                      ? AppColors.primary
-                      : colorScheme.onSurface.withOpacity(0.08),
-                  width: activeBorder ? 1.5 : 1,
+                  color: colorScheme.onSurface.withOpacity(0.08),
+                  width: 1.5,
                 ),
               ),
               child: Row(
@@ -395,8 +389,6 @@ class _SettingsTile extends StatelessWidget {
                     size: 20,
                     color: warning
                         ? AppColors.error
-                        : activeBorder
-                        ? AppColors.primary
                         : colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(width: 14),
