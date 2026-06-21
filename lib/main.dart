@@ -61,10 +61,10 @@ Future<void> main() async {
   // After setupInjection() and before runApp()
 
   final appInfoService = getIt<AppInfoService>();
-  await appInfoService.init();
+  appInfoService.init(); // 🔥 No 'await' - fires in background
 
   try {
-    await NotificationReminderService.init();
+    NotificationReminderService.init();
   } catch (e) {
     debugPrint('⚠️ Reminder service init failed: $e');
   }
