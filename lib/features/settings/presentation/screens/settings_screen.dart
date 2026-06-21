@@ -2,7 +2,11 @@ import 'package:fitflow/core/di/injection.dart';
 import 'package:fitflow/core/services/app_info_service.dart';
 import 'package:fitflow/core/theme/app_colors.dart';
 import 'package:fitflow/core/theme/app_text_styles.dart';
+import 'package:fitflow/core/usecases/usecase.dart';
+import 'package:fitflow/core/widgets/snackbars/app_snackbar.dart';
+import 'package:fitflow/core/widgets/snackbars/app_snackbar_type.dart';
 import 'package:fitflow/features/settings/domain/entities/sound_settings.dart';
+import 'package:fitflow/features/settings/domain/usecases/clear_all_data_usecase.dart';
 import 'package:fitflow/features/settings/presentation/bloc/sound_settings/sound_settings_bloc.dart';
 import 'package:fitflow/features/settings/presentation/widgets/theme_selector_bottom_sheet.dart';
 import 'package:flutter/material.dart';
@@ -173,9 +177,9 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showClearDataDialog(BuildContext context) {
+  Future<void> _showClearDataDialog(BuildContext context) async {
     final colorScheme = Theme.of(context).colorScheme;
-    showDialog(
+    final confirmed = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor:
@@ -186,19 +190,18 @@ class SettingsScreen extends StatelessWidget {
           style: AppTextStyles.titleMedium.copyWith(color: AppColors.error),
         ),
         content: Text(
-          'This will permanently delete all your workouts, history, and '
-          'personal records. This action cannot be undone.',
+          'This action cannot be undone.\n\nAll workout history, personal records, settings, and active sessions will be permanently deleted.',
           style: AppTextStyles.bodyMedium.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, false),
             child: Text('Cancel', style: AppTextStyles.bodyMedium),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, true),
             child: Text(
               'Clear',
               style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error),
@@ -207,6 +210,54 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
+    if (confirmed != true || !context.mounted) return;
+
+    // Show loading indicator
+    final loadingDialog = showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      ),
+    );
+
+    try {
+      final clearUseCase = getIt<ClearAllDataUseCase>();
+      final result = await clearUseCase(NoParams());
+
+      if (context.mounted) {
+        Navigator.pop(context); // close loading
+
+        result.fold(
+          (failure) {
+            AppSnackbar.show(
+              context: context,
+              title: 'Failed to delete data',
+              message: failure.message,
+              type: AppSnackbarType.error,
+            );
+          },
+          (_) {
+            AppSnackbar.show(
+              context: context,
+              title: 'Data cleared',
+              message: 'All data has been cleared successfully',
+              type: AppSnackbarType.success,
+            );
+          },
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context); // close loading
+        AppSnackbar.show(
+          context: context,
+          title: 'Failed to delete data',
+          message: 'Something went wrong',
+          type: AppSnackbarType.error,
+        );
+      }
+    }
   }
 
   // Optional: Add an about dialog

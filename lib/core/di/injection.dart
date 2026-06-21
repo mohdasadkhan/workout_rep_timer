@@ -1,5 +1,6 @@
 import 'package:fitflow/core/router/app_router.dart';
 import 'package:fitflow/core/services/app_info_service.dart';
+import 'package:fitflow/core/services/notification_reminder_service.dart';
 import 'package:fitflow/core/services/timer_sound_service.dart';
 import 'package:fitflow/features/notification/data/datasources/fcm_remote_datasource.dart';
 import 'package:fitflow/features/notification/data/datasources/local_notification_datasource.dart';
@@ -29,10 +30,13 @@ import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_history_b
 import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
 import 'package:fitflow/features/settings/data/datasources/sound_local_datasource.dart';
 import 'package:fitflow/features/settings/data/datasources/theme_local_datasource.dart';
+import 'package:fitflow/features/settings/data/repositories/clear_data_repository_impl.dart';
 import 'package:fitflow/features/settings/data/repositories/sound_repository_impl.dart';
 import 'package:fitflow/features/settings/data/repositories/theme_repository_impl.dart';
+import 'package:fitflow/features/settings/domain/repositories/clear_data_repository.dart';
 import 'package:fitflow/features/settings/domain/repositories/sound_repository.dart';
 import 'package:fitflow/features/settings/domain/repositories/theme_repository.dart';
+import 'package:fitflow/features/settings/domain/usecases/clear_all_data_usecase.dart';
 import 'package:fitflow/features/settings/domain/usecases/get_sound_settings.dart';
 import 'package:fitflow/features/settings/domain/usecases/get_theme_mode.dart';
 import 'package:fitflow/features/settings/domain/usecases/save_sound_settings.dart';
@@ -152,6 +156,24 @@ Future<void> setupInjection() async {
 
   // Eagerly init the sound service so AudioPool is warm before first workout.
   await getIt<TimerSoundService>().init();
+  await registerClearAllDataUsecase();
+}
+
+Future<void> registerClearAllDataUsecase() async {
+  // Add these registrations
+  getIt.registerLazySingleton<ClearDataRepository>(
+    () => ClearDataRepositoryImpl(
+      workoutDatasource: getIt<WorkoutLocalDatasource>(),
+      notificationService: getIt<ReminderNotificationService>(),
+      soundDatasource: getIt<SoundLocalDatasource>(),
+      themeDatasource: getIt<ThemeLocalDatasource>(),
+      hive: Hive,
+    ),
+  );
+
+  getIt.registerFactory<ClearAllDataUseCase>(
+    () => ClearAllDataUseCase(repository: getIt<ClearDataRepository>()),
+  );
 }
 
 Future<void> _registerReminderFeature() async {
