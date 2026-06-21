@@ -1,7 +1,4 @@
 import 'package:fitflow/core/router/app_router.dart';
-import 'package:fitflow/features/background_lifecycle/data/local/timer_preferences.dart';
-import 'package:fitflow/features/background_lifecycle/data/repositories/timer_repository_impl.dart';
-import 'package:fitflow/features/background_lifecycle/domain/repositories/timer_repository.dart';
 import 'package:fitflow/features/notification/data/datasources/fcm_remote_datasource.dart';
 import 'package:fitflow/features/notification/data/datasources/local_notification_datasource.dart';
 import 'package:fitflow/features/notification/data/repository/notification_repository_impl.dart';
@@ -43,15 +40,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 final getIt = GetIt.instance;
-
-Future<void> registerAppBackgroundFeature() async {
-  getIt.registerSingleton<TimerPreferences>(
-    TimerPreferences(getIt<SharedPreferences>()),
-  );
-  getIt.registerSingleton<TimerRepository>(
-    TimerRepositoryImpl(timerPreferences: getIt<TimerPreferences>()),
-  );
-}
 
 Future<void> registerFirebaseFeature() async {
   getIt.registerLazySingleton(() => FirebaseMessaging.instance);
@@ -137,7 +125,6 @@ Future<void> setupInjection() async {
   await Hive.initFlutter();
   getIt.registerLazySingleton<GoRouter>(() => createRouter());
   getIt.registerSingleton<SharedPreferences>(sharedPreferences);
-  await registerAppBackgroundFeature();
   await registerFirebaseFeature();
   await registerNotificationFeature();
   await registerRepTrackerFeature();
