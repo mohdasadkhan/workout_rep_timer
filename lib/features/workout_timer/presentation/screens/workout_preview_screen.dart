@@ -243,10 +243,7 @@ class _WorkoutPreviewScreenState extends State<WorkoutPreviewScreen> {
             label: Text(
               'START WORKOUT',
 
-              style: textTheme.titleLarge?.copyWith(
-                letterSpacing: 1.2,
-                color: Theme.of(context).colorScheme.surface,
-              ),
+              style: textTheme.titleLarge?.copyWith(letterSpacing: 1.2),
             ),
           ),
         ),

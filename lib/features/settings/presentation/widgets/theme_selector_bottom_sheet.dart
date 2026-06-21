@@ -1,5 +1,7 @@
 import 'package:fitflow/features/settings/domain/entities/app_theme_mode.dart';
-import 'package:fitflow/features/settings/presentation/bloc/theme_bloc.dart';
+import 'package:fitflow/features/settings/presentation/bloc/theme_bloc/theme_bloc.dart';
+import 'package:fitflow/features/settings/presentation/bloc/theme_bloc/theme_event.dart';
+import 'package:fitflow/features/settings/presentation/bloc/theme_bloc/theme_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';

@@ -64,7 +64,6 @@ class _FeatureDropdownTitleState extends State<FeatureDropdownTitle>
           _removeOverlay();
 
           if (feature != widget.current) {
-            // 🔥 Persist last opened feature (fire-and-forget)
             getIt<SharedPreferences>().setString(
               PrefKeys.lastOpenedFeature,
               feature.route,
@@ -94,11 +93,13 @@ class _FeatureDropdownTitleState extends State<FeatureDropdownTitle>
           children: [
             Icon(widget.current.icon, color: AppColors.primary, size: 26),
             const SizedBox(width: 10),
-            Text(
-              widget.current.label,
-              style: AppTextStyles.titleLarge.copyWith(
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onSurfaceVariant,
+            Flexible(
+              child: Text(
+                widget.current.label,
+                style: AppTextStyles.titleLarge.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
             const SizedBox(width: 6),

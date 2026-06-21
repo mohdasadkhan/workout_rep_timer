@@ -1,7 +1,7 @@
 import 'package:fitflow/core/router/app_router.dart';
-import 'package:fitflow/features/background_lifecycle/data/local/timer_preferences.dart';
-import 'package:fitflow/features/background_lifecycle/data/repositories/timer_repository_impl.dart';
-import 'package:fitflow/features/background_lifecycle/domain/repositories/timer_repository.dart';
+import 'package:fitflow/core/services/app_info_service.dart';
+import 'package:fitflow/core/services/notification_reminder_service.dart';
+import 'package:fitflow/core/services/timer_sound_service.dart';
 import 'package:fitflow/features/notification/data/datasources/fcm_remote_datasource.dart';
 import 'package:fitflow/features/notification/data/datasources/local_notification_datasource.dart';
 import 'package:fitflow/features/notification/data/repository/notification_repository_impl.dart';
@@ -28,12 +28,21 @@ import 'package:fitflow/features/rep_tracker/domain/usecases/save_workout_sessio
 import 'package:fitflow/features/rep_tracker/presentation/bloc/personal_records_bloc/personal_records_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
+import 'package:fitflow/features/settings/data/datasources/sound_local_datasource.dart';
 import 'package:fitflow/features/settings/data/datasources/theme_local_datasource.dart';
+import 'package:fitflow/features/settings/data/repositories/clear_data_repository_impl.dart';
+import 'package:fitflow/features/settings/data/repositories/sound_repository_impl.dart';
 import 'package:fitflow/features/settings/data/repositories/theme_repository_impl.dart';
+import 'package:fitflow/features/settings/domain/repositories/clear_data_repository.dart';
+import 'package:fitflow/features/settings/domain/repositories/sound_repository.dart';
 import 'package:fitflow/features/settings/domain/repositories/theme_repository.dart';
+import 'package:fitflow/features/settings/domain/usecases/clear_all_data_usecase.dart';
+import 'package:fitflow/features/settings/domain/usecases/get_sound_settings.dart';
 import 'package:fitflow/features/settings/domain/usecases/get_theme_mode.dart';
+import 'package:fitflow/features/settings/domain/usecases/save_sound_settings.dart';
 import 'package:fitflow/features/settings/domain/usecases/save_theme_mode.dart';
-import 'package:fitflow/features/settings/presentation/bloc/theme_bloc.dart';
+import 'package:fitflow/features/settings/presentation/bloc/sound_settings/sound_settings_bloc.dart';
+import 'package:fitflow/features/settings/presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'package:fitflow/features/workout_timer/presentation/bloc/timer_bloc.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -43,15 +52,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 final getIt = GetIt.instance;
-
-Future<void> registerAppBackgroundFeature() async {
-  getIt.registerSingleton<TimerPreferences>(
-    TimerPreferences(getIt<SharedPreferences>()),
-  );
-  getIt.registerSingleton<TimerRepository>(
-    TimerRepositoryImpl(timerPreferences: getIt<TimerPreferences>()),
-  );
-}
 
 Future<void> registerFirebaseFeature() async {
   getIt.registerLazySingleton(() => FirebaseMessaging.instance);
@@ -67,7 +67,6 @@ Future<void> registerNotificationFeature() async {
       plugin: getIt<FlutterLocalNotificationsPlugin>(),
     ),
   );
-
   await getIt<LocalNotificationDataSourceImpl>().initialize();
   getIt.registerLazySingleton<NotificationRepository>(
     () => NotificationRepositoryImpl(
@@ -84,7 +83,6 @@ Future<void> registerNotificationFeature() async {
   getIt.registerLazySingleton(
     () => SubscribeToTopic(getIt<NotificationRepository>()),
   );
-
   getIt.registerFactory(
     () => NotificationBloc(
       listenForeground: getIt<ListenForegroundNotifications>(),
@@ -99,16 +97,13 @@ Future<void> registerRepTrackerFeature() async {
   getIt.registerLazySingleton<WorkoutLocalDatasource>(
     () => WorkoutLocalDatasourceImpl(hive: Hive),
   );
-
   getIt.registerLazySingleton<WorkoutRepository>(
     () => WorkoutRepositoryImpl(localDatasource: getIt()),
   );
-
   getIt.registerLazySingleton(() => SaveWorkoutSession(getIt()));
   getIt.registerLazySingleton(() => GetWorkoutHistory(getIt()));
   getIt.registerLazySingleton(() => DeleteWorkoutSessionUsecase(getIt()));
   getIt.registerLazySingleton(() => GetPersonalRecords(getIt()));
-
   getIt.registerFactory(
     () => WorkoutSessionBloc(
       saveWorkoutSession: getIt<SaveWorkoutSession>(),
@@ -128,7 +123,20 @@ Future<void> registerRepTrackerFeature() async {
 }
 
 Future<void> registerWorkoutTimerFeature() async {
-  getIt.registerFactory<TimerBloc>(() => TimerBloc());
+  // TimerSoundService is a lazySingleton — one instance shared across the
+  // app lifetime. init() is called eagerly in setupInjection so the AudioPool
+  // is warm before the first workout starts.
+  getIt.registerLazySingleton<TimerSoundService>(() => TimerSoundService());
+
+  // TimerBloc is a factory so each navigation to the timer screen gets a
+  // fresh bloc — but they all share the same TimerSoundService singleton.
+  getIt.registerFactory<TimerBloc>(
+    () => TimerBloc(soundService: getIt<TimerSoundService>()),
+  );
+}
+
+Future<void> registerAppInfoService() async {
+  getIt.registerLazySingleton<AppInfoService>(() => AppInfoServiceImpl());
 }
 
 Future<void> setupInjection() async {
@@ -137,28 +145,47 @@ Future<void> setupInjection() async {
   await Hive.initFlutter();
   getIt.registerLazySingleton<GoRouter>(() => createRouter());
   getIt.registerSingleton<SharedPreferences>(sharedPreferences);
-  await registerAppBackgroundFeature();
   await registerFirebaseFeature();
+  await registerAppInfoService();
   await registerNotificationFeature();
   await registerRepTrackerFeature();
+  await _registerThemeFeature();
+  await _registerSoundFeature();
   await registerWorkoutTimerFeature();
   await _registerReminderFeature();
-  await _registerThemeFeature();
+
+  // Eagerly init the sound service so AudioPool is warm before first workout.
+  await getIt<TimerSoundService>().init();
+  await registerClearAllDataUsecase();
+}
+
+Future<void> registerClearAllDataUsecase() async {
+  // Add these registrations
+  getIt.registerLazySingleton<ClearDataRepository>(
+    () => ClearDataRepositoryImpl(
+      workoutDatasource: getIt<WorkoutLocalDatasource>(),
+      notificationService: getIt<ReminderNotificationService>(),
+      soundDatasource: getIt<SoundLocalDatasource>(),
+      themeDatasource: getIt<ThemeLocalDatasource>(),
+      hive: Hive,
+    ),
+  );
+
+  getIt.registerFactory<ClearAllDataUseCase>(
+    () => ClearAllDataUseCase(repository: getIt<ClearDataRepository>()),
+  );
 }
 
 Future<void> _registerReminderFeature() async {
   getIt.registerLazySingleton<ReminderLocalDatasource>(
     () => ReminderLocalDatasource(getIt<SharedPreferences>()),
   );
-
   getIt.registerLazySingleton<ReminderRepository>(
     () => ReminderRepositoryImpl(getIt<ReminderLocalDatasource>()),
   );
-
   getIt.registerLazySingleton<ReminderNotificationService>(
     () => const ReminderNotificationServiceImpl(),
   );
-
   getIt.registerLazySingleton(
     () => LoadReminderSettingsUseCase(getIt<ReminderRepository>()),
   );
@@ -168,7 +195,6 @@ Future<void> _registerReminderFeature() async {
       notificationService: getIt<ReminderNotificationService>(),
     ),
   );
-
   getIt.registerFactory(
     () => ReminderBloc(
       loadSettings: getIt<LoadReminderSettingsUseCase>(),
@@ -178,7 +204,6 @@ Future<void> _registerReminderFeature() async {
 }
 
 Future<void> _registerThemeFeature() async {
-  // Theme
   getIt.registerLazySingleton<ThemeLocalDatasource>(
     () => ThemeLocalDatasourceImpl(sharedPreferences: getIt()),
   );
@@ -189,5 +214,27 @@ Future<void> _registerThemeFeature() async {
   getIt.registerFactory<SaveThemeMode>(() => SaveThemeMode(getIt()));
   getIt.registerFactory<ThemeBloc>(
     () => ThemeBloc(getThemeMode: getIt(), saveThemeMode: getIt()),
+  );
+}
+
+Future<void> _registerSoundFeature() async {
+  getIt.registerLazySingleton<SoundLocalDatasource>(
+    () => SoundLocalDatasourceImpl(prefs: getIt<SharedPreferences>()),
+  );
+  getIt.registerLazySingleton<SoundRepository>(
+    () => SoundRepositoryImpl(datasource: getIt<SoundLocalDatasource>()),
+  );
+  getIt.registerLazySingleton(() => GetSoundSettings(getIt<SoundRepository>()));
+  getIt.registerLazySingleton(
+    () => SaveSoundSettings(getIt<SoundRepository>()),
+  );
+
+  // Factory so each settings screen gets a fresh bloc, but usecases are
+  // shared singletons (no cost).
+  getIt.registerFactory<SoundSettingsBloc>(
+    () => SoundSettingsBloc(
+      getSettings: getIt<GetSoundSettings>(),
+      saveSettings: getIt<SaveSoundSettings>(),
+    ),
   );
 }

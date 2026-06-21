@@ -6,6 +6,8 @@ import 'package:fitflow/core/theme/app_text_styles.dart';
 import 'package:fitflow/core/widgets/feature_dropdown/extension_on_appfeature.dart';
 import 'package:fitflow/core/widgets/feature_dropdown/feature_dropdown.dart';
 import 'package:fitflow/core/widgets/settings_menu_button.dart';
+import 'package:fitflow/core/widgets/snackbars/app_snackbar.dart';
+import 'package:fitflow/core/widgets/snackbars/app_snackbar_type.dart';
 import 'package:fitflow/features/workout_timer/domain/entity/workout_config.dart';
 import 'package:fitflow/features/workout_timer/domain/usecases/generate_workout_usecase.dart';
 import 'package:flutter/material.dart';
@@ -109,7 +111,13 @@ class _ConfigScreenState extends State<ConfigScreen> {
               ),
             ),
             const SizedBox(height: 24),
-
+            // The simplified config tiles follow the exact chronological order
+            // of a workout session: prepare → work → repeat for N sets with rest
+            // in between → cool down. "Cycles per set" and "Rest (intra-cycle)"
+            // are intentionally excluded — they're advanced Tabata concepts that
+            // confuse casual users. The underlying WorkoutConfig still supports
+            // them so we can re-expose them behind an "Advanced" toggle later
+            // without any model changes.
             ConfigTile(
               title: 'Prepare',
               seconds: _config.prepareSeconds,
@@ -120,18 +128,6 @@ class _ConfigScreenState extends State<ConfigScreen> {
               title: 'Work',
               seconds: _config.workSeconds,
               onChanged: (v) => _updateConfig(_config.copyWith(workSeconds: v)),
-            ),
-            ConfigTile(
-              title: 'Rest (intra-cycle)',
-              seconds: _config.restSeconds,
-              onChanged: (v) => _updateConfig(_config.copyWith(restSeconds: v)),
-            ),
-            ConfigTile(
-              title: 'Cycles per set',
-              isNumber: true,
-              value: _config.cyclesPerSet,
-              onChanged: (v) =>
-                  _updateConfig(_config.copyWith(cyclesPerSet: v)),
             ),
             ConfigTile(
               title: 'Number of sets',
@@ -163,18 +159,35 @@ class _ConfigScreenState extends State<ConfigScreen> {
             cursor: SystemMouseCursors.click,
             child: FilledButton.icon(
               onPressed: () async {
+                final sequence = generateWorkoutSequence(_config);
+                final totalSeconds = sequence.fold<int>(
+                  0,
+                  (sum, p) => sum + p.durationSeconds,
+                );
+
+                if (totalSeconds <= 0) {
+                  AppSnackbar.show(
+                    context: context,
+                    title: 'Error',
+                    message:
+                        'Please set at least one positive duration (Work time recommended)',
+
+                    type: AppSnackbarType.error,
+                  );
+                  return;
+                }
                 var permission =
                     await FlutterForegroundTask.checkNotificationPermission();
                 if (permission != NotificationPermission.granted) {
                   permission =
                       await FlutterForegroundTask.requestNotificationPermission();
                   if (permission != NotificationPermission.granted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
+                    AppSnackbar.show(
+                      context: context,
+                      title: 'Permission Required',
+                      message:
                           'Notification permission required for background timer',
-                        ),
-                      ),
+                      type: AppSnackbarType.warning,
                     );
                     return;
                   }
@@ -185,12 +198,12 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   final ignored =
                       await FlutterForegroundTask.requestIgnoreBatteryOptimization();
                   if (!ignored) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Please select "No restrictions" for reliable background timer',
-                        ),
-                      ),
+                    AppSnackbar.show(
+                      context: context,
+                      title: 'No Battery Optimization',
+                      message:
+                          'Please allow ignoring battery optimization for reliable background timer',
+                      type: AppSnackbarType.warning,
                     );
                   }
                 }

@@ -1,0 +1,18 @@
+
+import 'package:equatable/equatable.dart';
+import 'package:fitflow/features/settings/domain/entities/app_theme_mode.dart';
+
+abstract class ThemeEvent extends Equatable {
+  const ThemeEvent();
+  @override
+  List<Object> get props => [];
+}
+
+class LoadTheme extends ThemeEvent {}
+
+class ChangeTheme extends ThemeEvent {
+  final AppThemeMode mode;
+  const ChangeTheme(this.mode);
+  @override
+  List<Object> get props => [mode];
+}

@@ -1,5 +1,6 @@
 import 'package:fitflow/core/theme/app_colors.dart';
 import 'package:fitflow/core/theme/app_text_styles.dart';
+import 'package:fitflow/core/widgets/snackbars/app_snackbar.dart';
 import 'package:fitflow/features/rep_tracker/domain/entities/workout_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -229,55 +230,22 @@ class _HistoryTabState extends State<_HistoryTab> {
 
   void _showUndoSnackBar(BuildContext context, WorkoutSession session) {
     final bloc = context.read<WorkoutHistoryBloc>();
-    final messenger = ScaffoldMessenger.of(context);
+    AppSnackbar.showUndo(
+      context: context,
+      message: 'Session deleted',
+      onUndo: () {
+        bloc.add(RestoreWorkoutSessionEvent(session));
 
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(12),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        duration: const Duration(seconds: 5),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        // backgroundColor: const Color(0xFF1E1E1E),
-        content: Row(
-          children: [
-            Icon(
-              Icons.delete_outline_rounded,
-              color: AppColors.error,
-              size: 22,
-            ),
-            const SizedBox(width: 14),
-            const Expanded(
-              child: Text(
-                'Session deleted',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 15,
-                ),
-              ),
-            ),
-          ],
-        ),
-        action: SnackBarAction(
-          label: 'UNDO',
-          textColor: AppColors.primary,
-          onPressed: () {
-            bloc.add(RestoreWorkoutSessionEvent(session));
+        _listKey.currentState?.insertItem(0);
 
-            _listKey.currentState?.insertItem(0);
-
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              _scrollController.animateTo(
-                0,
-                duration: const Duration(milliseconds: 400),
-                curve: Curves.easeOutCubic,
-              );
-            });
-          },
-        ),
-      ),
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOutCubic,
+          );
+        });
+      },
     );
   }
 }

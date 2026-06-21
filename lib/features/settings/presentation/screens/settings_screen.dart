@@ -1,10 +1,17 @@
-import 'package:fitflow/features/settings/presentation/bloc/theme_bloc.dart';
+import 'package:fitflow/core/di/injection.dart';
+import 'package:fitflow/core/services/app_info_service.dart';
+import 'package:fitflow/core/theme/app_colors.dart';
+import 'package:fitflow/core/theme/app_text_styles.dart';
+import 'package:fitflow/core/usecases/usecase.dart';
+import 'package:fitflow/core/widgets/snackbars/app_snackbar.dart';
+import 'package:fitflow/core/widgets/snackbars/app_snackbar_type.dart';
+import 'package:fitflow/features/settings/domain/entities/sound_settings.dart';
+import 'package:fitflow/features/settings/domain/usecases/clear_all_data_usecase.dart';
+import 'package:fitflow/features/settings/presentation/bloc/sound_settings/sound_settings_bloc.dart';
 import 'package:fitflow/features/settings/presentation/widgets/theme_selector_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:fitflow/core/theme/app_colors.dart';
-import 'package:fitflow/core/theme/app_text_styles.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -13,7 +20,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
+    final appInfo = getIt<AppInfoService>();
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
@@ -29,111 +36,148 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: ListView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-        children: [
-          _SectionLabel('Preferences'),
-          _SettingsTile(
-            icon: Icons.brightness_6_outlined,
-            title: 'Theme',
-            subtitle: 'Light, Dark, or System',
-            showChevron: true,
-            activeBorder: true,
-            onTap: () => ThemeSelectorBottomSheet.show(context),
-          ),
-
-          _SectionLabel('Notifications'),
-          _SettingsTile(
-            icon: Icons.notifications_active_outlined,
-            title: 'Workout Reminders',
-            subtitle: 'Schedule daily workout reminders',
-            showChevron: true,
-            activeBorder: true,
-            onTap: () => context.push('/reminder-settings'),
-          ),
-          _SettingsTile(
-            icon: Icons.volume_up_outlined,
-            title: 'Timer Sounds',
-            subtitle: 'Play sound on timer completion',
-            badge: const _SoonBadge(),
-            trailing: Switch(
-              value: false,
-              onChanged: null,
-              activeThumbColor: AppColors.primary,
-              inactiveThumbColor: colorScheme.onSurfaceVariant,
-              inactiveTrackColor: colorScheme.onSurface.withOpacity(0.08),
+      body: BlocListener<SoundSettingsBloc, SoundSettingsState>(
+        // Surface persistence errors as a non-intrusive snackbar.
+        listenWhen: (_, current) => current is SoundSettingsError,
+        listener: (context, state) {
+          if (state is SoundSettingsError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Could not save setting: ${state.message}'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
+        child: ListView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+          children: [
+            _SectionLabel('Preferences'),
+            _SettingsTile(
+              icon: Icons.brightness_6_outlined,
+              title: 'Theme',
+              subtitle: 'Light, Dark, or System',
+              showChevron: true,
+              onTap: () => ThemeSelectorBottomSheet.show(context),
             ),
-          ),
-          _SettingsTile(
-            icon: Icons.vibration_outlined,
-            title: 'Haptic Feedback',
-            subtitle: 'Vibrate on timer ticks',
-            badge: const _SoonBadge(),
-            trailing: Switch(
-              value: false,
-              onChanged: null,
-              activeThumbColor: AppColors.primary,
-              inactiveThumbColor: colorScheme.onSurfaceVariant,
-              inactiveTrackColor: colorScheme.onSurface.withOpacity(0.08),
+
+            _SectionLabel('Notifications'),
+            _SettingsTile(
+              icon: Icons.notifications_active_outlined,
+              title: 'Workout Reminders',
+              subtitle: 'Schedule daily workout reminders',
+              showChevron: true,
+              onTap: () => context.push('/reminder-settings'),
             ),
-          ),
 
-          _SectionLabel('Data'),
-          _SettingsTile(
-            icon: Icons.backup_outlined,
-            title: 'Backup & Sync',
-            subtitle: 'Requires Firebase auth',
-            badge: const _SoonBadge(),
-            disabled: true,
-          ),
-          _SettingsTile(
-            icon: Icons.file_download_outlined,
-            title: 'Export Data',
-            subtitle: 'Export as CSV',
-            badge: const _SoonBadge(),
-            disabled: true,
-          ),
-          _SettingsTile(
-            icon: Icons.delete_outline,
-            title: 'Clear All Data',
-            subtitle: 'Permanently deletes everything',
-            warning: true,
-            onTap: () => _showClearDataDialog(context),
-          ),
+            // ── Sound & Haptics ─────────────────────────────────────────────
+            // BlocBuilder scoped only to these two tiles so the rest of the
+            // list never rebuilds when toggles change.
+            BlocBuilder<SoundSettingsBloc, SoundSettingsState>(
+              builder: (context, state) {
+                final settings = state is SoundSettingsLoaded
+                    ? state.settings
+                    : const SoundSettings(
+                        soundEnabled: true,
+                        hapticEnabled: true,
+                      ); // defaults while loading
 
-          _SectionLabel('Support'),
-          _SettingsTile(
-            icon: Icons.star_outline,
-            title: 'Rate FitFlow',
-            subtitle: 'Available after Play Store launch',
-            badge: const _SoonBadge(),
-            disabled: true,
-          ),
-          _SettingsTile(
-            icon: Icons.feedback_outlined,
-            title: 'Send Feedback',
-            subtitle: 'Help us improve',
-            badge: const _SoonBadge(),
-            disabled: true,
-          ),
-          _SettingsTile(
-            icon: Icons.info_outline,
-            title: 'About',
-            subtitle: 'Version 1.0.0',
-            showChevron: true,
-            onTap: () {},
-          ),
+                return Column(
+                  children: [
+                    _SettingsTile(
+                      icon: Icons.volume_up_outlined,
+                      title: 'Timer Sounds',
+                      subtitle: 'Beep on last 3 seconds of each phase',
+                      trailing: Switch(
+                        value: settings.soundEnabled,
+                        onChanged: (value) => context
+                            .read<SoundSettingsBloc>()
+                            .add(ToggleSoundEnabled(value)),
+                        activeThumbColor: AppColors.primary,
+                        inactiveThumbColor: colorScheme.onSurfaceVariant,
+                        inactiveTrackColor: colorScheme.onSurface.withOpacity(
+                          0.08,
+                        ),
+                      ),
+                    ),
+                    _SettingsTile(
+                      icon: Icons.vibration_outlined,
+                      title: 'Haptic Feedback',
+                      subtitle: 'Vibrate on timer ticks',
+                      trailing: Switch(
+                        value: settings.hapticEnabled,
+                        onChanged: (value) => context
+                            .read<SoundSettingsBloc>()
+                            .add(ToggleHapticEnabled(value)),
+                        activeThumbColor: AppColors.primary,
+                        inactiveThumbColor: colorScheme.onSurfaceVariant,
+                        inactiveTrackColor: colorScheme.onSurface.withOpacity(
+                          0.08,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
 
-          const SizedBox(height: 32),
-        ],
+            _SectionLabel('Data'),
+            _SettingsTile(
+              icon: Icons.backup_outlined,
+              title: 'Backup & Sync',
+              subtitle: 'Requires Firebase auth',
+              badge: const _SoonBadge(),
+              disabled: true,
+            ),
+            _SettingsTile(
+              icon: Icons.file_download_outlined,
+              title: 'Export Data',
+              subtitle: 'Export as CSV',
+              badge: const _SoonBadge(),
+              disabled: true,
+            ),
+            _SettingsTile(
+              icon: Icons.delete_outline,
+              title: 'Clear All Data',
+              subtitle: 'Permanently deletes everything',
+              warning: true,
+              onTap: () => _showClearDataDialog(context),
+            ),
+
+            _SectionLabel('Support'),
+            _SettingsTile(
+              icon: Icons.star_outline,
+              title: 'Rate FitFlow',
+              subtitle: 'Available after Play Store launch',
+              badge: const _SoonBadge(),
+              disabled: true,
+            ),
+            _SettingsTile(
+              icon: Icons.feedback_outlined,
+              title: 'Send Feedback',
+              subtitle: 'Help us improve',
+              badge: const _SoonBadge(),
+              disabled: true,
+            ),
+            _SettingsTile(
+              icon: Icons.info_outline,
+              title: 'About',
+              subtitle: appInfo.settingsDisplay,
+              showChevron: true,
+              onTap: () => _showAboutDialog(context, appInfo),
+            ),
+
+            const SizedBox(height: 32),
+          ],
+        ),
       ),
     );
   }
 
-  void _showClearDataDialog(BuildContext context) {
+  Future<void> _showClearDataDialog(BuildContext context) async {
     final colorScheme = Theme.of(context).colorScheme;
-    showDialog(
+    final confirmed = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor:
@@ -144,18 +188,18 @@ class SettingsScreen extends StatelessWidget {
           style: AppTextStyles.titleMedium.copyWith(color: AppColors.error),
         ),
         content: Text(
-          'This will permanently delete all your workouts, history, and personal records. This action cannot be undone.',
+          'This action cannot be undone.\n\nAll workout history, personal records, settings, and active sessions will be permanently deleted.',
           style: AppTextStyles.bodyMedium.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, false),
             child: Text('Cancel', style: AppTextStyles.bodyMedium),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, true),
             child: Text(
               'Clear',
               style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error),
@@ -164,8 +208,89 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
+    if (confirmed != true || !context.mounted) return;
+
+    // Show loading indicator
+    final loadingDialog = showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      ),
+    );
+
+    try {
+      final clearUseCase = getIt<ClearAllDataUseCase>();
+      final result = await clearUseCase(NoParams());
+
+      if (context.mounted) {
+        Navigator.pop(context); // close loading
+
+        result.fold(
+          (failure) {
+            AppSnackbar.show(
+              context: context,
+              title: 'Failed to delete data',
+              message: failure.message,
+              type: AppSnackbarType.error,
+            );
+          },
+          (_) {
+            AppSnackbar.show(
+              context: context,
+              title: 'Data cleared',
+              message: 'All data has been cleared successfully',
+              type: AppSnackbarType.success,
+            );
+          },
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context); // close loading
+        AppSnackbar.show(
+          context: context,
+          title: 'Failed to delete data',
+          message: 'Something went wrong',
+          type: AppSnackbarType.error,
+        );
+      }
+    }
+  }
+
+  // Optional: Add an about dialog
+  void _showAboutDialog(BuildContext context, AppInfoService appInfo) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('About FitFlow'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'FitFlow helps you crush fitness goals with an intuitive Tabata timer, rep tracker, and smart reminders.',
+            ),
+            const SizedBox(height: 16),
+            Text('Version: ${appInfo.version}'),
+            Text('Build: ${appInfo.buildNumber}'),
+            Text('Full: ${appInfo.fullVersion}'),
+            const SizedBox(height: 16),
+            const Text('© 2026 FitFlow'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 }
+
+// ── Private widgets ──────────────────────────────────────────────────────────
 
 class _SectionLabel extends StatelessWidget {
   final String text;
@@ -218,7 +343,6 @@ class _SettingsTile extends StatelessWidget {
   final Widget? trailing;
   final Widget? badge;
   final bool showChevron;
-  final bool activeBorder;
   final bool warning;
   final bool disabled;
 
@@ -230,7 +354,6 @@ class _SettingsTile extends StatelessWidget {
     this.trailing,
     this.badge,
     this.showChevron = false,
-    this.activeBorder = false,
     this.warning = false,
     this.disabled = false,
   });
@@ -255,10 +378,8 @@ class _SettingsTile extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: activeBorder
-                      ? AppColors.primary
-                      : colorScheme.onSurface.withOpacity(0.08),
-                  width: activeBorder ? 1.5 : 1,
+                  color: colorScheme.onSurface.withOpacity(0.08),
+                  width: 1.5,
                 ),
               ),
               child: Row(
@@ -268,8 +389,6 @@ class _SettingsTile extends StatelessWidget {
                     size: 20,
                     color: warning
                         ? AppColors.error
-                        : activeBorder
-                        ? AppColors.primary
                         : colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(width: 14),
