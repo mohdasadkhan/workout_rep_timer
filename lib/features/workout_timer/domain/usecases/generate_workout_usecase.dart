@@ -18,17 +18,19 @@ List<WorkoutPhase> generateWorkoutSequence(WorkoutConfig config) {
 
   for (int set = 1; set <= config.numberOfSets; set++) {
     for (int cycle = 1; cycle <= config.cyclesPerSet; cycle++) {
-      sequence.add(
-        WorkoutPhase(
-          name: 'Work',
-          type: PhaseType.work,
-          durationSeconds: config.workSeconds,
-          currentSet: set,
-          totalSets: config.numberOfSets,
-          currentCycle: cycle,
-          totalCycles: config.cyclesPerSet,
-        ),
-      );
+      if (config.workSeconds > 0) {
+        sequence.add(
+          WorkoutPhase(
+            name: 'Work',
+            type: PhaseType.work,
+            durationSeconds: config.workSeconds,
+            currentSet: set,
+            totalSets: config.numberOfSets,
+            currentCycle: cycle,
+            totalCycles: config.cyclesPerSet,
+          ),
+        );
+      }
 
       if (cycle < config.cyclesPerSet && config.restSeconds > 0) {
         sequence.add(
@@ -66,6 +68,19 @@ List<WorkoutPhase> generateWorkoutSequence(WorkoutConfig config) {
         totalSets: config.numberOfSets,
       ),
     );
+  }
+
+  // NEW: Return at least one minimal phase if nothing was added
+  if (sequence.isEmpty) {
+    return [
+      WorkoutPhase(
+        name: 'Workout',
+        type: PhaseType.work,
+        durationSeconds: 1, // minimal valid timer
+        currentSet: 1,
+        totalSets: 1,
+      ),
+    ];
   }
 
   return sequence;

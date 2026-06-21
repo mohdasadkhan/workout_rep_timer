@@ -23,7 +23,6 @@ class ReminderLocalDatasource {
       final hour = prefs.getInt('$_hourPrefix$dayIndex') ?? 8;
       final minute = prefs.getInt('$_minutePrefix$dayIndex') ?? 0;
       final isActive = prefs.getBool('$_activePrefix$dayIndex') ?? false;
-
       return ReminderSchedule(
         dayOfWeek: dayIndex,
         time: TimeOfDay(hour: hour, minute: minute),
