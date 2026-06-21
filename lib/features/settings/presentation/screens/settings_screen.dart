@@ -1,10 +1,11 @@
-import 'package:fitflow/features/settings/presentation/bloc/theme_bloc.dart';
+import 'package:fitflow/core/theme/app_colors.dart';
+import 'package:fitflow/core/theme/app_text_styles.dart';
+import 'package:fitflow/features/settings/domain/entities/sound_settings.dart';
+import 'package:fitflow/features/settings/presentation/bloc/sound_settings/sound_settings_bloc.dart';
 import 'package:fitflow/features/settings/presentation/widgets/theme_selector_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:fitflow/core/theme/app_colors.dart';
-import 'package:fitflow/core/theme/app_text_styles.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -29,104 +30,138 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: ListView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-        children: [
-          _SectionLabel('Preferences'),
-          _SettingsTile(
-            icon: Icons.brightness_6_outlined,
-            title: 'Theme',
-            subtitle: 'Light, Dark, or System',
-            showChevron: true,
-            activeBorder: true,
-            onTap: () => ThemeSelectorBottomSheet.show(context),
-          ),
-
-          _SectionLabel('Notifications'),
-          _SettingsTile(
-            icon: Icons.notifications_active_outlined,
-            title: 'Workout Reminders',
-            subtitle: 'Schedule daily workout reminders',
-            showChevron: true,
-            activeBorder: true,
-            onTap: () => context.push('/reminder-settings'),
-          ),
-          _SettingsTile(
-            icon: Icons.volume_up_outlined,
-            title: 'Timer Sounds',
-            subtitle: 'Play sound on timer completion',
-            badge: const _SoonBadge(),
-            trailing: Switch(
-              value: false,
-              onChanged: null,
-              activeThumbColor: AppColors.primary,
-              inactiveThumbColor: colorScheme.onSurfaceVariant,
-              inactiveTrackColor: colorScheme.onSurface.withOpacity(0.08),
+      body: BlocListener<SoundSettingsBloc, SoundSettingsState>(
+        // Surface persistence errors as a non-intrusive snackbar.
+        listenWhen: (_, current) => current is SoundSettingsError,
+        listener: (context, state) {
+          if (state is SoundSettingsError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Could not save setting: ${state.message}'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
+        child: ListView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+          children: [
+            _SectionLabel('Preferences'),
+            _SettingsTile(
+              icon: Icons.brightness_6_outlined,
+              title: 'Theme',
+              subtitle: 'Light, Dark, or System',
+              showChevron: true,
+              activeBorder: true,
+              onTap: () => ThemeSelectorBottomSheet.show(context),
             ),
-          ),
-          _SettingsTile(
-            icon: Icons.vibration_outlined,
-            title: 'Haptic Feedback',
-            subtitle: 'Vibrate on timer ticks',
-            badge: const _SoonBadge(),
-            trailing: Switch(
-              value: false,
-              onChanged: null,
-              activeThumbColor: AppColors.primary,
-              inactiveThumbColor: colorScheme.onSurfaceVariant,
-              inactiveTrackColor: colorScheme.onSurface.withOpacity(0.08),
+
+            _SectionLabel('Notifications'),
+            _SettingsTile(
+              icon: Icons.notifications_active_outlined,
+              title: 'Workout Reminders',
+              subtitle: 'Schedule daily workout reminders',
+              showChevron: true,
+              activeBorder: true,
+              onTap: () => context.push('/reminder-settings'),
             ),
-          ),
 
-          _SectionLabel('Data'),
-          _SettingsTile(
-            icon: Icons.backup_outlined,
-            title: 'Backup & Sync',
-            subtitle: 'Requires Firebase auth',
-            badge: const _SoonBadge(),
-            disabled: true,
-          ),
-          _SettingsTile(
-            icon: Icons.file_download_outlined,
-            title: 'Export Data',
-            subtitle: 'Export as CSV',
-            badge: const _SoonBadge(),
-            disabled: true,
-          ),
-          _SettingsTile(
-            icon: Icons.delete_outline,
-            title: 'Clear All Data',
-            subtitle: 'Permanently deletes everything',
-            warning: true,
-            onTap: () => _showClearDataDialog(context),
-          ),
+            // ── Sound & Haptics ─────────────────────────────────────────────
+            // BlocBuilder scoped only to these two tiles so the rest of the
+            // list never rebuilds when toggles change.
+            BlocBuilder<SoundSettingsBloc, SoundSettingsState>(
+              builder: (context, state) {
+                final settings = state is SoundSettingsLoaded
+                    ? state.settings
+                    : const SoundSettings(); // defaults while loading
 
-          _SectionLabel('Support'),
-          _SettingsTile(
-            icon: Icons.star_outline,
-            title: 'Rate FitFlow',
-            subtitle: 'Available after Play Store launch',
-            badge: const _SoonBadge(),
-            disabled: true,
-          ),
-          _SettingsTile(
-            icon: Icons.feedback_outlined,
-            title: 'Send Feedback',
-            subtitle: 'Help us improve',
-            badge: const _SoonBadge(),
-            disabled: true,
-          ),
-          _SettingsTile(
-            icon: Icons.info_outline,
-            title: 'About',
-            subtitle: 'Version 1.0.0',
-            showChevron: true,
-            onTap: () {},
-          ),
+                return Column(
+                  children: [
+                    _SettingsTile(
+                      icon: Icons.volume_up_outlined,
+                      title: 'Timer Sounds',
+                      subtitle: 'Beep on last 3 seconds of each phase',
+                      trailing: Switch(
+                        value: settings.soundEnabled,
+                        onChanged: (value) => context
+                            .read<SoundSettingsBloc>()
+                            .add(ToggleSoundEnabled(value)),
+                        activeThumbColor: AppColors.primary,
+                        inactiveThumbColor: colorScheme.onSurfaceVariant,
+                        inactiveTrackColor:
+                            colorScheme.onSurface.withOpacity(0.08),
+                      ),
+                    ),
+                    _SettingsTile(
+                      icon: Icons.vibration_outlined,
+                      title: 'Haptic Feedback',
+                      subtitle: 'Vibrate on timer ticks',
+                      trailing: Switch(
+                        value: settings.hapticEnabled,
+                        onChanged: (value) => context
+                            .read<SoundSettingsBloc>()
+                            .add(ToggleHapticEnabled(value)),
+                        activeThumbColor: AppColors.primary,
+                        inactiveThumbColor: colorScheme.onSurfaceVariant,
+                        inactiveTrackColor:
+                            colorScheme.onSurface.withOpacity(0.08),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
 
-          const SizedBox(height: 32),
-        ],
+            _SectionLabel('Data'),
+            _SettingsTile(
+              icon: Icons.backup_outlined,
+              title: 'Backup & Sync',
+              subtitle: 'Requires Firebase auth',
+              badge: const _SoonBadge(),
+              disabled: true,
+            ),
+            _SettingsTile(
+              icon: Icons.file_download_outlined,
+              title: 'Export Data',
+              subtitle: 'Export as CSV',
+              badge: const _SoonBadge(),
+              disabled: true,
+            ),
+            _SettingsTile(
+              icon: Icons.delete_outline,
+              title: 'Clear All Data',
+              subtitle: 'Permanently deletes everything',
+              warning: true,
+              onTap: () => _showClearDataDialog(context),
+            ),
+
+            _SectionLabel('Support'),
+            _SettingsTile(
+              icon: Icons.star_outline,
+              title: 'Rate FitFlow',
+              subtitle: 'Available after Play Store launch',
+              badge: const _SoonBadge(),
+              disabled: true,
+            ),
+            _SettingsTile(
+              icon: Icons.feedback_outlined,
+              title: 'Send Feedback',
+              subtitle: 'Help us improve',
+              badge: const _SoonBadge(),
+              disabled: true,
+            ),
+            _SettingsTile(
+              icon: Icons.info_outline,
+              title: 'About',
+              subtitle: 'Version 1.0.0',
+              showChevron: true,
+              onTap: () {},
+            ),
+
+            const SizedBox(height: 32),
+          ],
+        ),
       ),
     );
   }
@@ -144,7 +179,8 @@ class SettingsScreen extends StatelessWidget {
           style: AppTextStyles.titleMedium.copyWith(color: AppColors.error),
         ),
         content: Text(
-          'This will permanently delete all your workouts, history, and personal records. This action cannot be undone.',
+          'This will permanently delete all your workouts, history, and '
+          'personal records. This action cannot be undone.',
           style: AppTextStyles.bodyMedium.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
@@ -166,6 +202,8 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 }
+
+// ── Private widgets ──────────────────────────────────────────────────────────
 
 class _SectionLabel extends StatelessWidget {
   final String text;
@@ -251,7 +289,8 @@ class _SettingsTile extends StatelessWidget {
             onTap: disabled ? null : onTap,
             borderRadius: BorderRadius.circular(14),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
@@ -269,8 +308,8 @@ class _SettingsTile extends StatelessWidget {
                     color: warning
                         ? AppColors.error
                         : activeBorder
-                        ? AppColors.primary
-                        : colorScheme.onSurfaceVariant,
+                            ? AppColors.primary
+                            : colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(width: 14),
                   Expanded(

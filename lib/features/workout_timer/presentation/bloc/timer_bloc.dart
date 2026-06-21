@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:fitflow/core/services/timer_sound_service.dart';
 import 'package:fitflow/core/utils/foreground_task_handler.dart';
 import 'package:fitflow/features/workout_timer/domain/entity/workout_config.dart';
 import 'package:fitflow/features/workout_timer/domain/entity/workout_phase.dart';
@@ -19,7 +20,13 @@ class TimerBloc extends Bloc<TimerEvent, TimerState> {
   int _currentIndex = 0;
   int _remainingSeconds = 0;
 
-  TimerBloc() : super(TimerInitial(const WorkoutConfig())) {
+  /// Injected sound service. All calls on it are fire-and-forget and
+  /// internally try/caught — no sound error will ever propagate here.
+  final TimerSoundService _soundService;
+
+  TimerBloc({required TimerSoundService soundService})
+      : _soundService = soundService,
+        super(TimerInitial(const WorkoutConfig())) {
     FlutterForegroundTask.addTaskDataCallback(_onReceiveTaskData);
     on<TimerStarted>(_onStarted);
     on<TimerPaused>(_onPaused);
@@ -29,17 +36,17 @@ class TimerBloc extends Bloc<TimerEvent, TimerState> {
     on<TimerStopped>(_onStopped);
     on<TimerConfigChanged>(_onConfigChanged);
     on<TimerStopRequestedEvent>(_onTimerStopRequested);
+    on<TimerSoundSettingsChanged>(_onSoundSettingsChanged);
   }
 
   Stream<TimerEffect> get effectStream => _effectController.stream;
 
+  // ── Event handlers ──────────────────────────────────────────────────────────
+
   void _onReceiveTaskData(Object data) {
     debugPrint('📩 Data from notification: $data');
     if (data is! Map) return;
-
-    final action = data['action'];
-
-    switch (action) {
+    switch (data['action']) {
       case 'pause':
         add(TimerPaused());
         break;
@@ -52,37 +59,38 @@ class TimerBloc extends Bloc<TimerEvent, TimerState> {
     }
   }
 
-Future<void> _onStarted(TimerStarted event, Emitter<TimerState> emit) async {
-  _currentConfig = event.config;
-  _sequence = generateWorkoutSequence(_currentConfig);
+  Future<void> _onStarted(
+    TimerStarted event,
+    Emitter<TimerState> emit,
+  ) async {
+    _currentConfig = event.config;
+    _sequence = generateWorkoutSequence(_currentConfig);
 
-  if (_sequence.isEmpty) {
-    // This should no longer happen thanks to the usecase change, but kept as safety
-    emit(TimerInitial(_currentConfig));
-    _effectController.add(ShowStopDialogEffect()); // or a new "InvalidConfigEffect"
-    return;
+    if (_sequence.isEmpty) {
+      emit(TimerInitial(_currentConfig));
+      _effectController.add(ShowStopDialogEffect());
+      return;
+    }
+
+    _currentIndex = 0;
+    _remainingSeconds = _sequence[0].durationSeconds;
+
+    emit(
+      TimerRunning(
+        config: _currentConfig,
+        sequence: _sequence,
+        currentIndex: _currentIndex,
+        remainingSeconds: _remainingSeconds,
+      ),
+    );
+
+    _startTicker();
+    _startForegroundTask();
   }
-
-  _currentIndex = 0;
-  _remainingSeconds = _sequence[0].durationSeconds;
-
-  emit(
-    TimerRunning(
-      config: _currentConfig,
-      sequence: _sequence,
-      currentIndex: _currentIndex,
-      remainingSeconds: _remainingSeconds,
-    ),
-  );
-
-  _startTicker();
-  _startForegroundTask();
-}
 
   void _onPaused(TimerPaused event, Emitter<TimerState> emit) {
     _ticker?.cancel();
     if (state is! TimerRunning) return;
-
     final updated = (state as TimerRunning).copyWith(isPaused: true);
     emit(updated);
     _updateForegroundNotification(updated);
@@ -90,7 +98,6 @@ Future<void> _onStarted(TimerStarted event, Emitter<TimerState> emit) async {
 
   void _onResumed(TimerResumed event, Emitter<TimerState> emit) {
     if (state is! TimerRunning) return;
-
     final updated = (state as TimerRunning).copyWith(isPaused: false);
     emit(updated);
     _startTicker();
@@ -104,8 +111,15 @@ Future<void> _onStarted(TimerStarted event, Emitter<TimerState> emit) async {
     final newRemaining = runningState.remainingSeconds - 1;
 
     if (newRemaining <= 0) {
+      // Phase complete — play chime then advance.
+      // Fire-and-forget: sound failure must never block phase transition.
+      _soundService.playPhaseComplete().ignore();
       add(TimerNextPhase());
     } else {
+      // Countdown beep on last 3 seconds.
+      if (newRemaining <= 3) {
+        _soundService.playCountdownBeep().ignore();
+      }
       final updated = runningState.copyWith(remainingSeconds: newRemaining);
       emit(updated);
       _updateForegroundNotification(updated);
@@ -132,7 +146,6 @@ Future<void> _onStarted(TimerStarted event, Emitter<TimerState> emit) async {
       remainingSeconds: _remainingSeconds,
     );
     emit(nextState);
-
     _updateForegroundNotification(nextState);
   }
 
@@ -148,8 +161,7 @@ Future<void> _onStarted(TimerStarted event, Emitter<TimerState> emit) async {
   ) {
     _ticker?.cancel();
     if (state is TimerRunning) {
-      final pausedState = (state as TimerRunning).copyWith(isPaused: true);
-      emit(pausedState);
+      emit((state as TimerRunning).copyWith(isPaused: true));
     }
     _effectController.add(ShowStopDialogEffect());
   }
@@ -161,6 +173,21 @@ Future<void> _onStarted(TimerStarted event, Emitter<TimerState> emit) async {
     }
   }
 
+  /// Updates in-memory flags in [TimerSoundService] — no disk read,
+  /// no async, negligible overhead even mid-timer.
+  void _onSoundSettingsChanged(
+    TimerSoundSettingsChanged event,
+    Emitter<TimerState> emit,
+  ) {
+    _soundService.updateSettings(
+      soundEnabled: event.soundEnabled,
+      hapticEnabled: event.hapticEnabled,
+    );
+    // No state change needed — this event only updates the service.
+  }
+
+  // ── Internal helpers ────────────────────────────────────────────────────────
+
   void _startTicker() {
     _ticker?.cancel();
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -171,13 +198,11 @@ Future<void> _onStarted(TimerStarted event, Emitter<TimerState> emit) async {
   Future<void> _startForegroundTask() async {
     try {
       debugPrint('🔄 Starting foreground service...');
-
       if (await FlutterForegroundTask.isRunningService) {
         await FlutterForegroundTask.restartService();
         debugPrint('✅ Restarted existing service');
         return;
       }
-
       final result = await FlutterForegroundTask.startService(
         notificationTitle: 'Tabata Timer',
         notificationText: 'Starting...',
@@ -188,35 +213,30 @@ Future<void> _onStarted(TimerStarted event, Emitter<TimerState> emit) async {
           const NotificationButton(id: 'stop', text: 'Stop'),
         ],
       );
-
       if (result is ServiceRequestFailure) {
         debugPrint('❌ ServiceRequestFailure: ${result.error}');
-        return;
       }
-
-      debugPrint('✅ Foreground service started successfully!');
     } catch (e, stack) {
-      debugPrint('❌ Exception starting service: $e');
-      debugPrint(stack.toString());
+      debugPrint('❌ Exception starting service: $e\n$stack');
     }
   }
 
   void _updateForegroundNotification(TimerRunning s) async {
     final isRunning = await FlutterForegroundTask.isRunningService;
-    if (!isRunning) return;
-
-    if (state is! TimerRunning) return;
+    if (!isRunning || state is! TimerRunning) return;
 
     final min = (s.remainingSeconds ~/ 60).toString().padLeft(2, '0');
     final sec = (s.remainingSeconds % 60).toString().padLeft(2, '0');
-    final isPaused = s.isPaused;
+
     await FlutterForegroundTask.updateService(
       notificationTitle:
           '${s.currentPhaseName} • Set ${s.currentSet}/${s.totalSets}',
-      notificationText: isPaused ? 'Paused' : '$min:$sec remaining',
+      notificationText: s.isPaused ? 'Paused' : '$min:$sec remaining',
       notificationButtons: [
-        if (!isPaused) const NotificationButton(id: 'pause', text: 'Pause'),
-        if (isPaused) const NotificationButton(id: 'resume', text: 'Resume'),
+        if (!s.isPaused)
+          const NotificationButton(id: 'pause', text: 'Pause'),
+        if (s.isPaused)
+          const NotificationButton(id: 'resume', text: 'Resume'),
         const NotificationButton(id: 'stop', text: 'Stop'),
       ],
     );
@@ -226,9 +246,8 @@ Future<void> _onStarted(TimerStarted event, Emitter<TimerState> emit) async {
   Future<void> close() {
     _ticker?.cancel();
     _effectController.close();
-
     FlutterForegroundTask.stopService();
-
+    // Sound service is a singleton owned by get_it, not disposed here.
     return super.close();
   }
 }

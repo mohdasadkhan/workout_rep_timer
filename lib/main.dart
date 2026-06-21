@@ -7,7 +7,10 @@ import 'package:fitflow/features/notification/presentation/bloc/notification_blo
 import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_event.dart';
 import 'package:fitflow/features/settings/domain/entities/app_theme_mode.dart';
-import 'package:fitflow/features/settings/presentation/bloc/theme_bloc.dart';
+import 'package:fitflow/features/settings/presentation/bloc/sound_settings/sound_settings_bloc.dart';
+import 'package:fitflow/features/settings/presentation/bloc/theme_bloc/theme_bloc.dart';
+import 'package:fitflow/features/settings/presentation/bloc/theme_bloc/theme_event.dart';
+import 'package:fitflow/features/settings/presentation/bloc/theme_bloc/theme_state.dart';
 import 'package:fitflow/features/workout_timer/presentation/bloc/timer_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -19,12 +22,10 @@ import 'package:timezone/timezone.dart' as tz;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize SharedPreferences first to load theme synchronously
   final prefs = await SharedPreferences.getInstance();
   final savedThemeStr = prefs.getString('theme_mode') ?? 'system';
   final initialThemeMode = _getInitialThemeMode(savedThemeStr);
 
-  // Rest of your initialization
   await setupInjection();
   await Firebase.initializeApp(
     options: const FirebaseOptions(
@@ -80,36 +81,54 @@ ThemeMode _getInitialThemeMode(String value) {
 
 class MyApp extends StatelessWidget {
   final ThemeMode initialThemeMode;
-
   const MyApp({super.key, required this.initialThemeMode});
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider(create: (_) => getIt<ThemeBloc>()..add(LoadTheme())),
+        BlocProvider(
+          // Eager-load sound settings so TimerBloc has them before any
+          // workout starts. The bloc is a singleton-lifetime provider here.
+          create: (_) => getIt<SoundSettingsBloc>()..add(LoadSoundSettings()),
+        ),
         BlocProvider(create: (_) => getIt<TimerBloc>()),
         BlocProvider.value(
           value: getIt<WorkoutSessionBloc>()..add(LoadActiveSession()),
         ),
         BlocProvider(create: (_) => getIt<NotificationBloc>()),
-        BlocProvider(create: (_) => getIt<ThemeBloc>()..add(LoadTheme())),
       ],
-      child: BlocBuilder<ThemeBloc, ThemeState>(
-        builder: (context, state) {
-          // Use pre-loaded theme immediately to prevent flash
-          final themeMode = state is ThemeLoaded
-              ? state.mode.toThemeMode()
-              : initialThemeMode;
-
-          return MaterialApp.router(
-            title: 'FitFlow',
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: themeMode,
-            routerConfig: createRouter(),
-            debugShowCheckedModeBanner: false,
-          );
+      child: BlocListener<SoundSettingsBloc, SoundSettingsState>(
+        // When the user changes sound prefs, push them into TimerBloc so the
+        // currently-running timer picks up the change without any restart.
+        listenWhen: (_, current) => current is SoundSettingsLoaded,
+        listener: (context, state) {
+          if (state is SoundSettingsLoaded) {
+            context.read<TimerBloc>().add(
+              TimerSoundSettingsChanged(
+                soundEnabled: state.settings.soundEnabled,
+                hapticEnabled: state.settings.hapticEnabled,
+              ),
+            );
+          }
         },
+        child: BlocBuilder<ThemeBloc, ThemeState>(
+          builder: (context, state) {
+            final themeMode = state is ThemeLoaded
+                ? state.mode.toThemeMode()
+                : initialThemeMode;
+
+            return MaterialApp.router(
+              title: 'FitFlow',
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeMode,
+              routerConfig: createRouter(),
+              debugShowCheckedModeBanner: false,
+            );
+          },
+        ),
       ),
     );
   }

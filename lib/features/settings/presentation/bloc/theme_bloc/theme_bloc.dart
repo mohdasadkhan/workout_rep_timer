@@ -1,15 +1,9 @@
-import 'dart:developer';
-import 'dart:ui';
 import 'package:fitflow/core/usecases/usecase.dart';
-import 'package:fitflow/features/settings/domain/entities/app_theme_mode.dart';
 import 'package:fitflow/features/settings/domain/usecases/get_theme_mode.dart';
 import 'package:fitflow/features/settings/domain/usecases/save_theme_mode.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:fitflow/features/settings/presentation/bloc/theme_bloc/theme_event.dart';
+import 'package:fitflow/features/settings/presentation/bloc/theme_bloc/theme_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:equatable/equatable.dart';
-
-part 'theme_event.dart';
-part 'theme_state.dart';
 
 class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
   final GetThemeMode getThemeMode;

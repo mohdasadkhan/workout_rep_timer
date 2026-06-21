@@ -1,4 +1,6 @@
-part of 'theme_bloc.dart';
+
+import 'package:equatable/equatable.dart';
+import 'package:fitflow/features/settings/domain/entities/app_theme_mode.dart';
 
 abstract class ThemeEvent extends Equatable {
   const ThemeEvent();
