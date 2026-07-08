@@ -2,7 +2,7 @@
 
 # 🏋️ FitFlow
 
-**Your personal workout companion — built with Flutter**
+**A production-ready fitness companion — engineered with Flutter**
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart)](https://dart.dev)
@@ -12,7 +12,7 @@
 
 **Package ID:** `com.asadcoder.fitness.fitflow`
 
-[Features](#features) • [Architecture](#architecture) • [Tech Stack](#tech-stack) • [Getting Started](#getting-started) • [CI/CD](#cicd-pipeline) • [Screenshots](#screenshots)
+[Overview](#overview) • [Features](#features) • [Under the Hood](#under-the-hood) • [Architecture](#architecture) • [Tech Stack](#tech-stack) • [Getting Started](#getting-started) • [CI/CD](#cicd-pipeline)
 
 </div>
 
@@ -20,42 +20,97 @@
 
 ## Overview
 
-FitFlow is a production-grade fitness companion app designed for people who take their training seriously. It combines a Tabata-style interval timer, a full workout logging system with personal record tracking, and smart workout reminders — all in a clean, dark-aesthetic UI.
+FitFlow is not a tutorial timer app — it is a **shipping Android product** built to survive real gym conditions: screen-off intervals, backgrounded sessions, rebooted phones, and months of accumulated workout history.
 
-Built from the ground up using **Clean Architecture** and **BLoC state management**, FitFlow is structured for scalability, testability, and long-term maintainability.
+The app brings together three problems that are easy to describe and hard to get right in mobile:
+
+1. **Interval timing** that must not drift or die when the user locks their phone mid-set.
+2. **Session logging** with automatic personal-record detection across a growing local dataset.
+3. **Weekly reminders** that still fire after the OS reclaims memory or the device restarts.
+
+I built FitFlow with **Clean Architecture** and **BLoC** because each of those features has non-trivial state — phase transitions, stream-driven ticks, optimistic UI during saves — and I wanted the business rules to stay testable long after the UI changes. Recent iterations focused on production hardening: configurable sound and haptics, non-blocking startup for app metadata, a consolidated settings surface with safe data wipe, and a CI pipeline that builds and ships release bundles to Google Play.
 
 ---
 
 ## Features
 
 ### ⏱️ Tabata Interval Timer
-- Fully configurable: prepare, work, rest, cycles, sets, inter-set rest, and cool down
-- Runs as a **foreground service** — keeps ticking even when the app is in the background
-- Live notification with **Pause / Stop** controls
-- Workout preview screen before starting a session
+
+The timer is fully configurable — prepare, work, rest, cycles, sets, inter-set rest, and cool down — with a preview screen so athletes can sanity-check a protocol before the first beep.
+
+The real engineering challenge is **lifecycle resilience**. A `Timer.periodic` in a widget is not enough; Android will suspend the Dart isolate when the app backgrounds. FitFlow runs the active session as a **foreground service** via `flutter_foreground_task`, keeping the tick stream alive and surfacing a persistent notification with Pause and Stop controls. The running screen was refactored into focused widgets to keep presentation logic readable as the state machine grew.
+
+| Dashboard | Preview | Active session |
+|:---:|:---:|:---:|
+| ![Tabata timer dashboard](./assets/readme/workout_timer_dashboard.png) | ![Workout preview before start](./assets/readme/workout_timer_preview_screen.png) | ![Timer running with foreground notification](./assets/readme/workout_timer_running_screen.png) |
+
+---
 
 ### 📋 Rep Tracker
-- Log workout sessions with exercises, sets, weight, and reps
-- Dynamically add exercises mid-session
-- Automatic **Personal Record (PR)** detection across your entire history
-- Full session history with date and duration
+
+Users log exercises, sets, weight, and reps mid-session — adding movements on the fly without losing context. Every completed session is persisted locally and surfaced in a searchable history timeline.
+
+The harder problem is **PR detection at scale**. Rather than maintaining a separate PR table, the repository scans the full Hive-backed session graph and derives the heaviest set per exercise name on demand — keeping writes simple while still giving accurate bests across nested exercise → set schemas. Domain entities stay pure; Hive type adapters handle serialization at the data boundary.
+
+| Session hub | Live logging | History | Personal records |
+|:---:|:---:|:---:|:---:|
+| ![Rep tracker landing](./assets/readme/rep_tracker_landing_screen.png) | ![Exercise logging during a session](./assets/readme/rep_tracker_exercise_screen.png) | ![Workout history timeline](./assets/readme/rep_tracker_history_screen.png) | ![Personal records screen](./assets/readme/rep_tracker_pr_screen.png) |
+
+---
 
 ### 🔔 Smart Workout Reminders
-- Set independent reminders for each day of the week
-- Each day has its own custom time picker
-- Notifications survive app kills and device reboots
-- Random rotating notification titles to keep things fresh
-- Uses `zonedSchedule` with `DateTimeComponents.dayOfWeekAndTime` for reliable weekly recurrence
 
-### 🌙 Theme Support
-- Dark and light mode with persistent preference
-- Clean, gym-aesthetic dark UI as the default experience
+Each day of the week gets an independent toggle and time picker, so a split routine (e.g., push on Monday, pull on Thursday) maps cleanly to the data model.
+
+Reliability was the design constraint. Reminders are scheduled with `zonedSchedule`, `AndroidScheduleMode.exactAllowWhileIdle`, and `DateTimeComponents.dayOfWeekAndTime` — aligning with Android's alarm APIs so notifications survive app kills and **device reboots**. Rotating title copy keeps nudges from feeling robotic without complicating the scheduling layer.
+
+![Workout reminder settings](./assets/readme/workout_reminder_screen.png)
+
+---
+
+### 🌙 Settings & Polish
+
+Theme preference (dark by default), sound and haptic toggles, dynamic app version via `package_info_plus`, and a guarded **Clear All Data** path that wipes both Hive boxes and SharedPreferences — because production apps need an honest reset switch.
+
+![Settings screen with theme and preferences](./assets/readme/settings_screen.png)
+
+---
+
+## Under the Hood
+
+This section is for engineers evaluating *how* the app behaves when the happy path ends.
+
+### Why BLoC for timers and tracking
+
+Both the Tabata timer and the rep-tracker session flow are **state machines disguised as UI**. The timer moves through prepare → work → rest → cycle boundaries with tick events arriving every second; the workout session coordinates active exercises, in-progress sets, saves, and PR refreshes. BLoC gives each feature an explicit event → state contract, which makes the timer phase logic and session transitions testable with `bloc_test` without spinning up widgets. Streams map naturally to `TimerTicked` and notification callbacks from the foreground isolate back to the main `TimerBloc`.
+
+### Background execution for the Tabata timer
+
+When a session starts, FitFlow promotes the timer to a **foreground service** using `flutter_foreground_task`. A dedicated `TimerTaskHandler` runs in the service isolate; notification button presses send actions (`pause`, `stop`) back to the main isolate via `FlutterForegroundTask.sendDataToMain`, where the BLoC applies them to the authoritative state. This pattern prevents the OS from killing the active tick stream during a locked-screen HIIT round — the same class of problem that breaks naive `Timer` implementations in production fitness apps.
+
+### Notifications that outlive reboots
+
+Weekly reminders go through `NotificationReminderService`, which initializes timezone data and calls `zonedSchedule` with:
+
+- `androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle` — requests exact alarm delivery even in Doze.
+- `matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime` — re-anchors the next fire time after each delivery, including post-reboot rescheduling handled by the plugin and OS alarm manager.
+
+Each weekday maps to a stable notification ID so enable/disable updates cancel and replace the correct alarm without orphan schedules.
+
+### Data layer: Hive vs SharedPreferences
+
+| Store | Responsibility | Rationale |
+|---|---|---|
+| **Hive** | Workout sessions, exercises, sets, PR source data | Binary, box-oriented storage with generated type adapters — fast reads/writes for nested session graphs and history scans. |
+| **SharedPreferences** | Theme, sound/haptic flags, timer presets, lightweight toggles | Key-value access for small primitives without opening a database for every settings read. |
+
+The split keeps hot-path session I/O off SharedPreferences' async string serialization while avoiding Hive ceremony for a boolean dark-mode flag. `Clear All Data` intentionally clears **both** layers so no stale preference survives a wipe.
 
 ---
 
 ## Architecture
 
-FitFlow follows **Clean Architecture** with a strict 3-layer separation:
+FitFlow follows **Clean Architecture** with a strict three-layer separation:
 
 ```
 ┌──────────────────────────────────┐
@@ -76,6 +131,8 @@ FitFlow follows **Clean Architecture** with a strict 3-layer separation:
 │  SharedPreferences / Hive        │
 └──────────────────────────────────┘
 ```
+
+That separation is deliberate, not ceremonial. Domain use cases (`GetPersonalRecords`, timer configuration validation, reminder scheduling contracts) compile without importing `flutter_local_notifications`, `hive_flutter`, or `flutter_foreground_task`. Presentation BLoCs depend on interfaces; data implementations swap storage or plugins behind the same repository API. The payoff is **unit tests on business rules with mocks**, and the freedom to change a plugin version or datasource without rewriting session logic.
 
 ### Project Structure
 
@@ -99,6 +156,7 @@ lib/
 ```
 
 Each feature follows the same internal structure:
+
 ```
 feature/
 ├── domain/
@@ -145,6 +203,7 @@ feature/
 ## Getting Started
 
 ### Prerequisites
+
 - Flutter SDK `>=3.0.0`
 - Dart SDK `>=3.0.0`
 - Android Studio or VS Code
@@ -182,7 +241,7 @@ flutter run
 
 FitFlow uses **GitHub Actions** for automated builds and Play Store deployment.
 
-### What the pipeline does:
+### What the pipeline does
 
 1. **Trigger** — Runs on every push to the `main` branch
 2. **Setup** — Configures Flutter SDK and Java environment
@@ -191,7 +250,7 @@ FitFlow uses **GitHub Actions** for automated builds and Play Store deployment.
 5. **Build** — Compiles a release Android App Bundle (`.aab`)
 6. **Deploy** — Uploads the AAB directly to Google Play (Internal / Closed Testing track) via the [Google Play Upload GitHub Action](https://github.com/r0adkll/upload-google-play)
 
-### Secrets required:
+### Secrets required
 
 | Secret | Description |
 |---|---|
@@ -204,17 +263,11 @@ FitFlow uses **GitHub Actions** for automated builds and Play Store deployment.
 
 ---
 
-## Screenshots
-
-> 📸 Coming soon — screenshots will be added after public launch.
-
----
-
 ## Roadmap
 
 - [ ] Migrate from SharedPreferences to Drift (SQLite) for better query performance
 - [ ] Add pagination to workout history
-- [ ] Unit tests for PR calculation and timer state machine
+- [ ] Expand unit coverage for PR calculation and timer state machine edge cases
 - [ ] Exercise library with suggested workouts
 - [ ] iOS support & App Store release
 - [ ] Widget for home screen workout streak
@@ -223,7 +276,7 @@ FitFlow uses **GitHub Actions** for automated builds and Play Store deployment.
 
 ## Contributing
 
-Contributions are welcome! Feel free to open an issue or submit a pull request.
+Contributions are welcome. Open an issue or submit a pull request.
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/your-feature`
