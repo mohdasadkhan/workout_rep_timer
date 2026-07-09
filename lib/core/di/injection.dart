@@ -19,12 +19,18 @@ import 'package:fitflow/features/reminder/domain/usecases/load_reminder_settings
 import 'package:fitflow/features/reminder/domain/usecases/save_reminder_settings_usecase.dart';
 import 'package:fitflow/features/reminder/presentation/bloc/reminder_bloc.dart';
 import 'package:fitflow/features/rep_tracker/data/datasources/workout_local_datasource.dart';
+import 'package:fitflow/features/rep_tracker/data/repositories/hive_exercise_catalog_repository.dart';
 import 'package:fitflow/features/rep_tracker/data/repositories/workout_repository_impl.dart';
+import 'package:fitflow/features/rep_tracker/domain/repositories/exercise_catalog_repository.dart';
 import 'package:fitflow/features/rep_tracker/domain/repositories/workout_repository.dart';
+import 'package:fitflow/features/rep_tracker/domain/usecases/delete_custom_exercise_usecase.dart';
 import 'package:fitflow/features/rep_tracker/domain/usecases/delete_workout_session.dart';
+import 'package:fitflow/features/rep_tracker/domain/usecases/get_exercises_for_category_usecase.dart';
 import 'package:fitflow/features/rep_tracker/domain/usecases/get_personal_records.dart';
 import 'package:fitflow/features/rep_tracker/domain/usecases/get_workout_history.dart';
+import 'package:fitflow/features/rep_tracker/domain/usecases/save_custom_exercise_usecase.dart';
 import 'package:fitflow/features/rep_tracker/domain/usecases/save_workout_session.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/exercise_picker_bloc/exercise_picker_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/personal_records_bloc/personal_records_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
@@ -118,6 +124,30 @@ Future<void> registerRepTrackerFeature() async {
       getWorkoutHistory: getIt<GetWorkoutHistory>(),
       deleteWorkoutSession: getIt<DeleteWorkoutSessionUsecase>(),
       saveWorkoutSession: getIt<SaveWorkoutSession>(),
+    ),
+  );
+  // injection.dart — add near your other Hive/box registrations
+  final customExerciseBox = await Hive.openBox('custom_exercises_box');
+  getIt.registerLazySingleton<Box>(
+    () => customExerciseBox,
+    instanceName: 'customExerciseBox',
+  );
+
+  getIt.registerLazySingleton<ExerciseCatalogRepository>(
+    () =>
+        HiveExerciseCatalogRepository(getIt(instanceName: 'customExerciseBox')),
+  );
+  getIt.registerLazySingleton(() => GetExercisesForCategoryUseCase(getIt()));
+  getIt.registerLazySingleton(() => SaveCustomExerciseUseCase(getIt()));
+  getIt.registerLazySingleton(() => DeleteCustomExerciseUseCase(getIt()));
+
+  getIt.registerFactory(
+    () => ExercisePickerBloc(
+      getExercises: getIt(),
+      saveExercise: getIt(),
+      deleteExercise: getIt(),
+      prefs: getIt(),
+
     ),
   );
 }

@@ -7,10 +7,12 @@ import 'package:fitflow/core/widgets/feature_dropdown/feature_dropdown.dart';
 import 'package:fitflow/core/widgets/settings_menu_button.dart';
 import 'package:fitflow/core/widgets/snackbars/app_snackbar.dart';
 import 'package:fitflow/core/widgets/snackbars/app_snackbar_type.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/exercise_picker_bloc/exercise_picker_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/widgets/session_widgets/add_exercise_bottom_sheet.dart';
 import 'package:fitflow/features/rep_tracker/presentation/widgets/session_widgets/workout_session_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../bloc/workout_session_bloc/workout_session_bloc.dart';
@@ -136,32 +138,32 @@ class WorkoutSessionPage extends StatelessWidget {
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
             floatingActionButton: state is WorkoutSessionActive
                 ? FloatingActionButton.extended(
-                    onPressed: () async {
-                      final prefs = getIt<SharedPreferences>();
-                      final lastCategory =
-                          prefs.getString(PrefKeys.lastExerciseCategory) ??
-                          'All';
-                      await AddExerciseBottomSheet.show(
-                        context,
-                        initialCategory: lastCategory,
-                      );
-                    },
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    elevation: 4,
-                    icon: const Icon(Icons.add_rounded, size: 20),
-                    label: const Text(
-                      'Add Exercise',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.2,
-                      ),
+                  onPressed: () async {
+                    final prefs = getIt<SharedPreferences>();
+                    final lastCategory =
+                        prefs.getString(PrefKeys.lastExerciseCategory) ??
+                        'All';
+                    await AddExerciseBottomSheet.show(
+                      context,
+                      initialCategory: lastCategory,
+                    );
+                  },
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  elevation: 4,
+                  icon: const Icon(Icons.add_rounded, size: 20),
+                  label: const Text(
+                    'Add Exercise',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.2,
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                  )
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                )
                 : null,
           ),
         );

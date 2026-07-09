@@ -1,9 +1,9 @@
-
 import 'package:fitflow/core/constants/pref_keys.dart';
 import 'package:fitflow/core/di/injection.dart';
 import 'package:fitflow/features/reminder/presentation/bloc/reminder_bloc.dart';
 import 'package:fitflow/features/reminder/presentation/bloc/reminder_event.dart';
 import 'package:fitflow/features/reminder/presentation/screens/reminder_settings_screen.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/exercise_picker_bloc/exercise_picker_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/personal_records_bloc/personal_records_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_bloc.dart';
 import 'package:fitflow/features/settings/presentation/screens/settings_screen.dart';
@@ -78,8 +78,10 @@ GoRouter createRouter() {
 
       GoRoute(
         path: '/rep-tracker',
-        pageBuilder: (context, state) =>
-            _buildPage(state: state, child: const WorkoutSessionPage()),
+        pageBuilder: (context, state) => _buildPage(
+          state: state,
+          child: const WorkoutSessionPage(),
+        ),
         routes: [
           GoRoute(
             path: 'history',
