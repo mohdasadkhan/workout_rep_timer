@@ -128,7 +128,7 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
               height: 4,
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
-                color: colorScheme.onSurface.withOpacity(0.2),
+                color: colorScheme.onSurface.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -147,7 +147,7 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
                 decoration: InputDecoration(
                   hintText: 'Search or type new exercise',
                   hintStyle: TextStyle(
-                    color: colorScheme.onSurface.withOpacity(0.4),
+                    color: colorScheme.onSurface.withValues(alpha: 0.4),
                     fontSize: 16,
                   ),
                   filled: true,
@@ -165,7 +165,7 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
                   ),
                   prefixIcon: Icon(
                     Icons.search,
-                    color: colorScheme.onSurface.withOpacity(0.4),
+                    color: colorScheme.onSurface.withValues(alpha: 0.4),
                   ),
                   suffixIcon: _controller.text.isNotEmpty
                       ? IconButton(
@@ -225,11 +225,13 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
                           }
                         },
                         backgroundColor: colorScheme.surfaceContainerHighest,
-                        selectedColor: AppColors.primary.withOpacity(0.15),
+                        selectedColor: AppColors.primary.withValues(
+                          alpha: 0.15,
+                        ),
                         side: BorderSide(
                           color: selected
-                              ? AppColors.primary.withOpacity(0.6)
-                              : colorScheme.outline.withOpacity(0.25),
+                              ? AppColors.primary.withValues(alpha: 0.6)
+                              : colorScheme.outline.withValues(alpha: 0.25),
                         ),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 14,
@@ -313,7 +315,7 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
           Text(
             'QUICK PICK',
             style: AppTextStyles.labelSmall.copyWith(
-              color: colorScheme.onSurface.withOpacity(0.45),
+              color: colorScheme.onSurface.withValues(alpha: 0.45),
             ),
           ),
           const SizedBox(height: 12),
@@ -337,7 +339,9 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
                             'No matching exercises\nType and tap Done to add custom',
                             textAlign: TextAlign.center,
                             style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurface.withOpacity(0.4),
+                              color: colorScheme.onSurface.withValues(
+                                alpha: 0.4,
+                              ),
                             ),
                           ),
                         ),
@@ -416,24 +420,24 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
                   context.read<ExercisePickerBloc>().add(ChipLongPressed(name))
             : null,
         splashColor: canSelect
-            ? AppColors.error.withOpacity(0.18)
-            : colorScheme.primary.withOpacity(0.22),
+            ? AppColors.error.withValues(alpha: 0.18)
+            : colorScheme.primary.withValues(alpha: 0.22),
         highlightColor: canSelect
-            ? AppColors.error.withOpacity(0.08)
-            : colorScheme.primary.withOpacity(0.1),
+            ? AppColors.error.withValues(alpha: 0.08)
+            : colorScheme.primary.withValues(alpha: 0.1),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
             color: isSelected
-                ? AppColors.error.withOpacity(0.12)
+                ? AppColors.error.withValues(alpha: 0.12)
                 : appColors.chipBackground,
             borderRadius: BorderRadius.circular(22),
             border: Border.all(
               color: isSelected
-                  ? AppColors.error.withOpacity(0.7)
-                  : colorScheme.outline.withOpacity(0.15),
+                  ? AppColors.error.withValues(alpha: 0.7)
+                  : colorScheme.outline.withValues(alpha: 0.15),
               width: isSelected ? 1.5 : 1,
             ),
           ),
@@ -500,7 +504,7 @@ class _SectionHeader extends StatelessWidget {
                       ? 'Tap to select'
                       : '$selectedCount selected',
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.7),
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
                 const Spacer(),
@@ -521,7 +525,7 @@ class _SectionHeader extends StatelessWidget {
                 Text(
                   title,
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.45),
+                    color: colorScheme.onSurface.withValues(alpha: 0.45),
                   ),
                 ),
                 const SizedBox(width: 6),
@@ -533,7 +537,7 @@ class _SectionHeader extends StatelessWidget {
                     child: Icon(
                       Icons.edit_outlined,
                       size: 15,
-                      color: colorScheme.onSurface.withOpacity(0.45),
+                      color: colorScheme.onSurface.withValues(alpha: 0.45),
                     ),
                   ),
                 ),

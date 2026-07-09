@@ -26,17 +26,22 @@ class GlassIconButton extends StatelessWidget {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.07),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.07),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.10),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.10),
               width: 0.5,
             ),
           ),
           child: Icon(
             icon,
-            color: color ??
-                Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            color:
+                color ??
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             size: 22,
           ),
         ),

@@ -32,7 +32,7 @@ class SettingsScreen extends StatelessWidget {
           preferredSize: const Size.fromHeight(0.5),
           child: Container(
             height: 0.5,
-            color: colorScheme.onSurface.withOpacity(0.08),
+            color: colorScheme.onSurface.withValues(alpha: 0.08),
           ),
         ),
       ),
@@ -96,8 +96,8 @@ class SettingsScreen extends StatelessWidget {
                             .add(ToggleSoundEnabled(value)),
                         activeThumbColor: AppColors.primary,
                         inactiveThumbColor: colorScheme.onSurfaceVariant,
-                        inactiveTrackColor: colorScheme.onSurface.withOpacity(
-                          0.08,
+                        inactiveTrackColor: colorScheme.onSurface.withValues(
+                          alpha: 0.08,
                         ),
                       ),
                     ),
@@ -112,8 +112,8 @@ class SettingsScreen extends StatelessWidget {
                             .add(ToggleHapticEnabled(value)),
                         activeThumbColor: AppColors.primary,
                         inactiveThumbColor: colorScheme.onSurfaceVariant,
-                        inactiveTrackColor: colorScheme.onSurface.withOpacity(
-                          0.08,
+                        inactiveTrackColor: colorScheme.onSurface.withValues(
+                          alpha: 0.08,
                         ),
                       ),
                     ),
@@ -319,9 +319,9 @@ class _SoonBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: AppColors.warning.withOpacity(0.10),
+        color: AppColors.warning.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.warning.withOpacity(0.22)),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.22)),
       ),
       child: Text(
         'SOON',
@@ -378,7 +378,7 @@ class _SettingsTile extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: colorScheme.onSurface.withOpacity(0.08),
+                  color: colorScheme.onSurface.withValues(alpha: 0.08),
                   width: 1.5,
                 ),
               ),
@@ -425,7 +425,9 @@ class _SettingsTile extends StatelessWidget {
                   if (showChevron)
                     Icon(
                       Icons.chevron_right,
-                      color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                      color: colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.7,
+                      ),
                       size: 18,
                     ),
                 ],

@@ -21,14 +21,20 @@ class TimerAmbientBackground extends StatelessWidget {
               top: -80,
               left: -60,
               child: RepaintBoundary(
-                child: _GlowBlob(color: color.withOpacity(0.12), size: 240),
+                child: _GlowBlob(
+                  color: color.withValues(alpha: 0.12),
+                  size: 240,
+                ),
               ),
             ),
             Positioned(
               bottom: -60,
               right: -40,
               child: RepaintBoundary(
-                child: _GlowBlob(color: color.withOpacity(0.08), size: 180),
+                child: _GlowBlob(
+                  color: color.withValues(alpha: 0.08),
+                  size: 180,
+                ),
               ),
             ),
           ],

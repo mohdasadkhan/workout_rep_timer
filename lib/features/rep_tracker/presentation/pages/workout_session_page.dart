@@ -102,7 +102,9 @@ class WorkoutSessionPage extends StatelessWidget {
                   decoration: BoxDecoration(
                     // color: AppColors.surface,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.white.withOpacity(0.07)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.07),
+                    ),
                   ),
                   child: IconButton(
                     padding: EdgeInsets.zero,
@@ -138,32 +140,32 @@ class WorkoutSessionPage extends StatelessWidget {
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
             floatingActionButton: state is WorkoutSessionActive
                 ? FloatingActionButton.extended(
-                  onPressed: () async {
-                    final prefs = getIt<SharedPreferences>();
-                    final lastCategory =
-                        prefs.getString(PrefKeys.lastExerciseCategory) ??
-                        'All';
-                    await AddExerciseBottomSheet.show(
-                      context,
-                      initialCategory: lastCategory,
-                    );
-                  },
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  elevation: 4,
-                  icon: const Icon(Icons.add_rounded, size: 20),
-                  label: const Text(
-                    'Add Exercise',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.2,
+                    onPressed: () async {
+                      final prefs = getIt<SharedPreferences>();
+                      final lastCategory =
+                          prefs.getString(PrefKeys.lastExerciseCategory) ??
+                          'All';
+                      await AddExerciseBottomSheet.show(
+                        context,
+                        initialCategory: lastCategory,
+                      );
+                    },
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    elevation: 4,
+                    icon: const Icon(Icons.add_rounded, size: 20),
+                    label: const Text(
+                      'Add Exercise',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.2,
+                      ),
                     ),
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                )
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  )
                 : null,
           ),
         );

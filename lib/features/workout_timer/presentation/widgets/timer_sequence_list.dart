@@ -83,10 +83,9 @@ class _TimerSequenceListState extends State<TimerSequenceList> {
                 final phase = widget.data.sequence[i];
                 final isCurrent = i == widget.data.currentIndex;
                 final isPast = i < widget.data.currentIndex;
-                final progress =
-                    isCurrent && phase.durationSeconds > 0
-                        ? widget.data.remainingSeconds / phase.durationSeconds
-                        : 0.0;
+                final progress = isCurrent && phase.durationSeconds > 0
+                    ? widget.data.remainingSeconds / phase.durationSeconds
+                    : 0.0;
 
                 return _SequenceItem(
                   key: ValueKey(i),
@@ -132,11 +131,11 @@ class _SequenceItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: isCurrent
-              ? phase.color.withOpacity(0.15)
-              : Theme.of(context).colorScheme.onSurface.withOpacity(0.04),
+              ? phase.color.withValues(alpha: 0.15)
+              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(14),
           border: isCurrent
-              ? Border.all(color: phase.color.withOpacity(0.5), width: 1)
+              ? Border.all(color: phase.color.withValues(alpha: 0.5), width: 1)
               : null,
         ),
         child: Row(
@@ -152,19 +151,16 @@ class _SequenceItem extends StatelessWidget {
               child: Text(
                 phase.name,
                 style: AppTextStyles.sequenceItem.copyWith(
-                  fontWeight:
-                      isCurrent ? FontWeight.w700 : FontWeight.w400,
+                  fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w400,
                   color: isCurrent
                       ? Theme.of(context).colorScheme.onSurface
                       : isPast
-                          ? Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withOpacity(0.35)
-                          : Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withOpacity(0.65),
+                      ? Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.35)
+                      : Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.65),
                 ),
               ),
             ),
@@ -201,7 +197,7 @@ class _LeadingIndicator extends StatelessWidget {
           ? Icon(
               Icons.check_circle_rounded,
               size: 18,
-              color: color.withOpacity(0.6),
+              color: color.withValues(alpha: 0.6),
             )
           : Text(
               '${sequenceIndex + 1}',
@@ -210,10 +206,9 @@ class _LeadingIndicator extends StatelessWidget {
                 fontWeight: FontWeight.w700,
                 color: isCurrent
                     ? color
-                    : Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withOpacity(0.25),
+                    : Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.25),
               ),
             ),
     );
@@ -241,10 +236,9 @@ class _TrailingInfo extends StatelessWidget {
             width: 48,
             height: 4,
             decoration: BoxDecoration(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withOpacity(0.12),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(2),
             ),
             child: FractionallySizedBox(
@@ -266,10 +260,9 @@ class _TrailingInfo extends StatelessWidget {
             fontWeight: FontWeight.w600,
             color: isCurrent
                 ? phase.color
-                : Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withOpacity(0.30),
+                : Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.30),
           ),
         ),
       ],
