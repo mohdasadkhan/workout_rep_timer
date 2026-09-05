@@ -57,11 +57,9 @@ Future<void> main() async {
       eventAction: ForegroundTaskEventAction.nothing(),
     ),
   );
-  // Initialize version service
-  // After setupInjection() and before runApp()
 
   final appInfoService = getIt<AppInfoService>();
-  appInfoService.init(); // 🔥 No 'await' - fires in background
+  appInfoService.init();
 
   try {
     NotificationReminderService.init();
@@ -95,8 +93,6 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (_) => getIt<ThemeBloc>()..add(LoadTheme())),
         BlocProvider(
-          // Eager-load sound settings so TimerBloc has them before any
-          // workout starts. The bloc is a singleton-lifetime provider here.
           create: (_) => getIt<SoundSettingsBloc>()..add(LoadSoundSettings()),
         ),
         BlocProvider(create: (_) => getIt<TimerBloc>()),
@@ -106,8 +102,6 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => getIt<NotificationBloc>()),
       ],
       child: BlocListener<SoundSettingsBloc, SoundSettingsState>(
-        // When the user changes sound prefs, push them into TimerBloc so the
-        // currently-running timer picks up the change without any restart.
         listenWhen: (_, current) => current is SoundSettingsLoaded,
         listener: (context, state) {
           if (state is SoundSettingsLoaded) {

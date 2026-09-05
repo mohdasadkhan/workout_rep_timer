@@ -177,7 +177,6 @@ class AppTheme {
         return lightTheme;
       case ThemeMode.dark:
         return darkTheme;
-      case ThemeMode.system:
       default:
         return platformBrightness == Brightness.light ? lightTheme : darkTheme;
     }

@@ -222,7 +222,6 @@ class ExercisePickerBloc
     }
   }
 
-
   void _onEditModeToggled(
     ArsenalEditModeToggled event,
     Emitter<ExercisePickerState> emit,

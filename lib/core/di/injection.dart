@@ -1,6 +1,5 @@
 import 'package:fitflow/core/router/app_router.dart';
 import 'package:fitflow/core/services/app_info_service.dart';
-import 'package:fitflow/core/services/notification_reminder_service.dart';
 import 'package:fitflow/core/services/timer_sound_service.dart';
 import 'package:fitflow/features/notification/data/datasources/fcm_remote_datasource.dart';
 import 'package:fitflow/features/notification/data/datasources/local_notification_datasource.dart';
@@ -147,7 +146,6 @@ Future<void> registerRepTrackerFeature() async {
       saveExercise: getIt(),
       deleteExercise: getIt(),
       prefs: getIt(),
-
     ),
   );
 }

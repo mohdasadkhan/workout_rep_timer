@@ -63,7 +63,6 @@ class ReminderSettingsScreen extends StatelessWidget {
               child: CircularProgressIndicator(color: AppColors.primary),
             ),
             ReminderError(:final message) => _ErrorView(message: message),
-            _ => const SizedBox.shrink(),
           },
         );
       },
