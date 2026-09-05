@@ -10,4 +10,7 @@ class PrefKeys {
   // Sound & haptic settings
   static const String soundEnabled = 'sound_enabled';
   static const String hapticEnabled = 'haptic_enabled';
+
+  // AI coach
+  static const String coachOnboardingComplete = 'coach_onboarding_complete';
 }

@@ -1,6 +1,11 @@
+import 'package:fitflow/core/database/app_database.dart';
 import 'package:fitflow/core/router/app_router.dart';
 import 'package:fitflow/core/services/app_info_service.dart';
 import 'package:fitflow/core/services/timer_sound_service.dart';
+import 'package:fitflow/features/ai_coach/data/repositories/fitness_context_repository_impl.dart';
+import 'package:fitflow/features/ai_coach/domain/repositories/fitness_context_repository.dart';
+import 'package:fitflow/features/ai_coach/domain/usecases/build_fitness_context.dart';
+import 'package:fitflow/features/ai_coach/presentation/bloc/coach_home_bloc/coach_home_bloc.dart';
 import 'package:fitflow/features/notification/data/datasources/fcm_remote_datasource.dart';
 import 'package:fitflow/features/notification/data/datasources/local_notification_datasource.dart';
 import 'package:fitflow/features/notification/data/repository/notification_repository_impl.dart';
@@ -99,8 +104,9 @@ Future<void> registerNotificationFeature() async {
 }
 
 Future<void> registerRepTrackerFeature() async {
+  getIt.registerLazySingleton<AppDatabase>(() => AppDatabase());
   getIt.registerLazySingleton<WorkoutLocalDatasource>(
-    () => WorkoutLocalDatasourceImpl(hive: Hive),
+    () => WorkoutLocalDatasourceImpl(database: getIt()),
   );
   getIt.registerLazySingleton<WorkoutRepository>(
     () => WorkoutRepositoryImpl(localDatasource: getIt()),
@@ -150,6 +156,20 @@ Future<void> registerRepTrackerFeature() async {
   );
 }
 
+Future<void> registerAiCoachFeature() async {
+  getIt.registerLazySingleton<FitnessContextRepository>(
+    () => FitnessContextRepositoryImpl(
+      getWorkoutHistory: getIt(),
+      getPersonalRecords: getIt(),
+      workoutRepository: getIt(),
+    ),
+  );
+  getIt.registerLazySingleton(() => BuildFitnessContext(getIt()));
+  getIt.registerFactory(
+    () => CoachHomeBloc(buildFitnessContext: getIt()),
+  );
+}
+
 Future<void> registerWorkoutTimerFeature() async {
   // TimerSoundService is a lazySingleton — one instance shared across the
   // app lifetime. init() is called eagerly in setupInjection so the AudioPool
@@ -177,6 +197,7 @@ Future<void> setupInjection() async {
   await registerAppInfoService();
   await registerNotificationFeature();
   await registerRepTrackerFeature();
+  await registerAiCoachFeature();
   await _registerThemeFeature();
   await _registerSoundFeature();
   await registerWorkoutTimerFeature();
@@ -195,7 +216,6 @@ Future<void> registerClearAllDataUsecase() async {
       notificationService: getIt<ReminderNotificationService>(),
       soundDatasource: getIt<SoundLocalDatasource>(),
       themeDatasource: getIt<ThemeLocalDatasource>(),
-      hive: Hive,
     ),
   );
 

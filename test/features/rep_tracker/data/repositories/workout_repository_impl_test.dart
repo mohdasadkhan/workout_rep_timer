@@ -19,6 +19,9 @@ class FakeWorkoutLocalDatasource implements WorkoutLocalDatasource {
   Future<void> clearActiveSession() async {}
 
   @override
+  Future<void> clearAllWorkoutSessions() async {}
+
+  @override
   Future<void> deleteWorkoutSession(String sessionId) async {}
 
   @override

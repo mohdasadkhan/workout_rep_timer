@@ -1,16 +1,9 @@
-import 'package:hive/hive.dart';
 import '../../domain/entities/exercise.dart';
 import 'set_model.dart';
 
-@HiveType(typeId: 1)
-class ExerciseModel extends HiveObject {
-  @HiveField(0)
+class ExerciseModel {
   final String id;
-
-  @HiveField(1)
   final String name;
-
-  @HiveField(2)
   final List<SetModel> sets;
 
   ExerciseModel({required this.id, required this.name, required this.sets});

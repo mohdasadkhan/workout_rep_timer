@@ -36,7 +36,7 @@ I built FitFlow with **Clean Architecture** and **BLoC** because each of those f
 
 ### ⏱️ Tabata Interval Timer
 
-The timer is fully configurable — prepare, work, rest, cycles, sets, inter-set rest, and cool down — with a preview screen so athletes can sanity-check a protocol before the first beep.
+The timer is fully configurable — prepare, work, number of sets, rest between sets, and cool down — with a preview screen so athletes can sanity-check a protocol before the first beep.
 
 The real engineering challenge is **lifecycle resilience**. A `Timer.periodic` in a widget is not enough; Android will suspend the Dart isolate when the app backgrounds. FitFlow runs the active session as a **foreground service** via `flutter_foreground_task`, keeping the tick stream alive and surfacing a persistent notification with Pause and Stop controls. The running screen was refactored into focused widgets to keep presentation logic readable as the state machine grew.
 
