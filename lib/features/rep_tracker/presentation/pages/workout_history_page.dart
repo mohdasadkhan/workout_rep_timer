@@ -53,15 +53,17 @@ class _WorkoutHistoryPageState extends State<WorkoutHistoryPage>
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: colorSheme.onSurfaceVariant.withOpacity(0.06),
+                color: colorSheme.onSurfaceVariant.withValues(alpha: 0.06),
               ),
             ),
             child: TabBar(
               controller: _tabController,
               indicator: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.15),
+                color: AppColors.primary.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.3),
+                ),
               ),
               indicatorSize: TabBarIndicatorSize.tab,
               dividerColor: Colors.transparent,

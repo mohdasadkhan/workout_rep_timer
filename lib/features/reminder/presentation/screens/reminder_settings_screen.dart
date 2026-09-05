@@ -47,7 +47,7 @@ class ReminderSettingsScreen extends StatelessWidget {
               preferredSize: const Size.fromHeight(0.5),
               child: Container(
                 height: 0.5,
-                color: Colors.white.withOpacity(0.07),
+                color: Colors.white.withValues(alpha: 0.07),
               ),
             ),
           ),
@@ -63,7 +63,6 @@ class ReminderSettingsScreen extends StatelessWidget {
               child: CircularProgressIndicator(color: AppColors.primary),
             ),
             ReminderError(:final message) => _ErrorView(message: message),
-            _ => const SizedBox.shrink(),
           },
         );
       },
@@ -117,7 +116,7 @@ class _ReminderBody extends StatelessWidget {
                     'Tap to toggle · clock to edit',
                     style: AppTextStyles.labelSmall.copyWith(
                       fontSize: 10,
-                      color: AppColors.textTertiary.withOpacity(0.5),
+                      color: AppColors.textTertiary.withValues(alpha: 0.5),
                       letterSpacing: 0,
                       fontWeight: FontWeight.w400,
                     ),
@@ -172,7 +171,9 @@ class _SummaryCard extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         color: theme.cardTheme.color ?? colorScheme.surface,
-        border: Border.all(color: colorScheme.onSurface.withOpacity(0.08)),
+        border: Border.all(
+          color: colorScheme.onSurface.withValues(alpha: 0.08),
+        ),
       ),
       child: Row(
         children: [
@@ -221,7 +222,7 @@ class _SummaryCard extends StatelessWidget {
                 onChanged: onToggle,
                 activeThumbColor: colorScheme.primary,
                 inactiveThumbColor: AppColors.textTertiary,
-                inactiveTrackColor: Colors.white.withOpacity(0.08),
+                inactiveTrackColor: Colors.white.withValues(alpha: 0.08),
               ),
             ],
           ),
@@ -282,7 +283,7 @@ class _WeekStrip extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.3,
                       color: isOn
-                          ? colorScheme.onSurface.withOpacity(0.65)
+                          ? colorScheme.onSurface.withValues(alpha: 0.65)
                           : AppColors.textTertiary,
                     ),
                   ),
@@ -325,7 +326,7 @@ class _SaveButton extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
-            color: colorScheme.onSurfaceVariant.withOpacity(0.06),
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.06),
           ),
         ),
       ),

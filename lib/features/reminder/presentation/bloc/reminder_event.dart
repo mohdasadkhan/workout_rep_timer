@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/entities/reminder_schedule.dart';
 
 sealed class ReminderEvent {}
 

@@ -25,7 +25,9 @@ class PersonalRecordCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardTheme.color ?? colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: colorScheme.onSurface.withOpacity(0.08)),
+        border: Border.all(
+          color: colorScheme.onSurface.withValues(alpha: 0.08),
+        ),
       ),
       child: Row(
         children: [
@@ -33,9 +35,11 @@ class PersonalRecordCard extends StatelessWidget {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(13),
-              border: Border.all(color: AppColors.primary.withOpacity(0.18)),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.18),
+              ),
             ),
             child: const Icon(
               Icons.emoji_events_rounded,

@@ -1,6 +1,8 @@
-
 import 'package:fitflow/core/constants/pref_keys.dart';
 import 'package:fitflow/core/di/injection.dart';
+import 'package:fitflow/features/ai_coach/presentation/bloc/coach_home_bloc/coach_home_bloc.dart';
+import 'package:fitflow/features/ai_coach/presentation/bloc/coach_home_bloc/coach_home_event.dart';
+import 'package:fitflow/features/ai_coach/presentation/screens/coach_home_screen.dart';
 import 'package:fitflow/features/reminder/presentation/bloc/reminder_bloc.dart';
 import 'package:fitflow/features/reminder/presentation/bloc/reminder_event.dart';
 import 'package:fitflow/features/reminder/presentation/screens/reminder_settings_screen.dart';
@@ -39,7 +41,7 @@ Page<void> _buildPage({required GoRouterState state, required Widget child}) {
 GoRouter createRouter() {
   final prefs = getIt<SharedPreferences>();
   final initialLocation =
-      prefs.getString(PrefKeys.lastOpenedFeature) ?? '/rep-tracker';
+      prefs.getString(PrefKeys.lastOpenedFeature) ?? '/coach';
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
@@ -51,6 +53,18 @@ GoRouter createRouter() {
     ),
 
     routes: [
+      GoRoute(
+        path: '/coach',
+        pageBuilder: (context, state) => _buildPage(
+          state: state,
+          child: BlocProvider(
+            create: (_) =>
+                getIt<CoachHomeBloc>()..add(const CoachHomeLoadRequested()),
+            child: const CoachHomeScreen(),
+          ),
+        ),
+      ),
+
       GoRoute(
         path: '/tabata',
         pageBuilder: (context, state) =>
@@ -78,8 +92,10 @@ GoRouter createRouter() {
 
       GoRoute(
         path: '/rep-tracker',
-        pageBuilder: (context, state) =>
-            _buildPage(state: state, child: const WorkoutSessionPage()),
+        pageBuilder: (context, state) => _buildPage(
+          state: state,
+          child: const WorkoutSessionPage(),
+        ),
         routes: [
           GoRoute(
             path: 'history',

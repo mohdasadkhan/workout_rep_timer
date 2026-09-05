@@ -3,13 +3,13 @@ import 'package:fitflow/core/di/injection.dart';
 import 'package:fitflow/core/theme/app_colors.dart';
 import 'package:fitflow/core/theme/app_text_styles.dart';
 import 'package:fitflow/core/theme/theme_extensions.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/exercise_picker_bloc/exercise_picker_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class AddExerciseBottomSheet extends StatelessWidget {
   final String initialCategory;
@@ -19,66 +19,26 @@ class AddExerciseBottomSheet extends StatelessWidget {
     BuildContext context, {
     String initialCategory = 'All',
   }) {
-    final controller = AnimationController(
-      vsync: Navigator.of(context),
-      duration: const Duration(milliseconds: 420),
-    );
-
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      // No explicit backgroundColor — sheet inherits from BottomSheetTheme → colorScheme.surface
-      transitionAnimationController: controller,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (context) => _SpringWrapper(
-        controller: controller,
+      builder: (context) => BlocProvider(
+        create: (_) =>
+            getIt<ExercisePickerBloc>()..add(CategorySelected(initialCategory)),
         child: AddExerciseBottomSheet(initialCategory: initialCategory),
       ),
-    ).whenComplete(() {
-      if (!controller.isAnimating) controller.dispose();
-    });
+    );
   }
 
   @override
-  Widget build(BuildContext context) =>
-      _AddExerciseContent(initialCategory: initialCategory);
+  Widget build(BuildContext context) => const _AddExerciseContent();
 }
-
-// ─── Spring animation wrapper ─────────────────────────────────────────────────
-
-class _SpringWrapper extends StatelessWidget {
-  final AnimationController controller;
-  final Widget child;
-  const _SpringWrapper({required this.controller, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    final slide = Tween<Offset>(
-      begin: const Offset(0, 0.12),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: controller, curve: Curves.elasticOut));
-
-    final fade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: controller,
-        curve: const Interval(0.0, 0.35, curve: Curves.easeOut),
-      ),
-    );
-
-    return SlideTransition(
-      position: slide,
-      child: FadeTransition(opacity: fade, child: child),
-    );
-  }
-}
-
-// ─── Sheet content ────────────────────────────────────────────────────────────
 
 class _AddExerciseContent extends StatefulWidget {
-  final String initialCategory;
-  const _AddExerciseContent({required this.initialCategory});
+  const _AddExerciseContent();
 
   @override
   State<_AddExerciseContent> createState() => _AddExerciseContentState();
@@ -86,62 +46,28 @@ class _AddExerciseContent extends StatefulWidget {
 
 class _AddExerciseContentState extends State<_AddExerciseContent> {
   final TextEditingController _controller = TextEditingController();
-  String _searchQuery = '';
-  late String _selectedCategory;
-
-  final List<String> _categories = ['All', 'Push', 'Pull', 'Legs', 'Core'];
-
-  final Map<String, List<String>> _exercisePresets = {
-    'Push': [
-      'Bench Press',
-      'Incline Bench Press',
-      'Overhead Press',
-      'Dumbbell Shoulder Press',
-      'Tricep Pushdown',
-      'Chest Fly',
-      'Cable Fly',
-      'Lateral Raise',
-    ],
-    'Pull': [
-      'Pull-up',
-      'Barbell Row',
-      'Lat Pulldown',
-      'Seated Row',
-      'Face Pull',
-      'Bicep Curl',
-      'Hammer Curl',
-      'Deadlift',
-    ],
-    'Legs': [
-      'Squat',
-      'Leg Press',
-      'Romanian Deadlift',
-      'Leg Curl',
-      'Leg Extension',
-      'Calf Raise',
-      'Lunges',
-    ],
-    'Core': [
-      'Plank',
-      'Russian Twist',
-      'Hanging Leg Raise',
-      'Ab Wheel',
-      'Hip Thrust',
-    ],
-  };
-
+  final FocusNode _searchFocusNode = FocusNode();
   final ScrollController _categoryScrollCtrl = ScrollController();
+  final List<String> _categories = ['All', 'Push', 'Pull', 'Legs', 'Core'];
 
   @override
   void initState() {
     super.initState();
-    _selectedCategory = widget.initialCategory;
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToSelected());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final route = ModalRoute.of(context);
+      route?.animation?.addStatusListener((status) {
+        if (status == AnimationStatus.completed && mounted) {
+          _searchFocusNode.requestFocus();
+          _scrollToSelected();
+        }
+      });
+    });
   }
 
   void _scrollToSelected() {
     if (!_categoryScrollCtrl.hasClients) return;
-    final index = _categories.indexOf(_selectedCategory);
+    final selected = context.read<ExercisePickerBloc>().state.selectedCategory;
+    final index = _categories.indexOf(selected);
     if (index == -1) return;
     const itemWidth = 108.0;
     final target =
@@ -155,37 +81,35 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
     );
   }
 
+  void _addExercise(String name) {
+    if (name.trim().isEmpty) return;
+    final trimmed = name.trim();
+    final picker = context.read<ExercisePickerBloc>();
+
+    HapticFeedback.mediumImpact();
+    context.read<WorkoutSessionBloc>().add(AddExercise(exerciseName: trimmed));
+
+    final isKnown =
+        picker.state.visiblePresets.contains(trimmed) ||
+        picker.state.isCustom(trimmed);
+    if (!isKnown) {
+      picker.add(CustomExerciseSubmitted(trimmed));
+    }
+    context.pop();
+  }
+
   @override
   void dispose() {
     _controller.dispose();
     _categoryScrollCtrl.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
-  }
-
-  Future<void> _saveLastCategory(String category) async {
-    final prefs = getIt<SharedPreferences>();
-    await prefs.setString(PrefKeys.lastExerciseCategory, category);
-  }
-
-  void _addExercise(String name) {
-    if (name.trim().isEmpty) return;
-    HapticFeedback.mediumImpact();
-    context.read<WorkoutSessionBloc>().add(
-      AddExercise(exerciseName: name.trim()),
-    );
-    context.pop();
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-
-    final filtered = _exercisePresets.entries
-        .where((e) => _selectedCategory == 'All' || e.key == _selectedCategory)
-        .expand((e) => e.value)
-        .where((n) => n.toLowerCase().contains(_searchQuery.toLowerCase()))
-        .toList();
 
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(
@@ -198,149 +122,263 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Drag handle
           Center(
             child: Container(
               width: 40,
               height: 4,
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
-                // theme-aware handle: dark in light mode, light in dark mode
-                color: colorScheme.onSurface.withOpacity(0.2),
+                color: colorScheme.onSurface.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
           ),
-
           Text('Add Exercise', style: textTheme.titleLarge),
           const SizedBox(height: 20),
 
-          // Search field
-          TextField(
-            controller: _controller,
-            autofocus: true,
-            textInputAction: TextInputAction.done,
-            // text color from theme — no hardcode
-            style: textTheme.bodyLarge,
-            decoration: InputDecoration(
-              hintText: 'Search or type new exercise',
-              hintStyle: TextStyle(
-                color: colorScheme.onSurface.withOpacity(0.4),
-                fontSize: 16,
-              ),
-              filled: true,
-              fillColor: colorScheme.surfaceContainerHighest,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(
-                  color: AppColors.primary,
-                  width: 1.8,
+          BlocBuilder<ExercisePickerBloc, ExercisePickerState>(
+            buildWhen: (p, c) => p.query != c.query,
+            builder: (context, state) {
+              return TextField(
+                controller: _controller,
+                focusNode: _searchFocusNode,
+                textInputAction: TextInputAction.done,
+                style: textTheme.bodyLarge,
+                decoration: InputDecoration(
+                  hintText: 'Search or type new exercise',
+                  hintStyle: TextStyle(
+                    color: colorScheme.onSurface.withValues(alpha: 0.4),
+                    fontSize: 16,
+                  ),
+                  filled: true,
+                  fillColor: colorScheme.surfaceContainerHighest,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(
+                      color: AppColors.primary,
+                      width: 1.8,
+                    ),
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: colorScheme.onSurface.withValues(alpha: 0.4),
+                  ),
+                  suffixIcon: _controller.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 20),
+                          onPressed: () {
+                            _controller.clear();
+                            context.read<ExercisePickerBloc>().add(
+                              SearchQueryChanged(''),
+                            );
+                          },
+                        )
+                      : null,
                 ),
-              ),
-              prefixIcon: Icon(
-                Icons.search,
-                color: colorScheme.onSurface.withOpacity(0.4),
-              ),
-              suffixIcon: _controller.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear, size: 20),
-                      onPressed: () {
-                        _controller.clear();
-                        setState(() => _searchQuery = '');
-                      },
-                    )
-                  : null,
-            ),
-            onChanged: (v) => setState(() => _searchQuery = v.trim()),
-            onSubmitted: _addExercise,
+                onChanged: (v) => context.read<ExercisePickerBloc>().add(
+                  SearchQueryChanged(v.trim()),
+                ),
+                onSubmitted: _addExercise,
+              );
+            },
           ),
 
           const SizedBox(height: 24),
 
-          // Category chips
-          SingleChildScrollView(
-            controller: _categoryScrollCtrl,
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: _categories.map((cat) {
-                final selected = _selectedCategory == cat;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    checkmarkColor: AppColors.primary,
-                    label: Text(
-                      cat,
-                      style: TextStyle(
-                        fontSize: 14.5,
-                        fontWeight: selected
-                            ? FontWeight.w600
-                            : FontWeight.w500,
-                        color: selected
-                            ? AppColors.primary
-                            : colorScheme.onSurface,
+          BlocBuilder<ExercisePickerBloc, ExercisePickerState>(
+            buildWhen: (p, c) => p.selectedCategory != c.selectedCategory,
+            builder: (context, state) {
+              return SingleChildScrollView(
+                controller: _categoryScrollCtrl,
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: _categories.map((cat) {
+                    final selected = state.selectedCategory == cat;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        checkmarkColor: AppColors.primary,
+                        label: Text(
+                          cat,
+                          style: TextStyle(
+                            fontSize: 14.5,
+                            fontWeight: selected
+                                ? FontWeight.w600
+                                : FontWeight.w500,
+                            color: selected
+                                ? AppColors.primary
+                                : colorScheme.onSurface,
+                          ),
+                        ),
+                        selected: selected,
+                        onSelected: (v) {
+                          if (v) {
+                            HapticFeedback.lightImpact();
+                            context.read<ExercisePickerBloc>().add(
+                              CategorySelected(cat),
+                            );
+                            _scrollToSelected();
+                          }
+                        },
+                        backgroundColor: colorScheme.surfaceContainerHighest,
+                        selectedColor: AppColors.primary.withValues(
+                          alpha: 0.15,
+                        ),
+                        side: BorderSide(
+                          color: selected
+                              ? AppColors.primary.withValues(alpha: 0.6)
+                              : colorScheme.outline.withValues(alpha: 0.25),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
+                        elevation: selected ? 1 : 0,
                       ),
-                    ),
-                    selected: selected,
-                    onSelected: (v) {
-                      if (v) {
-                        HapticFeedback.lightImpact();
-                        setState(() => _selectedCategory = cat);
-                        _saveLastCategory(cat);
-                        _scrollToSelected();
-                      }
-                    },
-                    // chip background: elevated surface for unselected, tinted for selected
-                    backgroundColor: colorScheme.surfaceContainerHighest,
-                    selectedColor: AppColors.primary.withOpacity(0.15),
-                    side: BorderSide(
-                      color: selected
-                          ? AppColors.primary.withOpacity(0.6)
-                          : colorScheme.outline.withOpacity(0.25),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
-                    ),
-                    elevation: selected ? 1 : 0,
-                  ),
-                );
-              }).toList(),
-            ),
+                    );
+                  }).toList(),
+                ),
+              );
+            },
           ),
 
           const SizedBox(height: 28),
+
+          BlocBuilder<ExercisePickerBloc, ExercisePickerState>(
+            buildWhen: (p, c) =>
+                p.visibleCustom != c.visibleCustom ||
+                p.isSelectionMode != c.isSelectionMode ||
+                p.selectedForDeletion != c.selectedForDeletion,
+            builder: (context, state) {
+              return AnimatedSize(
+                duration: const Duration(milliseconds: 240),
+                curve: Curves.easeOutCubic,
+                alignment: Alignment.topCenter,
+                child: state.visibleCustom.isEmpty
+                    ? const SizedBox.shrink()
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _SectionHeader(
+                            title: 'YOUR ARSENAL',
+                            isSelectionMode: state.isSelectionMode,
+                            selectedCount: state.selectedForDeletion.length,
+                            onToggleEdit: () => context
+                                .read<ExercisePickerBloc>()
+                                .add(ArsenalEditModeToggled()),
+                            onDelete: () => _confirmDelete(context, state),
+                          ),
+                          const SizedBox(height: 12),
+
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            transitionBuilder: (child, animation) =>
+                                FadeTransition(
+                                  opacity: animation,
+                                  child: ScaleTransition(
+                                    scale: Tween(
+                                      begin: 0.94,
+                                      end: 1.0,
+                                    ).animate(animation),
+                                    child: child,
+                                  ),
+                                ),
+                            child: Wrap(
+                              key: ValueKey(
+                                'custom-${state.visibleCustom.join('|')}',
+                              ),
+                              spacing: 10,
+                              runSpacing: 10,
+                              children: state.visibleCustom
+                                  .map(
+                                    (name) => _buildChip(
+                                      context,
+                                      name,
+                                      state,
+                                      isCustomSection: true,
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+              );
+            },
+          ),
+
           Text(
             'QUICK PICK',
             style: AppTextStyles.labelSmall.copyWith(
-              color: colorScheme.onSurface.withOpacity(0.45),
+              color: colorScheme.onSurface.withValues(alpha: 0.45),
             ),
           ),
           const SizedBox(height: 12),
 
-          filtered.isEmpty && _searchQuery.isNotEmpty
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 40),
-                    child: Text(
-                      'No matching exercises\nType and tap Done to add custom',
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface.withOpacity(0.4),
+          BlocBuilder<ExercisePickerBloc, ExercisePickerState>(
+            buildWhen: (p, c) =>
+                p.visiblePresets != c.visiblePresets || p.query != c.query,
+            builder: (context, state) {
+              return AnimatedSize(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                alignment: Alignment.topCenter,
+                child:
+                    state.visiblePresets.isEmpty &&
+                        state.visibleCustom.isEmpty &&
+                        state.query.isNotEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 40),
+                          child: Text(
+                            'No matching exercises\nType and tap Done to add custom',
+                            textAlign: TextAlign.center,
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurface.withValues(
+                                alpha: 0.4,
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    : AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        transitionBuilder: (child, animation) => FadeTransition(
+                          opacity: animation,
+                          child: ScaleTransition(
+                            scale: Tween(
+                              begin: 0.96,
+                              end: 1.0,
+                            ).animate(animation),
+                            child: child,
+                          ),
+                        ),
+                        child: Wrap(
+                          key: ValueKey(
+                            'preset-${state.visiblePresets.join('|')}',
+                          ),
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: state.visiblePresets
+                              .map(
+                                (name) => _buildChip(
+                                  context,
+                                  name,
+                                  state,
+                                  isCustomSection: false,
+                                ),
+                              )
+                              .toList(),
+                        ),
                       ),
-                    ),
-                  ),
-                )
-              : Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: filtered
-                      .map((name) => _buildChip(context, name))
-                      .toList(),
-                ),
+              );
+            },
+          ),
 
           const SizedBox(height: 20),
         ],
@@ -348,36 +386,163 @@ class _AddExerciseContentState extends State<_AddExerciseContent> {
     );
   }
 
-  Widget _buildChip(BuildContext context, String name) {
+  void _confirmDelete(BuildContext context, ExercisePickerState state) {
+    HapticFeedback.mediumImpact();
+    context.read<ExercisePickerBloc>().add(DeleteSelectedConfirmed());
+  }
+
+  Widget _buildChip(
+    BuildContext context,
+    String name,
+    ExercisePickerState state, {
+    required bool isCustomSection,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-
     final appColors = Theme.of(context).extension<AppColorsExtension>()!;
+    final isSelected = state.selectedForDeletion.contains(name);
+    final canSelect = isCustomSection && state.isSelectionMode;
+
     return Material(
-      color: appColors.chipBackground, // Fix: uses theme-aware color
+      type: MaterialType.transparency,
       borderRadius: BorderRadius.circular(22),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        borderRadius: BorderRadius.circular(22),
-        onTap: () => _addExercise(name),
-        splashColor: colorScheme.primary.withOpacity(
-          0.22,
-        ), // Fix: uses theme-aware
-        highlightColor: colorScheme.primary.withOpacity(0.1),
-        child: Container(
+        onTap: () {
+          if (canSelect) {
+            context.read<ExercisePickerBloc>().add(ChipSelectionToggled(name));
+          } else if (!state.isSelectionMode) {
+            _addExercise(name);
+          }
+        },
+        onLongPress: isCustomSection
+            ? () =>
+                  context.read<ExercisePickerBloc>().add(ChipLongPressed(name))
+            : null,
+        splashColor: canSelect
+            ? AppColors.error.withValues(alpha: 0.18)
+            : colorScheme.primary.withValues(alpha: 0.22),
+        highlightColor: canSelect
+            ? AppColors.error.withValues(alpha: 0.08)
+            : colorScheme.primary.withValues(alpha: 0.1),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.error.withValues(alpha: 0.12)
+                : appColors.chipBackground,
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: colorScheme.outline.withOpacity(0.15)),
-          ),
-          child: Text(
-            name,
-            style: textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: appColors.chipText, // Fix: uses theme-aware color
+            border: Border.all(
+              color: isSelected
+                  ? AppColors.error.withValues(alpha: 0.7)
+                  : colorScheme.outline.withValues(alpha: 0.15),
+              width: isSelected ? 1.5 : 1,
             ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 140),
+                transitionBuilder: (child, anim) =>
+                    ScaleTransition(scale: anim, child: child),
+                child: isSelected
+                    ? const Padding(
+                        key: ValueKey('check'),
+                        padding: EdgeInsets.only(right: 6),
+                        child: Icon(
+                          Icons.check_circle,
+                          size: 16,
+                          color: AppColors.error,
+                        ),
+                      )
+                    : const SizedBox.shrink(key: ValueKey('nocheck')),
+              ),
+              Text(
+                name,
+                style: textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  color: isSelected ? AppColors.error : appColors.chipText,
+                ),
+              ),
+            ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final bool isSelectionMode;
+  final int selectedCount;
+  final VoidCallback onToggleEdit;
+  final VoidCallback onDelete;
+
+  const _SectionHeader({
+    required this.title,
+    required this.isSelectionMode,
+    required this.selectedCount,
+    required this.onToggleEdit,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 180),
+      child: isSelectionMode
+          ? Row(
+              key: const ValueKey('selection'),
+              children: [
+                Text(
+                  selectedCount == 0
+                      ? 'Tap to select'
+                      : '$selectedCount selected',
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                ),
+                const Spacer(),
+                TextButton(onPressed: onToggleEdit, child: const Text('Done')),
+                if (selectedCount > 0)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      color: AppColors.error,
+                    ),
+                    onPressed: onDelete,
+                  ),
+              ],
+            )
+          : Row(
+              key: const ValueKey('title'),
+              children: [
+                Text(
+                  title,
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.45),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                InkWell(
+                  borderRadius: BorderRadius.circular(22),
+                  onTap: onToggleEdit,
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Icon(
+                      Icons.edit_outlined,
+                      size: 15,
+                      color: colorScheme.onSurface.withValues(alpha: 0.45),
+                    ),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }

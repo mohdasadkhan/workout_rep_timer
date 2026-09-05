@@ -66,12 +66,12 @@ class AppSnackbar {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isDark
-                  ? Colors.white.withOpacity(0.08)
-                  : Colors.black.withOpacity(0.06),
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : Colors.black.withValues(alpha: 0.06),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.20 : 0.08),
+                color: Colors.black.withValues(alpha: isDark ? 0.20 : 0.08),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
@@ -84,7 +84,7 @@ class AppSnackbar {
                 height: 40,
                 width: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.error.withOpacity(0.12),
+                  color: AppColors.error.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
