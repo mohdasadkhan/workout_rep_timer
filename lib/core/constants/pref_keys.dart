@@ -13,4 +13,7 @@ class PrefKeys {
 
   // AI coach
   static const String coachOnboardingComplete = 'coach_onboarding_complete';
+
+  // Auth / user profile
+  static const String userProfile = 'user_profile';
 }

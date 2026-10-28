@@ -1,6 +1,7 @@
 // lib/features/settings/data/repositories/clear_data_repository_impl.dart
 import 'package:dartz/dartz.dart';
 import 'package:fitflow/core/failure/failure.dart';
+import 'package:fitflow/features/auth/domain/repositories/auth_repository.dart';
 import 'package:fitflow/features/reminder/domain/repositories/reminder_notification_service.dart';
 import 'package:fitflow/features/settings/data/datasources/sound_local_datasource.dart';
 import 'package:fitflow/features/settings/data/datasources/theme_local_datasource.dart';
@@ -15,12 +16,14 @@ class ClearDataRepositoryImpl implements ClearDataRepository {
   final ReminderNotificationService notificationService;
   final SoundLocalDatasource soundDatasource;
   final ThemeLocalDatasource themeDatasource;
+  final AuthRepository authRepository;
 
   ClearDataRepositoryImpl({
     required this.workoutDatasource,
     required this.notificationService,
     required this.soundDatasource,
     required this.themeDatasource,
+    required this.authRepository,
   });
 
   @override
@@ -28,6 +31,9 @@ class ClearDataRepositoryImpl implements ClearDataRepository {
     try {
       await workoutDatasource.clearAllWorkoutSessions();
       await workoutDatasource.clearActiveSession();
+
+      final signOutResult = await authRepository.signOut();
+      signOutResult.fold((_) {}, (_) {});
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();

@@ -1,9 +1,10 @@
-import 'package:fitflow/core/const/firebase_const.dart';
 import 'package:fitflow/core/di/injection.dart';
-import 'package:fitflow/core/router/app_router.dart';
+import 'package:go_router/go_router.dart';
 import 'package:fitflow/core/services/notification_reminder_service.dart';
 import 'package:fitflow/core/services/app_info_service.dart';
 import 'package:fitflow/core/theme/app_theme.dart';
+import 'package:fitflow/features/auth/data/datasources/auth_remote_datasource_impl.dart';
+import 'package:fitflow/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:fitflow/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_event.dart';
@@ -28,14 +29,9 @@ Future<void> main() async {
   final initialThemeMode = _getInitialThemeMode(savedThemeStr);
 
   await setupInjection();
-  await Firebase.initializeApp(
-    options: const FirebaseOptions(
-      apiKey: FirebaseConst.webApiKey,
-      appId: FirebaseConst.appId,
-      messagingSenderId: FirebaseConst.messageSenderId,
-      projectId: FirebaseConst.projectId,
-    ),
-  );
+  // Uses android/app/google-services.json on Android — avoids appId mismatches.
+  await Firebase.initializeApp();
+  await initializeGoogleSignIn();
 
   FlutterForegroundTask.initCommunicationPort();
   FlutterForegroundTask.init(
@@ -95,6 +91,9 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (_) => getIt<SoundSettingsBloc>()..add(LoadSoundSettings()),
         ),
+        BlocProvider(
+          create: (_) => getIt<AuthCubit>()..initialize(),
+        ),
         BlocProvider(create: (_) => getIt<TimerBloc>()),
         BlocProvider.value(
           value: getIt<WorkoutSessionBloc>()..add(LoadActiveSession()),
@@ -124,7 +123,7 @@ class MyApp extends StatelessWidget {
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
               themeMode: themeMode,
-              routerConfig: createRouter(),
+              routerConfig: getIt<GoRouter>(),
               debugShowCheckedModeBanner: false,
             );
           },

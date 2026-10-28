@@ -5,6 +5,7 @@ import 'package:fitflow/core/theme/app_text_styles.dart';
 import 'package:fitflow/core/usecases/usecase.dart';
 import 'package:fitflow/core/widgets/snackbars/app_snackbar.dart';
 import 'package:fitflow/core/widgets/snackbars/app_snackbar_type.dart';
+import 'package:fitflow/features/auth/presentation/widgets/settings_profile_section.dart';
 import 'package:fitflow/features/settings/domain/entities/sound_settings.dart';
 import 'package:fitflow/features/settings/domain/usecases/clear_all_data_usecase.dart';
 import 'package:fitflow/features/settings/presentation/bloc/sound_settings/sound_settings_bloc.dart';
@@ -53,6 +54,9 @@ class SettingsScreen extends StatelessWidget {
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
           children: [
+            _SectionLabel('Profile'),
+            const SettingsProfileSection(),
+
             _SectionLabel('Preferences'),
             _SettingsTile(
               icon: Icons.brightness_6_outlined,
@@ -126,7 +130,7 @@ class SettingsScreen extends StatelessWidget {
             _SettingsTile(
               icon: Icons.backup_outlined,
               title: 'Backup & Sync',
-              subtitle: 'Requires Firebase auth',
+              subtitle: 'Sync workouts with your Google account',
               badge: const _SoonBadge(),
               disabled: true,
             ),

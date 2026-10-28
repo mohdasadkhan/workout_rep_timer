@@ -38,6 +38,7 @@ import 'package:fitflow/features/rep_tracker/presentation/bloc/exercise_picker_b
 import 'package:fitflow/features/rep_tracker/presentation/bloc/personal_records_bloc/personal_records_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
+import 'package:fitflow/features/auth/data/datasources/auth_datasources.dart';
 import 'package:fitflow/features/settings/data/datasources/sound_local_datasource.dart';
 import 'package:fitflow/features/settings/data/datasources/theme_local_datasource.dart';
 import 'package:fitflow/features/settings/data/repositories/clear_data_repository_impl.dart';
@@ -54,18 +55,62 @@ import 'package:fitflow/features/settings/domain/usecases/save_theme_mode.dart';
 import 'package:fitflow/features/settings/presentation/bloc/sound_settings/sound_settings_bloc.dart';
 import 'package:fitflow/features/settings/presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'package:fitflow/features/workout_timer/presentation/bloc/timer_bloc.dart';
+import 'package:fitflow/features/auth/data/datasources/auth_remote_datasource_impl.dart';
+import 'package:fitflow/features/auth/data/datasources/user_profile_local_datasource_impl.dart';
+import 'package:fitflow/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:fitflow/features/auth/domain/repositories/auth_repository.dart';
+import 'package:fitflow/features/auth/domain/usecases/auth_usecases.dart';
+import 'package:fitflow/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 final getIt = GetIt.instance;
 
 Future<void> registerFirebaseFeature() async {
+  getIt.registerLazySingleton(() => FirebaseAuth.instance);
+  getIt.registerLazySingleton(() => GoogleSignIn.instance);
   getIt.registerLazySingleton(() => FirebaseMessaging.instance);
   getIt.registerLazySingleton(() => FlutterLocalNotificationsPlugin());
+}
+
+Future<void> registerAuthFeature() async {
+  getIt.registerLazySingleton<UserProfileLocalDatasource>(
+    () => UserProfileLocalDatasourceImpl(prefs: getIt<SharedPreferences>()),
+  );
+  getIt.registerLazySingleton<AuthRemoteDatasource>(
+    () => AuthRemoteDatasourceImpl(
+      firebaseAuth: getIt<FirebaseAuth>(),
+      googleSignIn: getIt<GoogleSignIn>(),
+    ),
+  );
+  getIt.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(
+      remoteDatasource: getIt<AuthRemoteDatasource>(),
+      localDatasource: getIt<UserProfileLocalDatasource>(),
+    ),
+  );
+  getIt.registerLazySingleton(() => SignInWithGoogle(getIt<AuthRepository>()));
+  getIt.registerLazySingleton(() => SignInAnonymously(getIt<AuthRepository>()));
+  getIt.registerLazySingleton(() => SignOut(getIt<AuthRepository>()));
+  getIt.registerLazySingleton(
+    () => GetCurrentUserProfile(getIt<AuthRepository>()),
+  );
+  getIt.registerLazySingleton(() => ClearAuthProfile(getIt<AuthRepository>()));
+  getIt.registerLazySingleton<AuthCubit>(
+    () => AuthCubit(
+      getCurrentUserProfile: getIt<GetCurrentUserProfile>(),
+      signInWithGoogle: getIt<SignInWithGoogle>(),
+      signInAnonymously: getIt<SignInAnonymously>(),
+      signOut: getIt<SignOut>(),
+      authRepository: getIt<AuthRepository>(),
+    ),
+  );
 }
 
 Future<void> registerNotificationFeature() async {
@@ -198,6 +243,7 @@ Future<void> setupInjection() async {
   await registerNotificationFeature();
   await registerRepTrackerFeature();
   await registerAiCoachFeature();
+  await registerAuthFeature();
   await _registerThemeFeature();
   await _registerSoundFeature();
   await registerWorkoutTimerFeature();
@@ -216,6 +262,7 @@ Future<void> registerClearAllDataUsecase() async {
       notificationService: getIt<ReminderNotificationService>(),
       soundDatasource: getIt<SoundLocalDatasource>(),
       themeDatasource: getIt<ThemeLocalDatasource>(),
+      authRepository: getIt<AuthRepository>(),
     ),
   );
 

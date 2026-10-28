@@ -18,3 +18,7 @@ class CacheFailure extends Failure {
 class UnexpectedFailure extends Failure {
   const UnexpectedFailure({required super.message});
 }
+
+class AuthFailure extends Failure {
+  const AuthFailure({required super.message});
+}

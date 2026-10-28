@@ -19,7 +19,9 @@ dependencies:
   just_audio: ^0.10.5
   get_it: ^9.2.1
   firebase_core: ^4.6.0
+  firebase_auth: ^6.1.0
   firebase_messaging: ^16.1.3
+  google_sign_in: ^7.2.0
   flutter_local_notifications: ^20.1.0
   dartz: ^0.10.1
   go_router: ^17.1.0
@@ -61,6 +63,7 @@ flutter:
   assets:
     - assets/sounds/beep_complete.wav
     - assets/sounds/beep_countdown.wav
+    - android/app/google-services.json
 
 flutter_native_splash:
   color: "#FFFFFF"           # light mode background
