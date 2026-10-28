@@ -5,6 +5,7 @@ import 'package:fitflow/core/theme/app_text_styles.dart';
 import 'package:fitflow/core/usecases/usecase.dart';
 import 'package:fitflow/core/widgets/snackbars/app_snackbar.dart';
 import 'package:fitflow/core/widgets/snackbars/app_snackbar_type.dart';
+import 'package:fitflow/features/auth/presentation/widgets/settings_profile_section.dart';
 import 'package:fitflow/features/settings/domain/entities/sound_settings.dart';
 import 'package:fitflow/features/settings/domain/usecases/clear_all_data_usecase.dart';
 import 'package:fitflow/features/settings/presentation/bloc/sound_settings/sound_settings_bloc.dart';
@@ -32,7 +33,7 @@ class SettingsScreen extends StatelessWidget {
           preferredSize: const Size.fromHeight(0.5),
           child: Container(
             height: 0.5,
-            color: colorScheme.onSurface.withOpacity(0.08),
+            color: colorScheme.onSurface.withValues(alpha: 0.08),
           ),
         ),
       ),
@@ -53,6 +54,9 @@ class SettingsScreen extends StatelessWidget {
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
           children: [
+            _SectionLabel('Profile'),
+            const SettingsProfileSection(),
+
             _SectionLabel('Preferences'),
             _SettingsTile(
               icon: Icons.brightness_6_outlined,
@@ -96,8 +100,8 @@ class SettingsScreen extends StatelessWidget {
                             .add(ToggleSoundEnabled(value)),
                         activeThumbColor: AppColors.primary,
                         inactiveThumbColor: colorScheme.onSurfaceVariant,
-                        inactiveTrackColor: colorScheme.onSurface.withOpacity(
-                          0.08,
+                        inactiveTrackColor: colorScheme.onSurface.withValues(
+                          alpha: 0.08,
                         ),
                       ),
                     ),
@@ -112,8 +116,8 @@ class SettingsScreen extends StatelessWidget {
                             .add(ToggleHapticEnabled(value)),
                         activeThumbColor: AppColors.primary,
                         inactiveThumbColor: colorScheme.onSurfaceVariant,
-                        inactiveTrackColor: colorScheme.onSurface.withOpacity(
-                          0.08,
+                        inactiveTrackColor: colorScheme.onSurface.withValues(
+                          alpha: 0.08,
                         ),
                       ),
                     ),
@@ -126,7 +130,7 @@ class SettingsScreen extends StatelessWidget {
             _SettingsTile(
               icon: Icons.backup_outlined,
               title: 'Backup & Sync',
-              subtitle: 'Requires Firebase auth',
+              subtitle: 'Sync workouts with your Google account',
               badge: const _SoonBadge(),
               disabled: true,
             ),
@@ -319,9 +323,9 @@ class _SoonBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: AppColors.warning.withOpacity(0.10),
+        color: AppColors.warning.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.warning.withOpacity(0.22)),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.22)),
       ),
       child: Text(
         'SOON',
@@ -378,7 +382,7 @@ class _SettingsTile extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: colorScheme.onSurface.withOpacity(0.08),
+                  color: colorScheme.onSurface.withValues(alpha: 0.08),
                   width: 1.5,
                 ),
               ),
@@ -425,7 +429,9 @@ class _SettingsTile extends StatelessWidget {
                   if (showChevron)
                     Icon(
                       Icons.chevron_right,
-                      color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                      color: colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.7,
+                      ),
                       size: 18,
                     ),
                 ],

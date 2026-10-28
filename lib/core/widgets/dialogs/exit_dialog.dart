@@ -7,7 +7,7 @@ Future<bool?> showExitDialog(BuildContext context) {
     context: context,
     barrierDismissible: true,
     barrierLabel: 'Dismiss',
-    barrierColor: Theme.of(context).colorScheme.surface.withOpacity(0.95),
+    barrierColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
     transitionDuration: const Duration(milliseconds: 400),
     pageBuilder: (_, __, ___) => const _ExitDialog(),
     transitionBuilder: (ctx, animation, _, child) {
@@ -43,11 +43,13 @@ class _ExitDialog extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
           decoration: BoxDecoration(
             color: colorScheme.surface,
-            border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: 0.2),
+            ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -71,7 +73,7 @@ class _ExitDialog extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13,
-                  color: colorScheme.onSurface.withOpacity(0.6),
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
                   fontStyle: FontStyle.italic,
                   decoration: TextDecoration.none,
                 ),
@@ -85,10 +87,11 @@ class _ExitDialog extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 13),
                         decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest
-                              .withOpacity(0.5),
+                          color: colorScheme.surfaceContainerHighest.withValues(
+                            alpha: 0.5,
+                          ),
                           border: Border.all(
-                            color: colorScheme.outline.withOpacity(0.2),
+                            color: colorScheme.outline.withValues(alpha: 0.2),
                           ),
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -112,9 +115,9 @@ class _ExitDialog extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 13),
                         decoration: BoxDecoration(
-                          color: colorScheme.error.withOpacity(0.15),
+                          color: colorScheme.error.withValues(alpha: 0.15),
                           border: Border.all(
-                            color: colorScheme.error.withOpacity(0.4),
+                            color: colorScheme.error.withValues(alpha: 0.4),
                           ),
                           borderRadius: BorderRadius.circular(14),
                         ),

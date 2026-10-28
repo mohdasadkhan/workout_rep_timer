@@ -7,10 +7,12 @@ import 'package:fitflow/core/widgets/feature_dropdown/feature_dropdown.dart';
 import 'package:fitflow/core/widgets/settings_menu_button.dart';
 import 'package:fitflow/core/widgets/snackbars/app_snackbar.dart';
 import 'package:fitflow/core/widgets/snackbars/app_snackbar_type.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/exercise_picker_bloc/exercise_picker_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/widgets/session_widgets/add_exercise_bottom_sheet.dart';
 import 'package:fitflow/features/rep_tracker/presentation/widgets/session_widgets/workout_session_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../bloc/workout_session_bloc/workout_session_bloc.dart';
@@ -100,7 +102,9 @@ class WorkoutSessionPage extends StatelessWidget {
                   decoration: BoxDecoration(
                     // color: AppColors.surface,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.white.withOpacity(0.07)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.07),
+                    ),
                   ),
                   child: IconButton(
                     padding: EdgeInsets.zero,

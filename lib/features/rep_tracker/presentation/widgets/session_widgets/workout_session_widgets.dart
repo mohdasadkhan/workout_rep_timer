@@ -66,8 +66,8 @@ class FinishButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.12),
-            border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+            color: AppColors.primary.withValues(alpha: 0.12),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
@@ -119,7 +119,7 @@ class AppDialog extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.12),
+                color: iconColor.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: iconColor, size: 28),
@@ -226,10 +226,10 @@ class StartPrompt extends StatelessWidget {
               height: 100,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primary.withOpacity(0.08),
+                color: AppColors.primary.withValues(alpha: 0.08),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.15),
+                    color: AppColors.primary.withValues(alpha: 0.15),
                     blurRadius: 40,
                     spreadRadius: 8,
                   ),
@@ -304,13 +304,13 @@ class ActiveSession extends StatelessWidget {
               Icons.add_box_outlined,
               size: 52,
               // theme-aware muted icon
-              color: colorScheme.onSurface.withOpacity(0.35),
+              color: colorScheme.onSurface.withValues(alpha: 0.35),
             ),
             const SizedBox(height: 16),
             Text(
               'No exercises yet',
               style: textTheme.titleMedium?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.45),
+                color: colorScheme.onSurface.withValues(alpha: 0.45),
               ),
             ),
             const SizedBox(height: 6),
@@ -352,7 +352,7 @@ class SessionStatsBar extends StatelessWidget {
         // surfaceContainerHighest is slightly elevated over surface — good for cards/bars
         color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.15)),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.15)),
       ),
       child: Row(
         children: [
@@ -413,7 +413,7 @@ class _StatItem extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
-                      color: colorScheme.onSurface.withOpacity(0.45),
+                      color: colorScheme.onSurface.withValues(alpha: 0.45),
                     ),
                   ),
               ],
@@ -425,7 +425,7 @@ class _StatItem extends StatelessWidget {
             style: AppTextStyles.labelSmall.copyWith(
               fontSize: 9,
               letterSpacing: 1.2,
-              color: colorScheme.onSurface.withOpacity(0.45),
+              color: colorScheme.onSurface.withValues(alpha: 0.45),
             ),
           ),
         ],
@@ -442,7 +442,7 @@ class _StatDivider extends StatelessWidget {
       width: 1,
       height: 28,
       // onSurface.withOpacity replaces Colors.white.withOpacity — adapts to both themes
-      color: colorScheme.onSurface.withOpacity(0.08),
+      color: colorScheme.onSurface.withValues(alpha: 0.08),
     );
   }
 }
@@ -477,11 +477,11 @@ class ExerciseCard extends StatelessWidget {
         // surfaceContainerHighest gives us a card-like elevation feel in both themes
         color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.12)),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.12)),
         boxShadow: [
           BoxShadow(
             // In light mode black shadow still works; in dark it's subtle
-            color: colorScheme.shadow.withOpacity(0.15),
+            color: colorScheme.shadow.withValues(alpha: 0.15),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -514,7 +514,7 @@ class ExerciseCard extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.1),
+                            color: AppColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(5),
                           ),
                           child: Text(
@@ -539,7 +539,7 @@ class ExerciseCard extends StatelessWidget {
                     height: 30,
                     margin: const EdgeInsets.only(top: 1),
                     decoration: BoxDecoration(
-                      color: colorScheme.error.withOpacity(0.08),
+                      color: colorScheme.error.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(9),
                     ),
                     child: Icon(
@@ -679,13 +679,13 @@ class _StatChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: highlight
-            ? AppColors.primary.withOpacity(0.1)
-            : colorScheme.onSurface.withOpacity(0.06),
+            ? AppColors.primary.withValues(alpha: 0.1)
+            : colorScheme.onSurface.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: highlight
-              ? AppColors.primary.withOpacity(0.2)
-              : colorScheme.outline.withOpacity(0.15),
+              ? AppColors.primary.withValues(alpha: 0.2)
+              : colorScheme.outline.withValues(alpha: 0.15),
         ),
       ),
       child: Row(
@@ -709,7 +709,7 @@ class _StatChip extends StatelessWidget {
               letterSpacing: 0.4,
               color: highlight
                   ? AppColors.primary
-                  : colorScheme.onSurface.withOpacity(0.45),
+                  : colorScheme.onSurface.withValues(alpha: 0.45),
             ),
           ),
         ],
@@ -727,7 +727,7 @@ class _SetColumnHeader extends StatelessWidget {
     final style = AppTextStyles.labelSmall.copyWith(
       fontSize: 9,
       letterSpacing: 0.8,
-      color: colorScheme.onSurface.withOpacity(0.45),
+      color: colorScheme.onSurface.withValues(alpha: 0.45),
     );
     return Column(
       children: [
@@ -746,7 +746,10 @@ class _SetColumnHeader extends StatelessWidget {
             ],
           ),
         ),
-        Container(height: 0.5, color: colorScheme.onSurface.withOpacity(0.08)),
+        Container(
+          height: 0.5,
+          color: colorScheme.onSurface.withValues(alpha: 0.08),
+        ),
         const SizedBox(height: 2),
       ],
     );
@@ -800,8 +803,8 @@ class SetRow extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             decoration: BoxDecoration(
               color: isLatest
-                  ? AppColors.primary.withOpacity(0.06)
-                  : colorScheme.onSurface.withOpacity(0.03),
+                  ? AppColors.primary.withValues(alpha: 0.06)
+                  : colorScheme.onSurface.withValues(alpha: 0.03),
               borderRadius: BorderRadius.circular(10),
               border: Border(
                 left: BorderSide(
@@ -818,8 +821,8 @@ class SetRow extends StatelessWidget {
                   height: 26,
                   decoration: BoxDecoration(
                     color: isLatest
-                        ? AppColors.primary.withOpacity(0.18)
-                        : colorScheme.onSurface.withOpacity(0.07),
+                        ? AppColors.primary.withValues(alpha: 0.18)
+                        : colorScheme.onSurface.withValues(alpha: 0.07),
                     borderRadius: BorderRadius.circular(7),
                   ),
                   child: Center(
@@ -830,7 +833,7 @@ class SetRow extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                         color: isLatest
                             ? AppColors.primary
-                            : colorScheme.onSurface.withOpacity(0.45),
+                            : colorScheme.onSurface.withValues(alpha: 0.45),
                       ),
                     ),
                   ),
@@ -846,7 +849,7 @@ class SetRow extends StatelessWidget {
                       fontWeight: isLatest ? FontWeight.w600 : FontWeight.w400,
                       color: isLatest
                           ? colorScheme.onSurface
-                          : colorScheme.onSurface.withOpacity(0.65),
+                          : colorScheme.onSurface.withValues(alpha: 0.65),
                     ),
                   ),
                 ),
@@ -860,7 +863,7 @@ class SetRow extends StatelessWidget {
                       fontWeight: isLatest ? FontWeight.w600 : FontWeight.w400,
                       color: isLatest
                           ? colorScheme.onSurface
-                          : colorScheme.onSurface.withOpacity(0.65),
+                          : colorScheme.onSurface.withValues(alpha: 0.65),
                     ),
                   ),
                 ),
@@ -877,7 +880,7 @@ class SetRow extends StatelessWidget {
                           fontSize: 9,
                           color: isLatest
                               ? AppColors.primary
-                              : colorScheme.onSurface.withOpacity(0.45),
+                              : colorScheme.onSurface.withValues(alpha: 0.45),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -887,13 +890,13 @@ class SetRow extends StatelessWidget {
                         child: LinearProgressIndicator(
                           value: volumeRatio.clamp(0.0, 1.0),
                           minHeight: 3,
-                          backgroundColor: colorScheme.onSurface.withOpacity(
-                            0.08,
+                          backgroundColor: colorScheme.onSurface.withValues(
+                            alpha: 0.08,
                           ),
                           valueColor: AlwaysStoppedAnimation<Color>(
                             isLatest
                                 ? AppColors.primary
-                                : AppColors.primary.withOpacity(0.4),
+                                : AppColors.primary.withValues(alpha: 0.4),
                           ),
                         ),
                       ),
@@ -914,7 +917,7 @@ class SetRow extends StatelessWidget {
                     width: 26,
                     height: 26,
                     decoration: BoxDecoration(
-                      color: colorScheme.error.withOpacity(0.08),
+                      color: colorScheme.error.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(7),
                     ),
                     child: Icon(
@@ -968,13 +971,13 @@ class _AddSetButton extends StatelessWidget {
             Icon(
               Icons.add_rounded,
               size: 13,
-              color: colorScheme.onSurface.withOpacity(0.45),
+              color: colorScheme.onSurface.withValues(alpha: 0.45),
             ),
             const SizedBox(width: 5),
             Text(
               'Add set',
               style: AppTextStyles.labelSmall.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.45),
+                color: colorScheme.onSurface.withValues(alpha: 0.45),
                 fontSize: 11,
                 letterSpacing: 0.4,
                 fontWeight: FontWeight.w600,
@@ -1138,7 +1141,7 @@ class _EditSetSheetContentState extends State<_EditSetSheetContent> {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
-                  color: colorScheme.onSurface.withOpacity(0.2),
+                  color: colorScheme.onSurface.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1260,7 +1263,9 @@ class _SheetField extends StatelessWidget {
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.5)),
+        labelStyle: TextStyle(
+          color: colorScheme.onSurface.withValues(alpha: 0.5),
+        ),
         filled: true,
         fillColor: colorScheme.surfaceContainerHighest,
         border: OutlineInputBorder(

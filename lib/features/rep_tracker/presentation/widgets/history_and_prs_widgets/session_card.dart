@@ -35,7 +35,7 @@ class SessionCard extends StatelessWidget {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: AppColors.error.withOpacity(0.1),
+                  color: AppColors.error.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -104,7 +104,9 @@ class SessionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.cardTheme.color ?? colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: colorScheme.onSurface.withOpacity(0.08)),
+        border: Border.all(
+          color: colorScheme.onSurface.withValues(alpha: 0.08),
+        ),
       ),
       clipBehavior: Clip.antiAlias,
       child: Theme(
@@ -149,7 +151,7 @@ class SessionCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: colorScheme.onSurface.withOpacity(0.05),
+                  color: colorScheme.onSurface.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(7),
                 ),
                 child: Text(
@@ -171,7 +173,7 @@ class SessionCard extends StatelessWidget {
                   width: 30,
                   height: 30,
                   decoration: BoxDecoration(
-                    color: AppColors.error.withOpacity(0.08),
+                    color: AppColors.error.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(9),
                   ),
                   child: const Icon(
@@ -187,7 +189,7 @@ class SessionCard extends StatelessWidget {
             // ... rest of children (exercises list) also updated similarly with colorScheme
             Container(
               height: 1,
-              color: colorScheme.onSurface.withOpacity(0.08),
+              color: colorScheme.onSurface.withValues(alpha: 0.08),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
@@ -219,9 +221,13 @@ class SessionCard extends StatelessWidget {
                                   vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.1,
+                                  ),
                                   border: Border.all(
-                                    color: AppColors.primary.withOpacity(0.2),
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.2,
+                                    ),
                                   ),
                                   borderRadius: BorderRadius.circular(20),
                                 ),

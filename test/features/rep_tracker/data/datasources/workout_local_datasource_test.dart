@@ -1,28 +1,20 @@
-import 'dart:convert';
-
+import 'package:drift/native.dart';
+import 'package:fitflow/core/database/app_database.dart';
 import 'package:fitflow/core/failure/cache_exceptions.dart';
 import 'package:fitflow/features/rep_tracker/data/datasources/workout_local_datasource.dart';
 import 'package:fitflow/features/rep_tracker/data/models/exercise_model.dart';
 import 'package:fitflow/features/rep_tracker/data/models/set_model.dart';
 import 'package:fitflow/features/rep_tracker/data/models/workout_session_model.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive/hive.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// This annotation tells build_runner to generate typed mocks for these classes
-@GenerateMocks([HiveInterface, Box])
-import 'workout_local_datasource_test.mocks.dart'; // generated file
-
 void main() {
-  late MockHiveInterface mockHive;
-  late MockBox<String> mockBox;
+  late AppDatabase database;
   late WorkoutLocalDatasourceImpl datasource;
 
   final sessionModel = WorkoutSessionModel(
     id: 's1',
-    date: DateTime(2026),
+    date: DateTime(2026, 3, 1, 10),
     exercises: [
       ExerciseModel(
         id: 'e1',
@@ -32,7 +24,7 @@ void main() {
             id: 'set1',
             weightKg: 100,
             reps: 5,
-            performedAt: DateTime(2026),
+            performedAt: DateTime(2026, 3, 1, 10, 15),
           ),
         ],
       ),
@@ -41,70 +33,86 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
-    mockHive = MockHiveInterface();
-    mockBox = MockBox<String>();
-    datasource = WorkoutLocalDatasourceImpl(hive: mockHive);
+    database = AppDatabase(NativeDatabase.memory());
+    datasource = WorkoutLocalDatasourceImpl(database: database);
+  });
 
-    // Stub BEFORE datasource is used — these are safe now with typed mocks
-    when(mockHive.isBoxOpen('workout_sessions')).thenReturn(true);
-    when(mockHive.box<String>('workout_sessions')).thenReturn(mockBox);
+  tearDown(() async {
+    await database.clearAllWorkoutData();
   });
 
   group('saveWorkoutSession', () {
-    test('stores encoded json in hive box', () async {
-      final jsonValue = jsonEncode(sessionModel.toJson());
-
-      // Stub the put call — void return, so use thenAnswer with Future.value()
-      when(mockBox.put('s1', jsonValue)).thenAnswer((_) async {});
-
+    test('persists session with nested exercises and sets', () async {
       await datasource.saveWorkoutSession(sessionModel);
 
-      verify(mockBox.put('s1', jsonValue)).called(1);
+      final history = await datasource.getWorkoutHistory();
+      expect(history, hasLength(1));
+      expect(history.first.id, 's1');
+      expect(history.first.exercises.first.name, 'Squat');
+      expect(history.first.exercises.first.sets.first.weightKg, 100);
     });
 
-    test('throws CacheException when hive throws', () async {
-      when(mockBox.put(any, any)).thenThrow(Exception('hive error'));
+    test('replaces an existing session with the same id', () async {
+      await datasource.saveWorkoutSession(sessionModel);
 
-      expect(
-        () => datasource.saveWorkoutSession(sessionModel),
-        throwsA(isA<CacheException>()),
+      final updated = WorkoutSessionModel(
+        id: 's1',
+        date: sessionModel.date,
+        exercises: [
+          ExerciseModel(
+            id: 'e2',
+            name: 'Deadlift',
+            sets: [
+              SetModel(
+                id: 'set2',
+                weightKg: 140,
+                reps: 3,
+                performedAt: DateTime(2026, 3, 1, 10, 30),
+              ),
+            ],
+          ),
+        ],
       );
+
+      await datasource.saveWorkoutSession(updated);
+
+      final history = await datasource.getWorkoutHistory();
+      expect(history, hasLength(1));
+      expect(history.first.exercises.single.name, 'Deadlift');
     });
   });
 
   group('getWorkoutHistory', () {
-    test('parses and returns sorted sessions', () async {
-      when(mockBox.values).thenReturn([jsonEncode(sessionModel.toJson())]);
-
-      final result = await datasource.getWorkoutHistory();
-
-      expect(result, hasLength(1));
-      expect(result.first.id, 's1');
-    });
-
-    test('throws CacheException when hive throws', () async {
-      when(mockBox.values).thenThrow(Exception('read error'));
-
-      expect(
-        () => datasource.getWorkoutHistory(),
-        throwsA(isA<CacheException>()),
+    test('returns sessions sorted by date descending', () async {
+      final older = WorkoutSessionModel(
+        id: 'older',
+        date: DateTime(2026, 2, 1),
+        exercises: const [],
       );
+      final newer = WorkoutSessionModel(
+        id: 'newer',
+        date: DateTime(2026, 3, 1),
+        exercises: const [],
+      );
+
+      await datasource.saveWorkoutSession(older);
+      await datasource.saveWorkoutSession(newer);
+
+      final history = await datasource.getWorkoutHistory();
+      expect(history.map((session) => session.id), ['newer', 'older']);
     });
   });
 
   group('deleteWorkoutSession', () {
-    test('deletes session when key exists', () async {
-      when(mockBox.containsKey('s1')).thenReturn(true);
-      when(mockBox.delete('s1')).thenAnswer((_) async {});
-
+    test('deletes session when it exists', () async {
+      await datasource.saveWorkoutSession(sessionModel);
       await datasource.deleteWorkoutSession('s1');
 
-      verify(mockBox.delete('s1')).called(1);
+      final history = await datasource.getWorkoutHistory();
+      expect(history, isEmpty);
     });
 
     test('throws CacheException when session not found', () async {
-      when(mockBox.containsKey('missing')).thenReturn(false);
-
       expect(
         () => datasource.deleteWorkoutSession('missing'),
         throwsA(isA<CacheException>()),
@@ -112,7 +120,16 @@ void main() {
     });
   });
 
-  // SharedPreferences uses fake/mock values — no Hive involved here
+  group('clearAllWorkoutSessions', () {
+    test('removes all persisted workout history', () async {
+      await datasource.saveWorkoutSession(sessionModel);
+      await datasource.clearAllWorkoutSessions();
+
+      final history = await datasource.getWorkoutHistory();
+      expect(history, isEmpty);
+    });
+  });
+
   group('active session (SharedPreferences)', () {
     test('saveActiveSession persists session', () async {
       await datasource.saveActiveSession(sessionModel);

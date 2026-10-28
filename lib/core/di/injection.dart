@@ -1,7 +1,11 @@
+import 'package:fitflow/core/database/app_database.dart';
 import 'package:fitflow/core/router/app_router.dart';
 import 'package:fitflow/core/services/app_info_service.dart';
-import 'package:fitflow/core/services/notification_reminder_service.dart';
 import 'package:fitflow/core/services/timer_sound_service.dart';
+import 'package:fitflow/features/ai_coach/data/repositories/fitness_context_repository_impl.dart';
+import 'package:fitflow/features/ai_coach/domain/repositories/fitness_context_repository.dart';
+import 'package:fitflow/features/ai_coach/domain/usecases/build_fitness_context.dart';
+import 'package:fitflow/features/ai_coach/presentation/bloc/coach_home_bloc/coach_home_bloc.dart';
 import 'package:fitflow/features/notification/data/datasources/fcm_remote_datasource.dart';
 import 'package:fitflow/features/notification/data/datasources/local_notification_datasource.dart';
 import 'package:fitflow/features/notification/data/repository/notification_repository_impl.dart';
@@ -19,15 +23,22 @@ import 'package:fitflow/features/reminder/domain/usecases/load_reminder_settings
 import 'package:fitflow/features/reminder/domain/usecases/save_reminder_settings_usecase.dart';
 import 'package:fitflow/features/reminder/presentation/bloc/reminder_bloc.dart';
 import 'package:fitflow/features/rep_tracker/data/datasources/workout_local_datasource.dart';
+import 'package:fitflow/features/rep_tracker/data/repositories/hive_exercise_catalog_repository.dart';
 import 'package:fitflow/features/rep_tracker/data/repositories/workout_repository_impl.dart';
+import 'package:fitflow/features/rep_tracker/domain/repositories/exercise_catalog_repository.dart';
 import 'package:fitflow/features/rep_tracker/domain/repositories/workout_repository.dart';
+import 'package:fitflow/features/rep_tracker/domain/usecases/delete_custom_exercise_usecase.dart';
 import 'package:fitflow/features/rep_tracker/domain/usecases/delete_workout_session.dart';
+import 'package:fitflow/features/rep_tracker/domain/usecases/get_exercises_for_category_usecase.dart';
 import 'package:fitflow/features/rep_tracker/domain/usecases/get_personal_records.dart';
 import 'package:fitflow/features/rep_tracker/domain/usecases/get_workout_history.dart';
+import 'package:fitflow/features/rep_tracker/domain/usecases/save_custom_exercise_usecase.dart';
 import 'package:fitflow/features/rep_tracker/domain/usecases/save_workout_session.dart';
+import 'package:fitflow/features/rep_tracker/presentation/bloc/exercise_picker_bloc/exercise_picker_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/personal_records_bloc/personal_records_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_history_bloc/workout_history_bloc.dart';
 import 'package:fitflow/features/rep_tracker/presentation/bloc/workout_session_bloc/workout_session_bloc.dart';
+import 'package:fitflow/features/auth/data/datasources/auth_datasources.dart';
 import 'package:fitflow/features/settings/data/datasources/sound_local_datasource.dart';
 import 'package:fitflow/features/settings/data/datasources/theme_local_datasource.dart';
 import 'package:fitflow/features/settings/data/repositories/clear_data_repository_impl.dart';
@@ -44,18 +55,62 @@ import 'package:fitflow/features/settings/domain/usecases/save_theme_mode.dart';
 import 'package:fitflow/features/settings/presentation/bloc/sound_settings/sound_settings_bloc.dart';
 import 'package:fitflow/features/settings/presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'package:fitflow/features/workout_timer/presentation/bloc/timer_bloc.dart';
+import 'package:fitflow/features/auth/data/datasources/auth_remote_datasource_impl.dart';
+import 'package:fitflow/features/auth/data/datasources/user_profile_local_datasource_impl.dart';
+import 'package:fitflow/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:fitflow/features/auth/domain/repositories/auth_repository.dart';
+import 'package:fitflow/features/auth/domain/usecases/auth_usecases.dart';
+import 'package:fitflow/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 final getIt = GetIt.instance;
 
 Future<void> registerFirebaseFeature() async {
+  getIt.registerLazySingleton(() => FirebaseAuth.instance);
+  getIt.registerLazySingleton(() => GoogleSignIn.instance);
   getIt.registerLazySingleton(() => FirebaseMessaging.instance);
   getIt.registerLazySingleton(() => FlutterLocalNotificationsPlugin());
+}
+
+Future<void> registerAuthFeature() async {
+  getIt.registerLazySingleton<UserProfileLocalDatasource>(
+    () => UserProfileLocalDatasourceImpl(prefs: getIt<SharedPreferences>()),
+  );
+  getIt.registerLazySingleton<AuthRemoteDatasource>(
+    () => AuthRemoteDatasourceImpl(
+      firebaseAuth: getIt<FirebaseAuth>(),
+      googleSignIn: getIt<GoogleSignIn>(),
+    ),
+  );
+  getIt.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(
+      remoteDatasource: getIt<AuthRemoteDatasource>(),
+      localDatasource: getIt<UserProfileLocalDatasource>(),
+    ),
+  );
+  getIt.registerLazySingleton(() => SignInWithGoogle(getIt<AuthRepository>()));
+  getIt.registerLazySingleton(() => SignInAnonymously(getIt<AuthRepository>()));
+  getIt.registerLazySingleton(() => SignOut(getIt<AuthRepository>()));
+  getIt.registerLazySingleton(
+    () => GetCurrentUserProfile(getIt<AuthRepository>()),
+  );
+  getIt.registerLazySingleton(() => ClearAuthProfile(getIt<AuthRepository>()));
+  getIt.registerLazySingleton<AuthCubit>(
+    () => AuthCubit(
+      getCurrentUserProfile: getIt<GetCurrentUserProfile>(),
+      signInWithGoogle: getIt<SignInWithGoogle>(),
+      signInAnonymously: getIt<SignInAnonymously>(),
+      signOut: getIt<SignOut>(),
+      authRepository: getIt<AuthRepository>(),
+    ),
+  );
 }
 
 Future<void> registerNotificationFeature() async {
@@ -94,8 +149,9 @@ Future<void> registerNotificationFeature() async {
 }
 
 Future<void> registerRepTrackerFeature() async {
+  getIt.registerLazySingleton<AppDatabase>(() => AppDatabase());
   getIt.registerLazySingleton<WorkoutLocalDatasource>(
-    () => WorkoutLocalDatasourceImpl(hive: Hive),
+    () => WorkoutLocalDatasourceImpl(database: getIt()),
   );
   getIt.registerLazySingleton<WorkoutRepository>(
     () => WorkoutRepositoryImpl(localDatasource: getIt()),
@@ -119,6 +175,43 @@ Future<void> registerRepTrackerFeature() async {
       deleteWorkoutSession: getIt<DeleteWorkoutSessionUsecase>(),
       saveWorkoutSession: getIt<SaveWorkoutSession>(),
     ),
+  );
+  // injection.dart — add near your other Hive/box registrations
+  final customExerciseBox = await Hive.openBox('custom_exercises_box');
+  getIt.registerLazySingleton<Box>(
+    () => customExerciseBox,
+    instanceName: 'customExerciseBox',
+  );
+
+  getIt.registerLazySingleton<ExerciseCatalogRepository>(
+    () =>
+        HiveExerciseCatalogRepository(getIt(instanceName: 'customExerciseBox')),
+  );
+  getIt.registerLazySingleton(() => GetExercisesForCategoryUseCase(getIt()));
+  getIt.registerLazySingleton(() => SaveCustomExerciseUseCase(getIt()));
+  getIt.registerLazySingleton(() => DeleteCustomExerciseUseCase(getIt()));
+
+  getIt.registerFactory(
+    () => ExercisePickerBloc(
+      getExercises: getIt(),
+      saveExercise: getIt(),
+      deleteExercise: getIt(),
+      prefs: getIt(),
+    ),
+  );
+}
+
+Future<void> registerAiCoachFeature() async {
+  getIt.registerLazySingleton<FitnessContextRepository>(
+    () => FitnessContextRepositoryImpl(
+      getWorkoutHistory: getIt(),
+      getPersonalRecords: getIt(),
+      workoutRepository: getIt(),
+    ),
+  );
+  getIt.registerLazySingleton(() => BuildFitnessContext(getIt()));
+  getIt.registerFactory(
+    () => CoachHomeBloc(buildFitnessContext: getIt()),
   );
 }
 
@@ -149,6 +242,8 @@ Future<void> setupInjection() async {
   await registerAppInfoService();
   await registerNotificationFeature();
   await registerRepTrackerFeature();
+  await registerAiCoachFeature();
+  await registerAuthFeature();
   await _registerThemeFeature();
   await _registerSoundFeature();
   await registerWorkoutTimerFeature();
@@ -167,7 +262,7 @@ Future<void> registerClearAllDataUsecase() async {
       notificationService: getIt<ReminderNotificationService>(),
       soundDatasource: getIt<SoundLocalDatasource>(),
       themeDatasource: getIt<ThemeLocalDatasource>(),
-      hive: Hive,
+      authRepository: getIt<AuthRepository>(),
     ),
   );
 

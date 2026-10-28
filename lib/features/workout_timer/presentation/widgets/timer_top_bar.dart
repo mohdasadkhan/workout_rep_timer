@@ -31,9 +31,8 @@ class TimerTopBar extends StatelessWidget {
             icon: data.isPaused
                 ? Icons.play_arrow_rounded
                 : Icons.pause_rounded,
-            onPressed: () => bloc.add(
-              data.isPaused ? TimerResumed() : TimerPaused(),
-            ),
+            onPressed: () =>
+                bloc.add(data.isPaused ? TimerResumed() : TimerPaused()),
             color: data.color,
           ),
         ],
@@ -67,13 +66,12 @@ class _SetProgressDots extends StatelessWidget {
           height: 10,
           decoration: BoxDecoration(
             color: isPast
-                ? color.withOpacity(0.5)
+                ? color.withValues(alpha: 0.5)
                 : isCurrent
-                    ? color
-                    : Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withOpacity(0.12),
+                ? color
+                : Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(5),
           ),
         );

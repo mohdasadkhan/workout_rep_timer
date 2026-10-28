@@ -11,10 +11,8 @@ class TimerCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final minutes =
-        (data.remainingSeconds ~/ 60).toString().padLeft(2, '0');
-    final seconds =
-        (data.remainingSeconds % 60).toString().padLeft(2, '0');
+    final minutes = (data.remainingSeconds ~/ 60).toString().padLeft(2, '0');
+    final seconds = (data.remainingSeconds % 60).toString().padLeft(2, '0');
     final progress = data.totalDuration <= 0
         ? 0.0
         : data.remainingSeconds / data.totalDuration;
@@ -32,7 +30,7 @@ class TimerCircle extends StatelessWidget {
                 painter: _ArcPainter(
                   progress: progress,
                   color: data.phaseColor,
-                  trackColor: data.phaseColor.withOpacity(0.10),
+                  trackColor: data.phaseColor.withValues(alpha: 0.10),
                   strokeWidth: 12,
                 ),
               ),
@@ -52,7 +50,7 @@ class TimerCircle extends StatelessWidget {
                       color: Theme.of(context).colorScheme.onSurface,
                       shadows: [
                         Shadow(
-                          color: data.phaseColor.withOpacity(0.25),
+                          color: data.phaseColor.withValues(alpha: 0.25),
                           blurRadius: 8,
                         ),
                       ],

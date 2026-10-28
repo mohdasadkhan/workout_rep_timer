@@ -63,7 +63,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: colorScheme.primary.withOpacity(0.15)),
+          side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.15)),
         ),
         margin: const EdgeInsets.only(bottom: 12),
       ),
@@ -139,7 +139,7 @@ class AppTheme {
         elevation: 4,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: colorScheme.outline.withOpacity(0.3)),
+          side: BorderSide(color: colorScheme.outline.withValues(alpha: 0.3)),
         ),
         margin: const EdgeInsets.only(bottom: 12),
       ),
@@ -177,7 +177,6 @@ class AppTheme {
         return lightTheme;
       case ThemeMode.dark:
         return darkTheme;
-      case ThemeMode.system:
       default:
         return platformBrightness == Brightness.light ? lightTheme : darkTheme;
     }

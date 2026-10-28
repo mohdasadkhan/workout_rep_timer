@@ -50,7 +50,7 @@ class DayScheduleCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(22),
           color: isActive
-              ? primary.withOpacity(.08)
+              ? primary.withValues(alpha: .08)
               : theme.colorScheme.surface,
         ),
         child: InkWell(
@@ -74,7 +74,9 @@ class DayScheduleCard extends StatelessWidget {
                       style: theme.textTheme.labelSmall?.copyWith(
                         letterSpacing: 1.4,
                         fontWeight: FontWeight.w700,
-                        color: theme.colorScheme.onSurface.withOpacity(.42),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: .42,
+                        ),
                       ),
                     ),
                     const Spacer(),
@@ -86,7 +88,7 @@ class DayScheduleCard extends StatelessWidget {
                         shape: BoxShape.circle,
                         color: isActive
                             ? primary
-                            : theme.colorScheme.outline.withOpacity(.20),
+                            : theme.colorScheme.outline.withValues(alpha: .20),
                       ),
                     ),
                   ],
@@ -102,7 +104,7 @@ class DayScheduleCard extends StatelessWidget {
                     height: 1,
                     color: isActive
                         ? theme.colorScheme.onSurface
-                        : theme.colorScheme.onSurface.withOpacity(.55),
+                        : theme.colorScheme.onSurface.withValues(alpha: .55),
                   ),
                 ),
 
@@ -117,7 +119,7 @@ class DayScheduleCard extends StatelessWidget {
                         shape: BoxShape.circle,
                         color: isActive
                             ? primary
-                            : theme.colorScheme.outline.withOpacity(.35),
+                            : theme.colorScheme.outline.withValues(alpha: .35),
                       ),
                     ),
 
@@ -129,7 +131,9 @@ class DayScheduleCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                         color: isActive
                             ? primary
-                            : theme.colorScheme.onSurface.withOpacity(.40),
+                            : theme.colorScheme.onSurface.withValues(
+                                alpha: .40,
+                              ),
                       ),
                     ),
 
@@ -147,7 +151,7 @@ class DayScheduleCard extends StatelessWidget {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(50),
                             color: theme.colorScheme.surfaceContainerHighest
-                                .withOpacity(.55),
+                                .withValues(alpha: .55),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -155,8 +159,8 @@ class DayScheduleCard extends StatelessWidget {
                               Icon(
                                 Icons.edit_outlined,
                                 size: 12,
-                                color: theme.colorScheme.onSurface.withOpacity(
-                                  .60,
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: .60,
                                 ),
                               ),
                               const SizedBox(width: 4),

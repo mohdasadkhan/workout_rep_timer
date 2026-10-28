@@ -1,19 +1,10 @@
-import 'package:hive/hive.dart';
+import '../../domain/entities/exercise_set.dart';
 import '../../domain/entities/exercise_set.dart';
 
-
-@HiveType(typeId: 0)
-class SetModel extends HiveObject {
-  @HiveField(0)
+class SetModel {
   final String id;
-
-  @HiveField(1)
   final double weightKg;
-
-  @HiveField(2)
   final int reps;
-
-  @HiveField(3)
   final DateTime performedAt;
 
   SetModel({
@@ -24,30 +15,30 @@ class SetModel extends HiveObject {
   });
 
   factory SetModel.fromEntity(ExerciseSet entity) => SetModel(
-        id: entity.id,
-        weightKg: entity.weightKg,
-        reps: entity.reps,
-        performedAt: entity.performedAt,
-      );
+    id: entity.id,
+    weightKg: entity.weightKg,
+    reps: entity.reps,
+    performedAt: entity.performedAt,
+  );
 
   factory SetModel.fromJson(Map<String, dynamic> json) => SetModel(
-        id: json['id'] as String,
-        weightKg: (json['weightKg'] as num).toDouble(),
-        reps: json['reps'] as int,
-        performedAt: DateTime.parse(json['performedAt'] as String),
-      );
+    id: json['id'] as String,
+    weightKg: (json['weightKg'] as num).toDouble(),
+    reps: json['reps'] as int,
+    performedAt: DateTime.parse(json['performedAt'] as String),
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'weightKg': weightKg,
-        'reps': reps,
-        'performedAt': performedAt.toIso8601String(),
-      };
+    'id': id,
+    'weightKg': weightKg,
+    'reps': reps,
+    'performedAt': performedAt.toIso8601String(),
+  };
 
   ExerciseSet toEntity() => ExerciseSet(
-        id: id,
-        weightKg: weightKg,
-        reps: reps,
-        performedAt: performedAt,
-      );
+    id: id,
+    weightKg: weightKg,
+    reps: reps,
+    performedAt: performedAt,
+  );
 }
